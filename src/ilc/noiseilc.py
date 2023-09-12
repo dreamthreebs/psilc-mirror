@@ -238,49 +238,50 @@ class NILC:
         print(f"{self.needlet = }")
 
 
-sim = np.load(f'../smooth/FULL_PATCH/PS_northNOI/CMBFG/{cl_type}/data.npy')
-fg = np.load(f'../smooth/FULL_PATCH/PS_northNOI/FG/{cl_type}/data.npy')
+# sim = np.load(f'../smooth/FULL_PATCH/PS_northNOI/SIM/{cl_type}/data.npy')
+# fg = np.load(f'../smooth/FULL_PATCH/PS_northNOI/FG/{cl_type}/data.npy')
 # fgnoise = np.load(f'../sim/simdata/{cl_type}/fgnoise.npy')
 # cmb = np.load(f'../sim/simdata/{cl_type}/cmb.npy')
-# noise = np.load(f'../smooth/FULL_PATCH/PS_northLOWNOI/NOISE/{cl_type}/data.npy')
+# noise = np.load(f'../smooth/FULL_PATCH/noPS_northNOI/NOISE/{cl_type}/data.npy')
 
-number = 10
+number = 9
 needlet_type = 1
-obj = NILC(needlet_config=f'./needlets/needlet{needlet_type}.csv', Sm_alms=None, weights_name=f'./FULL_{cl_type}/weight{number}.npz', Sm_maps=sim, lmax=lmax, nside=nside, Rtol=1/100)
+# obj = NILC(needlet_config=f'./needlets/needlet{needlet_type}.csv', Sm_alms=None, weights_name=f'./FULL_{cl_type}/weight{number}.npz', Sm_maps=sim, lmax=lmax, nside=nside, Rtol=1/100)
 # obj = NILC(needlet_config='./needlets/needlet.csv', Sm_alms=None, weights_config=f'./nilcdata/weightexact.npz', Sm_maps=fg, lmax=lmax, nside=nside)
 
-ilc_res = obj.run_nilc()
-ilc_cl = hp.anafast(ilc_res,lmax=lmax)
-np.save(f'./FULL_{cl_type}/nilc_cl{number}.npy', ilc_cl)
 
-obj = NILC(needlet_config=f'./needlets/needlet{needlet_type}.csv', Sm_alms=None, weights_config=f'./FULL_{cl_type}/weight{number}.npz', Sm_maps=fg, lmax=lmax, nside=nside)
-fg_res = obj.run_nilc()
-fgres_cl = hp.anafast(fg_res,lmax=lmax)
-np.save(f'./FULL_{cl_type}/nilc_fgres_map{number}.npy', fg_res)
-np.save(f'./FULL_{cl_type}/nilc_fgres_cl{number}.npy', fgres_cl)
-
-# # noise = np.load(f'../smooth/FULL_SKY/SM_NOISE/{cl_type}/noise.npy')
-# obj = NILC(needlet_config=f'./needlets/needlet{needlet_type}.csv', Sm_alms=None, weights_config=f'./FULL_{cl_type}/weight{number}.npz', Sm_maps=noise, lmax=lmax, nside=nside)
-# noise_res = obj.run_nilc()
-# noiseres_cl = hp.anafast(noise_res,lmax=lmax)
-# np.save(f'./FULL_{cl_type}/nilc_noise_cl{number}.npy', noiseres_cl)
-
-
-# for i in range(15,30):
+# for i in range(0,30):
 #     print(f'{i}')
-#     noise = np.load(f'../smooth/FULL_SKY/SM_NOISE/{i}/{cl_type}/noise.npy')
+#     noise = np.load(f'../smooth/FULL_PATCH/noPS_northNOI/NOISESIM/{i}/{cl_type}/data.npy')
 #     obj = NILC(needlet_config=f'./needlets/needlet{needlet_type}.csv', Sm_alms=None, weights_config=f'./FULL_{cl_type}/weight{number}.npz', Sm_maps=noise, lmax=lmax, nside=nside)
 #     noise_res = obj.run_nilc()
 #     noiseres_cl = hp.anafast(noise_res,lmax=lmax)
-#     np.save(f'./FULL_B/NOISE/nilc_noise_cl{number}{i}.npy', noiseres_cl)
+#     np.save(f'./FULL_B/NOISE/nilc_noise_cl{number}sim{i}.npy', noiseres_cl)
+
+# for i in range(30,50):
+#     print(f'{i}')
+#     noise = np.load(f'../smooth/FULL_PATCH/noPS_northLOWNOI/NOISESIM/{i}/{cl_type}/data.npy')
+#     obj = NILC(needlet_config=f'./needlets/needlet{needlet_type}.csv', Sm_alms=None, weights_config=f'./FULL_{cl_type}/weight{number}.npz', Sm_maps=noise, lmax=lmax, nside=nside)
+#     noise_res = obj.run_nilc()
+#     noiseres_cl = hp.anafast(noise_res,lmax=lmax)
+#     np.save(f'./FULL_B/lowNOISE/nilc_noise_cl{number}sim{i}.npy', noiseres_cl)
+
+# for i in range(30,50):
+#     print(f'{i}')
+#     noise = np.load(f'../smooth/FULL_PATCH/PS_northNOI/NOISESIM/{i}/{cl_type}/data.npy')
+#     obj = NILC(needlet_config=f'./needlets/needlet{needlet_type}.csv', Sm_alms=None, weights_config=f'./FULL_{cl_type}/weight{number}.npz', Sm_maps=noise, lmax=lmax, nside=nside)
+#     noise_res = obj.run_nilc()
+#     noiseres_cl = hp.anafast(noise_res,lmax=lmax)
+#     np.save(f'./FULL_B/PSNOISE/nilc_noise_cl{number}sim{i}.npy', noiseres_cl)
+
+for i in range(30,50):
+    print(f'{i}')
+    noise = np.load(f'../smooth/FULL_PATCH/noPS_northLOWNOI/NOISESIM/{i}/{cl_type}/data.npy')
+    obj = NILC(needlet_config=f'./needlets/needlet{needlet_type}.csv', Sm_alms=None, weights_config=f'./FULL_{cl_type}/weight{number}.npz', Sm_maps=noise, lmax=lmax, nside=nside)
+    noise_res = obj.run_nilc()
+    noiseres_cl = hp.anafast(noise_res,lmax=lmax)
+    np.save(f'./FULL_B/PSlowNOISE/nilc_noise_cl{number}sim{i}.npy', noiseres_cl)
 
 
 
-# obj = NILC(needlet_config=f'./needlets/needlet{needlet_type}.csv', Sm_alms=None, weights_config=f'./{cl_type}/weight{number}.npz', Sm_maps=fgnoise, lmax=lmax, nside=nside)
-# d = obj.run_nilc()
-# obj = NILC(needlet_config=f'./needlets/needlet{needlet_type}.csv', Sm_alms=None, weights_config=f'./{cl_type}/weight{number}.npz', Sm_maps=cmb, lmax=lmax, nside=nside)
-# s = obj.run_nilc()
-
-# cl_sd = 2 * hp.anafast(s,d,lmax=lmax)
-# np.save(f'./{cl_type}/nilc_clsd{number}.npy', cl_sd)
 

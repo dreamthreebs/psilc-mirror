@@ -4,6 +4,8 @@ import healpy as hp
 import pandas as pd
 from pathlib import Path
 import glob
+import os
+import time
 from itertools import zip_longest
 
 df = pd.read_csv('../../FGSim/FreqBand')
@@ -21,8 +23,12 @@ fgnps_all = glob.glob('../../FGSim/FG_noPS/*.npy')
 sorted_fgnps = sorted(fgnps_all, key=lambda x: int(Path(x).stem))
 print(f'{sorted_fgnps}')
 
+fgps_all = glob.glob('../../FGSim/FG/*.npy')
+sorted_fgps = sorted(fgps_all, key=lambda x: int(Path(x).stem))
+print(f'{sorted_fgps}')
+
 nstd_all = glob.glob('../../FGSim/NSTDNORTH/*.npy')
-sorted_nstd = sorted(cmb_all, key=lambda x: int(Path(x).stem))
+sorted_nstd = sorted(nstd_all, key=lambda x: int(Path(x).stem))
 print(f'{sorted_nstd}')
 
 
@@ -82,7 +88,7 @@ def bl_creater(lmax):
     # you can appoint different beam profiles here, the default is gaussian beam
     return bl_temp_arr, bl_grad_arr, bl_curl_arr
 
-def smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=None, m_fg_files=None, m_noise_files=None, m_nstd_files=None, mask=None, nside=512, num_sim=None)->None:
+def smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=None, m_fg_files=None, m_noise_files=None, m_nstd_files=None, mask=None, nside=512, num_sim=None, save_path=None)->None:
     nside = nside
     n_pix = hp.nside2npix(nside)
     m_cmb_files = [] if m_cmb_files is None else m_cmb_files
@@ -118,7 +124,11 @@ def smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad,
 
         freq = df.at[index, 'freq']
 
-        np.save(f'./FULL_SKY/SM_SIM_noPS/{freq}.npy', smTEB)
+        # np.save(f'./FULL_SKY/SM_lowNOISE/{freq}.npy', smTEB)
+        # if num_sim is not None:
+            # np.save(f'{save_path}/{num_sim}/{freq}.npy', smTEB)
+        # else:
+        np.save(f'{save_path}/{freq}.npy', smTEB)
 
 def load_and_check(prefix):
     file = glob.glob(f'{prefix}/*.npy')
@@ -126,51 +136,100 @@ def load_and_check(prefix):
     print(f'{sorted_file}')
     check_maps_TEB(sorted_file, lmax, nside)
 
+def split_maps(path):
+    maps = glob.glob(os.path.join(path, '*.npy'))
+    map_list = sorted(maps, key=lambda x: int(Path(x).stem))
+    T_list=[];E_list=[];B_list=[]
+    for file in map_list:
+        freq = int(Path(file).stem)
+        print(f'split{freq}...')
+        m = np.load(file)
+        T_list.append(m[0]);E_list.append(m[1]);B_list.append(m[2])
+
+    T=np.array(T_list);E=np.array(E_list);B=np.array(B_list)
+    T_PATH = os.path.join(path,'T')
+    E_PATH = os.path.join(path,'E')
+    B_PATH = os.path.join(path,'B')
+    paths = [(T_PATH, T), (E_PATH, E), (B_PATH, B)]
+    
+    for p, data in paths:
+        if not os.path.exists(p):
+            os.makedirs(p)
+        np.save(os.path.join(p, 'data.npy'), data)
+
+
+def data_creater(root_path, cmb_data_list=None, fg_data_list=None, nstd_data_list=None):
+    ''' create all data '''
+    print('create sim...')
+    SIMPATH = os.path.join(root_path, 'SIM')
+    if not os.path.exists(SIMPATH):
+        os.makedirs(SIMPATH)
+    smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=cmb_data_list, m_fg_files=fg_data_list,m_nstd_files=nstd_data_list, save_path=SIMPATH)
+    split_maps(SIMPATH)
+
+    print('create cmb...')
+    CMBPATH = os.path.join(root_path, 'CMB')
+    if not os.path.exists(CMBPATH):
+        os.makedirs(CMBPATH)
+    smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=cmb_data_list, m_fg_files=None,m_nstd_files=None, save_path=CMBPATH)
+    split_maps(CMBPATH)
+
+    print('create fg...')
+    FGPATH = os.path.join(root_path, 'FG')
+    if not os.path.exists(FGPATH):
+        os.makedirs(FGPATH)
+    smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=None, m_fg_files=fg_data_list,m_nstd_files=None, save_path=FGPATH)
+    split_maps(FGPATH)
+
+    print('create noise...')
+    NOISEPATH = os.path.join(root_path, 'NOISE')
+    if not os.path.exists(NOISEPATH):
+        os.makedirs(NOISEPATH)
+    smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=None, m_fg_files=None,m_nstd_files=nstd_data_list, save_path=NOISEPATH)
+    split_maps(NOISEPATH)
+
+    print('create fgnoise...')
+    FGNOISEPATH = os.path.join(root_path, 'FGNOISE')
+    if not os.path.exists(FGNOISEPATH):
+        os.makedirs(FGNOISEPATH)
+    smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=None, m_fg_files=fg_data_list,m_nstd_files=nstd_data_list, save_path=FGNOISEPATH)
+    split_maps(FGNOISEPATH)
+
+    print('create cmbfg...')
+    CMBFGPATH = os.path.join(root_path, 'CMBFG')
+    if not os.path.exists(CMBFGPATH):
+        os.makedirs(CMBFGPATH)
+    smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=cmb_data_list, m_fg_files=fg_data_list,m_nstd_files=None, save_path=CMBFGPATH)
+    split_maps(CMBFGPATH)
+
+
+def noise_simulator(root_path, nstd_data_list, sim_min=0, sim_max=100):
+    print('create noise simulation')
+    for i in range(sim_min, sim_max):
+        print(f'simulation:{i}')
+        NOISEPATH = os.path.join(root_path, f'NOISESIM/{i}')
+        if not os.path.exists(NOISEPATH):
+            os.makedirs(NOISEPATH)
+        smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=None, m_fg_files=None,m_nstd_files=nstd_data_list, save_path=NOISEPATH,num_sim=i)
+        split_maps(NOISEPATH)
+
+
+
 if __name__=="__main__":
 
-    # check_maps_IQU(sorted_fgnps, lmax, nside)
+    # check_maps_IQU(sorted_fgps, lmax, nside)
     bl_temp_arr, bl_grad_arr, bl_curl_arr = bl_creater(lmax)
 
-    # np.save('./BL/bl_temp_arr.npy',bl_temp_arr)
-    # np.save('./BL/bl_grad_arr.npy',bl_grad_arr)
-    # np.save('./BL/bl_curl_arr.npy',bl_curl_arr)
-    # np.save('./BL/bl_std_temp.npy',bl_std_temp)
-    # np.save('./BL/bl_std_grad.npy',bl_std_grad)
-    # np.save('./BL/bl_std_curl.npy',bl_std_curl)
+    # noise_simulator('./FULL_PATCH/noPS_northNOI', nstd_data_list=sorted_nstd, sim_min=30, sim_max=50)
+    # noise_simulator('./FULL_PATCH/noPS_northLOWNOI', nstd_data_list=sorted_nstd, sim_min=40, sim_max=50)
 
-    # for index in range(60,100):
-        # smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=None, m_fg_files=None, m_nstd_files=sorted_noise, num_sim=index)
+    # data_creater('./FULL_PATCH/noPS_northNOI',cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd)
+    # data_creater('./FULL_PATCH/noPS_northLOWNOI',cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd)
 
-    # sim_all = glob.glob('./SM_SIM_noPS/*.npy')
-    # sorted_sim = sorted(sim_all, key=lambda x: int(Path(x).stem))
-    # print(f'{sorted_sim}')
+    # data_creater('./FULL_PATCH/PS_northNOI',cmb_data_list=sorted_cmb, fg_data_list=sorted_fgps, nstd_data_list=sorted_nstd)
+    # data_creater('./FULL_PATCH/PS_northLOWNOI',cmb_data_list=sorted_cmb, fg_data_list=sorted_fgps, nstd_data_list=sorted_nstd)
 
-    smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=sorted_cmb, m_fg_files=sorted_fgnps,m_nstd_files=sorted_nstd)
-    
-    # check_maps_TEB(sorted_sim, lmax, nside)
-
-    # smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=sorted_cmb, m_fg_files=None)
-
-    # smcmb_all = glob.glob('./SM_CMB/*.npy')
-    # sorted_smcmb = sorted(smcmb_all, key=lambda x: int(Path(x).stem))
-    # print(f'{sorted_smcmb}')
-    # check_maps_TEB(sorted_smcmb, lmax, nside)
-
-    # smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=None, m_fg_files=sorted_fgnps)
-    # smfgnps_all = glob.glob('./SM_FG_noPS/*.npy')
-    # sorted_smfgnps = sorted(smfgnps_all, key=lambda x: int(Path(x).stem))
-    # print(f'{sorted_smfgnps}')
-    # check_maps_TEB(sorted_smfgnps, lmax, nside)
-
-    # load_and_check('./FULL_SKY/SM_NOISE')
-
-        # if use_nstd == True and m_noise is None:
-        #     noise = df.at[index,'nstd'] * np.random.normal(0,1,(3,n_pix)) # TODO temperature share different map depth
-        # elif use_nstd == True and m_noise is not None:
-        #     print('your noise configuration cannot be set both nstd and noise!')
-        # elif use_nstd == False and m_noise is not None:
-        #     noise = np.load(m_noise)
-        # else:
-        #     noise = np.zeros((3,n_pix))
+    # noise_simulator('./FULL_PATCH/PS_northNOI', nstd_data_list=sorted_nstd, sim_min=40, sim_max=50)
+    noise_simulator('./FULL_PATCH/PS_northLOWNOI', nstd_data_list=sorted_nstd, sim_min=40, sim_max=50)
 
 

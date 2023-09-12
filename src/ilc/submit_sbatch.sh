@@ -39,7 +39,7 @@
 # mpirun -np 7 ./cosmomc test.ini
 # python as.py
 
-mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/ilc/nilc.py
+mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/ilc/noiseilc.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

@@ -13,7 +13,7 @@ for i in range(n_freq):
     freq = df.at[i,'freq']
     m = nstd * np.ones((3,n_pix))
     hp.mollview(m[0]);plt.show()
-    np.save('../../../FGSim/NSTDNORTH/{freq}.npy', nstd)
+    np.save(f'../../../FGSim/NSTDNORTH/{freq}.npy', m)
 
 
 
