@@ -1,0 +1,4 @@
+1:  lmax=2000 nside=2048 no r
+2:  lmax=2051 nside=2048 no r
+3:  lmax=4051 nside=2048 no r
+4:  lmax=2000 nside=2048 r=0.01

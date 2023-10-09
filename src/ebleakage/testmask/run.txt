@@ -1,0 +1,34 @@
+# number / mask / fit / note
+0 / bin / QU /
+1 / bin / B /
+2 / apo C1 5 / QU /
+3 / apo C1 5 / B /
+4 / apo C2 10 / QU /
+5 / apo C2 10 / B /
+6 / apo C1 12 / QU /
+7 / apo C1 12 / B /
+8 / apo C1 13 / QU /
+9 / apo C1 13 / B /
+10 / apo C1 20 / QU /
+11 / apo C1 20 / B /
+12 / apo C1 25 / QU /
+13 / apo C1 25 / B /
+14 / apo C1 25 / QU / posterior mask
+15 / apo C1 25 / B / posterior mask
+16 / apo C1 13 / QU / posterior mask
+17 / apo C1 13 / B / posterior mask
+18 / apo C1 5 / QU / posterior mask
+19 / apo C1 5 / B / posterior mask
+20 / apo C1 5 / QU / posterior mask nside=512
+21 / apo C1 5 / B / posterior mask nside=512
+22 / bin / QU / posterior binmask with beam
+23 / bin / B / posterior binmask with beam 
+
+
+
+
+
+
+
+
+

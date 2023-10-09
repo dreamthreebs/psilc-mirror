@@ -3,13 +3,13 @@ import matplotlib.pyplot as plt
 import healpy as hp
 
 # Initialize parameters
-nside = 512
+nside = 2048
 
 # Define center of disc in Galactic coordinates (l, b) = (0, 90)
 vec = hp.ang2vec(np.radians(90), np.radians(0))
 
 # Radius of circle in radians (47 degrees)
-radius = np.radians(47)
+radius = np.radians(20)
 
 # Use query_disc to generate indices for pixels within the circle
 ind = hp.query_disc(nside, vec, radius)
@@ -24,5 +24,6 @@ print(f'{fsky}')
 hp.mollview(mask_map, title="47-degree Circle Mask")
 
 plt.show()
+np.save('circle_mask20.npy', mask_map)
 
 
