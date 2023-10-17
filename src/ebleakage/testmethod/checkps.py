@@ -2,7 +2,7 @@ import numpy as np
 import healpy as hp
 import matplotlib.pyplot as plt
 
-lmax = 2000
+lmax = 4000
 l = np.arange(lmax+1)
 def calc_dl(cl):
     return l*(l+1)*cl/(2*np.pi)
