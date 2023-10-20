@@ -1,281 +1,108 @@
+from eblc_base import EBLeakageCorrection
+
 import numpy as np
 import healpy as hp
+import pandas as pd
 import matplotlib.pyplot as plt
+import os
+from pathlib import Path
+import glob
+import pymaster as nmt
 
-class EBLeakageCorrection:
-    def __init__(self, m, lmax, nside, mask, post_mask, method:str='zzr', check_res:bool=False, n_iter=3):
-        ''' m are IQU maps of one frequency '''
-        self.m = m
+class EBLeakageCorrectionPipeline():
+    def __init__(self, m_list, lmax, nside, bin_mask, apo_mask, save_path, n_iter=1):
+        ''' m in IQU '''
+        self.m_list = m_list
         self.lmax = lmax
         self.nside = nside
-        self.mask = mask
-        self.post_mask = post_mask
-        self.method = method
-        self.check_res = check_res
+        self.bin_mask = bin_mask
+        self.apo_mask = apo_mask
         self.n_iter = n_iter
+        self.df = pd.read_csv('../../FGSim/FreqBand')
+        self.b = nmt.NmtBin.from_lmax_linear(lmax, 40, is_Dell=True)
+        self.ell_arr = self.b.get_effective_ells()
+        self.save_path = save_path
 
-    def add_mask(self, m):
-        return m * self.mask
+    def do_eblc(self, m, method, n_iter=3):
+        obj = EBLeakageCorrection(m, lmax=self.lmax, nside=self.nside, mask=self.bin_mask, post_mask=self.bin_mask, method=method, check_res=False, n_iter=n_iter)
+        self.crt_b, self.tmp_b, self.cln_b = obj.run_eblc()
 
-    def add_post_mask(self, m):
-        return m * self.post_mask
+    def do_eblc_for_check(self, m, method, n_iter=3):
+        obj = EBLeakageCorrection(m, lmax=self.lmax, nside=self.nside, mask=self.bin_mask, post_mask=self.bin_mask, method=method, check_res=True, n_iter=n_iter)
+        self.crt_b, self.tmp_b, self.cln_b = obj.run_eblc()
 
-    def check_eblc_result(self, crt_b, tmp_b, cln_b, rot:list=[100,50,0], vmin=-0.6, vmax=0.6, cmap='jet'):
-        hp.orthview(hp.ma(crt_b, badval=0), rot=[100,50,0], half_sky=True,sub=(1,3,1), title='corrupted', min=vmin, max=vmax, cmap=cmap, badcolor='white')
-        hp.orthview(hp.ma(tmp_b, badval=0), rot=[100,50,0],  half_sky=True,sub=(1,3,2), title='template', min=vmin, max=vmax, cmap=cmap, badcolor='white')
-        hp.orthview(hp.ma(cln_b, badval=0), rot=[100,50,0],  half_sky=True,sub=(1,3,3), title='cleaned', min=vmin, max=vmax, cmap=cmap, badcolor='white')
-        plt.show()
+        self.cut_b = hp.alm2map(hp.map2alm(self.true_map, lmax=lmax)[2], nside=nside) * self.bin_mask
+        self.lkg_b = self.crt_b - self.cut_b
+        self.res_b = self.cln_b - self.cut_b
 
-    def zzr(self, lmax, nside):
-        def calc_crt_tmp_b(lmax, nside):
-            crt_alms = hp.map2alm(self.add_mask(self.m), lmax=lmax)
-            crt_alm_t, crt_alm_e, crt_alm_b = [crt_alm for crt_alm in crt_alms]
-            self.crt_b = self.add_mask(hp.alm2map(crt_alm_b, nside=nside))
+    def io_pipeline_for_check(self, method, lmax, nside, n_iter):
+        l = np.arange(lmax+1)
+        for index, maps in enumerate(self.m_list):
+            freq = int(Path(maps).stem)
+            print(f'frequency:{freq}')
+            self.true_map = np.load(maps)
+            self.do_eblc_for_check(self.true_map, method=method, n_iter=n_iter)
 
-            self.tmp_fml_e = self.add_mask(hp.alm2map([crt_alm_t, crt_alm_e, np.zeros_like(crt_alm_t)], nside=nside))
-            tmp_alms = hp.map2alm(self.tmp_fml_e, lmax=lmax)
-            tmp_alm_t, tmp_alm_e, tmp_alm_b = [tmp_alm for tmp_alm in tmp_alms]
-            self.tmp_b = self.add_mask(hp.alm2map(tmp_alm_b, nside=nside))
+            bl = hp.gauss_beam(np.deg2rad(self.df.at[index, 'beam'])/60, lmax=2000, pol=True)[:,2]
+            dl_cut = self.calc_dl_from_scalar_map(self.cut_b, bl=bl)
+            dl_lkg = self.calc_dl_from_scalar_map(self.lkg_b, bl=bl)
+            dl_res = self.calc_dl_from_scalar_map(self.res_b, bl=bl)
+            plt.plot(self.ell_arr, dl_cut,  label=f'cut_b at freq:{freq}')
+            plt.plot(self.ell_arr, dl_lkg,  label=f'lkg_b at freq:{freq}')
+            plt.plot(self.ell_arr, dl_res,  label=f'res_b at freq:{freq}')
 
-        def linear_fitting():
-            coeffs = np.polyfit(self.tmp_b, self.crt_b, 1)
-            slope, intercept = coeffs
-            print(f'{slope=}, {intercept=}')
-            self.cln_b = self.crt_b - slope * self.tmp_b
+            plt.legend()
+            plt.semilogy()
+            # plt.xlim(0,300)
+            # plt.ylim(1e-6,1e-1)
+            plt.xlabel('$\\ell$', fontsize=16)
+            plt.ylabel('$D_\\ell$', fontsize=16)
+            plt.show()
 
-        def apo_for_next_step():
-            self.crt_b = self.add_post_mask(self.crt_b)
-            self.tmp_b = self.add_post_mask(self.tmp_b)
-            self.cln_b = self.add_post_mask(self.cln_b)
-        calc_crt_tmp_b(lmax, nside)
-        linear_fitting()
-        self.check_res and self.check_eblc_result(self.crt_b, self.tmp_b, self.cln_b)
-        apo_for_next_step()
+            # self.cut_b = hp.alm2map(hp.map2alm(self.true_map, lmax=lmax)[2], nside=nside) * self.apo_mask
+            # self.std_cl = hp.anafast(self.cut_b, lmax=lmax)
+            # self.crt_cl = hp.anafast(self.crt_b, lmax=lmax)
+            # self.cln_cl = hp.anafast(self.cln_b, lmax=lmax)
+            # plt.semilogy(l*(l+1)*self.std_cl/(2*np.pi), label='std_cl')
+            # plt.semilogy(l*(l+1)*self.crt_cl/(2*np.pi), label='crt_cl')
+            # plt.semilogy(l*(l+1)*self.cln_cl/(2*np.pi), label='cln_cl')
+            # plt.show()
 
-    def fullqufitb(self, lmax, nside):
-        def calc_crt_tmp_b(lmax, nside):
-            crt_alms = hp.map2alm(self.add_mask(self.m), lmax=lmax)
-            crt_alm_t, crt_alm_e, crt_alm_b = [crt_alm for crt_alm in crt_alms]
+    def io_pipeline(self, method, lmax, nside):
+        l = np.arange(lmax+1)
+        for index, maps in enumerate(self.m_list):
+            freq = int(Path(maps).stem)
+            print(f'frequency:{freq}')
+            self.true_map = np.load(maps)
+            self.do_eblc(self.true_map, method=method)
+            if not os.path.exists(self.save_path):
+                os.makedirs(self.save_path)
+            np.save(f'{self.save_path}/{freq}.npy', self.cln_b)
 
-            self.crt_full_qu = hp.alm2map([crt_alm_t, np.zeros_like(crt_alm_t), crt_alm_b], nside=nside)
-            self.crt_b = self.add_mask(hp.alm2map(hp.map2alm(self.crt_full_qu, lmax=lmax)[2], nside=nside))
+    def calc_dl_from_scalar_map(self, scalar_map, bl):
+        scalar_field = nmt.NmtField(self.apo_mask, [scalar_map], beam=bl)
+        dl = nmt.compute_full_master(scalar_field, scalar_field, self.b)
+        return dl[0]
 
-            self.tmp_fml_e = self.add_mask(hp.alm2map([crt_alm_t, crt_alm_e, np.zeros_like(crt_alm_t)], nside=nside))
-            tmp_alms = hp.map2alm(self.tmp_fml_e, lmax=lmax)
-            tmp_alm_t, tmp_alm_e, tmp_alm_b = [tmp_alm for tmp_alm in tmp_alms]
+    def class_main(self):
+        # self.io_pipeline_for_check(method='itercrtqu', lmax=self.lmax, nside=self.nside, n_iter=self.n_iter)
+        self.io_pipeline(method='cutqufitqu', lmax=self.lmax, nside=self.nside)
 
-            self.tmp_full_qu = hp.alm2map([tmp_alm_t, np.zeros_like(tmp_alm_t), tmp_alm_b], nside=nside)
-            self.tmp_b = self.add_mask(hp.alm2map(hp.map2alm(self.tmp_full_qu, lmax=lmax)[2], nside=nside))
 
-        def linear_fitting():
-            coeffs = np.polyfit(self.tmp_b, self.crt_b, 1)
-            slope, intercept = coeffs
-            print(f'{slope=}, {intercept=}')
-            self.cln_b = self.crt_b - slope * self.tmp_b
+if __name__ == '__main__':
+    lmax = 500
+    nside = 512
+    bin_mask = np.load('../mask/north/BINMASKG.npy')
+    apo_mask = np.load('../mask/north/APOMASKC1_2.npy')
+    cmb_all = glob.glob('../sim/NSIDE512/noPS/SIM/*.npy')
+    sorted_cmb = sorted(cmb_all, key=lambda x: int(Path(x).stem))
+    print(f'{sorted_cmb=}')
 
-        def apo_for_next_step():
-            self.crt_b = self.add_post_mask(self.crt_b)
-            self.tmp_b = self.add_post_mask(self.tmp_b)
-            self.cln_b = self.add_post_mask(self.cln_b)
-        calc_crt_tmp_b(lmax, nside)
-        linear_fitting()
-        self.check_res and self.check_eblc_result(self.crt_b, self.tmp_b, self.cln_b)
-        apo_for_next_step()
+    # eblc_obj = EBLeakageCorrectionPipeline(m_list=sorted_cmb, lmax=lmax, nside=nside, bin_mask=bin_mask, apo_mask=apo_mask, n_iter=5, save_path=None)
+    # eblc_obj.class_main()
 
-    def fullqufitqu(self, lmax, nside):
-        def calc_crt_tmp_qu(lmax, nside):
-            crt_alms = hp.map2alm(self.add_mask(self.m), lmax=lmax)
-            crt_alm_t, crt_alm_e, crt_alm_b = [crt_alm for crt_alm in crt_alms]
-            self.crt_full_qu = hp.alm2map([crt_alm_t, np.zeros_like(crt_alm_t), crt_alm_b], nside=nside)
-
-            self.tmp_fml_e = self.add_mask(hp.alm2map([crt_alm_t, crt_alm_e, np.zeros_like(crt_alm_t)], nside=nside))
-            tmp_alms = hp.map2alm(self.tmp_fml_e, lmax=lmax)
-            tmp_alm_t, tmp_alm_e, tmp_alm_b = [tmp_alm for tmp_alm in tmp_alms]
-            self.tmp_full_qu = hp.alm2map([tmp_alm_t, np.zeros_like(tmp_alm_t), tmp_alm_b], nside=nside)
-
-        def linear_fitting():
-            coeffs = np.polyfit(self.tmp_full_qu[1:2].flatten(), self.crt_full_qu[1:2].flatten(), 1)
-            slope, intercept = coeffs
-            print(f'{slope=}, {intercept=}')
-            self.cln_full_qu = self.crt_full_qu - slope * self.tmp_full_qu
-
-        def calc_crt_tmp_cln_b():
-            self.crt_b = self.add_mask(hp.alm2map(hp.map2alm(self.crt_full_qu, lmax=lmax)[2], nside=nside))
-            self.tmp_b = self.add_mask(hp.alm2map(hp.map2alm(self.tmp_full_qu, lmax=lmax)[2], nside=nside))
-            self.cln_b = self.add_mask(hp.alm2map(hp.map2alm(self.cln_full_qu, lmax=lmax)[2], nside=nside))
-
-        def apo_for_next_step():
-            self.crt_b = self.add_post_mask(self.crt_b)
-            self.tmp_b = self.add_post_mask(self.tmp_b)
-            self.cln_b = self.add_post_mask(self.cln_b)
-        calc_crt_tmp_qu(lmax, nside)
-        linear_fitting()
-        calc_crt_tmp_cln_b()
-        self.check_res and self.check_eblc_result(self.crt_b, self.tmp_b, self.cln_b)
-        apo_for_next_step()
-
-    def cutqufitb(self, lmax, nside):
-        def calc_crt_tmp_b(lmax, nside):
-            crt_alms = hp.map2alm(self.add_mask(self.m), lmax=lmax)
-            crt_alm_t, crt_alm_e, crt_alm_b = [crt_alm for crt_alm in crt_alms]
-
-            self.crt_cut_qu = self.add_mask(hp.alm2map([crt_alm_t, np.zeros_like(crt_alm_t), crt_alm_b], nside=nside))
-            self.crt_b = self.add_mask(hp.alm2map(hp.map2alm(self.crt_cut_qu, lmax=lmax)[2], nside=nside))
-
-            self.tmp_fml_e = self.add_mask(hp.alm2map([crt_alm_t, crt_alm_e, np.zeros_like(crt_alm_t)], nside=nside))
-            tmp_alms = hp.map2alm(self.tmp_fml_e, lmax=lmax)
-            tmp_alm_t, tmp_alm_e, tmp_alm_b = [tmp_alm for tmp_alm in tmp_alms]
-
-            self.tmp_cut_qu = self.add_mask(hp.alm2map([tmp_alm_t, np.zeros_like(tmp_alm_t), tmp_alm_b], nside=nside))
-            self.tmp_b = self.add_mask(hp.alm2map(hp.map2alm(self.tmp_cut_qu, lmax=lmax)[2], nside=nside))
-
-        def linear_fitting():
-            coeffs = np.polyfit(self.tmp_b, self.crt_b, 1)
-            slope, intercept = coeffs
-            print(f'{slope=}, {intercept=}')
-            self.cln_b = self.crt_b - slope * self.tmp_b
-
-        def apo_for_next_step():
-            self.crt_b = self.add_post_mask(self.crt_b)
-            self.tmp_b = self.add_post_mask(self.tmp_b)
-            self.cln_b = self.add_post_mask(self.cln_b)
-        calc_crt_tmp_b(lmax, nside)
-        linear_fitting()
-        self.check_res and self.check_eblc_result(self.crt_b, self.tmp_b, self.cln_b)
-        apo_for_next_step()
-
-    def cutqufitqu(self, m, lmax, nside):
-        def calc_crt_tmp_qu(lmax, nside):
-            crt_alms = hp.map2alm(self.add_mask(m), lmax=lmax)
-            crt_alm_t, crt_alm_e, crt_alm_b = [crt_alm for crt_alm in crt_alms]
-            self.crt_cut_qu = self.add_mask(hp.alm2map([crt_alm_t, np.zeros_like(crt_alm_t), crt_alm_b], nside=nside))
-
-            self.tmp_fml_e = self.add_mask(hp.alm2map([crt_alm_t, crt_alm_e, np.zeros_like(crt_alm_t)], nside=nside))
-            tmp_alms = hp.map2alm(self.tmp_fml_e, lmax=lmax)
-            tmp_alm_t, tmp_alm_e, tmp_alm_b = [tmp_alm for tmp_alm in tmp_alms]
-            self.tmp_cut_qu = self.add_mask(hp.alm2map([tmp_alm_t, np.zeros_like(tmp_alm_t), tmp_alm_b], nside=nside))
-
-        def linear_fitting():
-            coeffs = np.polyfit(self.tmp_cut_qu[1:2].flatten(), self.crt_cut_qu[1:2].flatten(), 1)
-            slope, intercept = coeffs
-            print(f'{slope=}, {intercept=}')
-            self.cln_cut_qu = self.crt_cut_qu - slope * self.tmp_cut_qu
-
-        def calc_crt_tmp_cln_b():
-            self.crt_b = self.add_mask(hp.alm2map(hp.map2alm(self.crt_cut_qu, lmax=lmax)[2], nside=nside))
-            self.tmp_b = self.add_mask(hp.alm2map(hp.map2alm(self.tmp_cut_qu, lmax=lmax)[2], nside=nside))
-            self.cln_b = self.add_mask(hp.alm2map(hp.map2alm(self.cln_cut_qu, lmax=lmax)[2], nside=nside))
-
-        def apo_for_next_step():
-            self.crt_b = self.add_post_mask(self.crt_b)
-            self.tmp_b = self.add_post_mask(self.tmp_b)
-            self.cln_b = self.add_post_mask(self.cln_b)
-
-        calc_crt_tmp_qu(lmax, nside)
-        linear_fitting()
-        calc_crt_tmp_cln_b()
-        self.check_res and self.check_eblc_result(self.crt_b, self.tmp_b, self.cln_b)
-        apo_for_next_step()
-
-    def iterative_eblc(self, m, lmax, nside, n_iter=5):
-        def calc_crt_qu(lmax, nside):
-            crt_alms = hp.map2alm(self.add_mask(m), lmax=lmax)
-            crt_alm_t, crt_alm_e, crt_alm_b = [crt_alm for crt_alm in crt_alms]
-            self.crt_cut_qu = self.add_mask(hp.alm2map([crt_alm_t, np.zeros_like(crt_alm_t), crt_alm_b], nside=nside))
-        def calc_next_cut_qu(cut_qu):
-            iter_alms = hp.map2alm(self.add_mask(cut_qu), lmax=lmax)
-            iter_alm_t, iter_alm_e, iter_alm_b = [iter_alm for iter_alm in iter_alms]
-            self.iter_cut_qu = self.add_mask(hp.alm2map([iter_alm_t, np.zeros_like(iter_alm_t), iter_alm_b], nside=nside))
-        def iter_qu_fml(n_iter):
-            calc_next_cut_qu(self.crt_cut_qu)
-            for i in range(n_iter):
-                calc_next_cut_qu(self.iter_cut_qu)
-
-        def calc_crt_cln_b():
-            self.crt_b = self.add_mask(hp.alm2map(hp.map2alm(self.crt_cut_qu, lmax=lmax)[2], nside=nside))
-            self.cln_b = self.add_mask(hp.alm2map(hp.map2alm(self.iter_cut_qu, lmax=lmax)[2], nside=nside))
-            self.tmp_b = None
-
-        def apo_for_next_step():
-            self.crt_b = self.add_post_mask(self.crt_b)
-            self.cln_b = self.add_post_mask(self.cln_b)
-
-        calc_crt_qu(lmax, nside)
-        iter_qu_fml(n_iter)
-        calc_crt_cln_b()
-        apo_for_next_step()
-
-    def fit_iter_crt_tmp(self, lmax, nside, n_iter_crt=9, n_iter_tmp=9):
-        ''' might be wrong !!! '''
-        def calc_crt_tmp_qu(lmax, nside):
-            crt_alms = hp.map2alm(self.add_mask(self.m), lmax=lmax)
-            crt_alm_t, crt_alm_e, crt_alm_b = [crt_alm for crt_alm in crt_alms]
-            self.crt_cut_qu = self.add_mask(hp.alm2map([crt_alm_t, np.zeros_like(crt_alm_t), crt_alm_b], nside=nside))
-
-            self.tmp_fml_e = self.add_mask(hp.alm2map([crt_alm_t, crt_alm_e, np.zeros_like(crt_alm_t)], nside=nside))
-            tmp_alms = hp.map2alm(self.tmp_fml_e, lmax=lmax)
-            tmp_alm_t, tmp_alm_e, tmp_alm_b = [tmp_alm for tmp_alm in tmp_alms]
-            self.tmp_cut_qu = self.add_mask(hp.alm2map([tmp_alm_t, np.zeros_like(tmp_alm_t), tmp_alm_b], nside=nside))
-
-        def calc_next_cut_qu(cut_qu):
-            iter_alms = hp.map2alm(self.add_mask(cut_qu), lmax=lmax)
-            iter_alm_t, iter_alm_e, iter_alm_b = [iter_alm for iter_alm in iter_alms]
-            iter_cut_qu = self.add_mask(hp.alm2map([iter_alm_t, np.zeros_like(iter_alm_t), iter_alm_b], nside=nside))
-            return iter_cut_qu
-
-        def iter_crt_qu_fml(n_iter_crt):
-            self.iter_crt_qu = calc_next_cut_qu(self.crt_cut_qu)
-            for i in range(n_iter_crt):
-                self.iter_crt_qu = calc_next_cut_qu(self.iter_crt_qu)
-
-        def iter_tmp_qu_fml(n_iter_tmp):
-
-            self.iter_tmp_qu = calc_next_cut_qu(self.tmp_cut_qu)
-            for i in range(n_iter_tmp):
-                self.iter_tmp_qu = calc_next_cut_qu(self.iter_tmp_qu)
-
-        def linear_fitting():
-            coeffs = np.polyfit(self.iter_tmp_qu[1:2].flatten(), self.iter_crt_qu[1:2].flatten(), 1)
-            slope, intercept = coeffs
-            print(f'{slope=}, {intercept=}')
-            self.cln_cut_qu = self.iter_crt_qu - slope * self.iter_tmp_qu
-
-        def calc_crt_tmp_cln_b():
-            self.crt_b = self.add_mask(hp.alm2map(hp.map2alm(self.crt_cut_qu, lmax=lmax)[2], nside=nside))
-            self.cln_b = self.add_mask(hp.alm2map(hp.map2alm(self.cln_cut_qu, lmax=lmax)[2], nside=nside))
-            self.tmp_b = None
-
-        def apo_for_next_step():
-            self.crt_b = self.add_post_mask(self.crt_b)
-            self.cln_b = self.add_post_mask(self.cln_b)
-
-        calc_crt_tmp_qu(lmax, nside)
-        iter_crt_qu_fml(n_iter_crt)
-        iter_tmp_qu_fml(n_iter_tmp)
-        linear_fitting()
-        calc_crt_tmp_cln_b()
-        apo_for_next_step()
-
-    def run_eblc(self):
-        if self.method == 'zzr':
-            self.zzr(lmax=self.lmax, nside=self.nside)
-        if self.method == 'fullqufitb':
-            self.fullqufitb(lmax=self.lmax, nside=self.nside)
-        if self.method == 'fullqufitqu':
-            self.fullqufitqu(lmax=self.lmax, nside=self.nside)
-        if self.method == 'cutqufitb':
-            self.cutqufitb(lmax=self.lmax, nside=self.nside)
-        if self.method == 'cutqufitqu':
-            self.cutqufitqu(m=self.m, lmax=self.lmax, nside=self.nside)
-        if self.method == 'itercrtqu':
-            self.iterative_eblc(self.m, lmax=self.lmax, nside=self.nside, n_iter=self.n_iter)
-        if self.method == 'iterclncutqufitqu':
-            self.cutqufitqu(m=self.m, lmax=self.lmax, nside=self.nside)
-            self.iterative_eblc(self.cln_cut_qu, lmax=self.lmax, nside=self.nside, n_iter=self.n_iter)
-        if self.method == 'fititerclnqu':
-            self.fit_iter_crt_tmp(lmax=self.lmax, nside=self.nside)
-
-        return self.crt_b, self.tmp_b, self.cln_b
-
+    save_path = './eblc_data/sim'
+    eblc_obj = EBLeakageCorrectionPipeline(m_list=sorted_cmb, lmax=lmax, nside=nside, bin_mask=bin_mask, apo_mask=apo_mask, n_iter=3, save_path=save_path)
+    eblc_obj.class_main()
 
 

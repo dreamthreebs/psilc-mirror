@@ -1,4 +1,4 @@
-from eblc import EBLeakageCorrection
+from eblc_base import EBLeakageCorrection
 
 import numpy as np
 import healpy as hp

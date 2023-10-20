@@ -14,7 +14,7 @@ n_freq = len(df)
 print(f'{n_freq = }')
 lmax=500
 base_beam = 9 # arcmin
-nside=2048
+nside=512
 
 cmb_all = glob.glob('../../FGSim/CMB/*.npy')
 sorted_cmb = sorted(cmb_all, key=lambda x: int(Path(x).stem))
@@ -96,7 +96,7 @@ def bl_creater(lmax):
     # you can appoint different beam profiles here, the default is gaussian beam
     return bl_temp_arr, bl_grad_arr, bl_curl_arr
 
-def smooth2iqu(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=None, m_fg_files=None, m_noise_files=None, m_nstd_files=None, bin_mask=None, apo_mask=None, nside_in=512, nside=2048, num_sim=None, save_path=None)->None:
+def smooth2iqu(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, bl_std_curl, m_cmb_files=None, m_fg_files=None, m_noise_files=None, m_nstd_files=None, bin_mask=None, apo_mask=None, nside_in=512, nside=512, num_sim=None, save_path=None)->None:
     nside_in = nside_in
     n_pix = hp.nside2npix(nside_in)
     m_cmb_files = [] if m_cmb_files is None else m_cmb_files
@@ -118,7 +118,7 @@ def smooth2iqu(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad, 
         m = hp.ud_grade(m, nside_out=nside)
 
         if apo_mask is not None: # TODO should be done on TEB maps?
-            m = m * apo_mask
+            m = m * hp.smoothing(apo_mask, fwhm=np.deg2rad(1))
 
         alm_ori = hp.map2alm(m, lmax=lmax)
         alm_temp = hp.almxfl(alm_ori[0], bl_std_temp/bl_temp_arr[index])
@@ -265,8 +265,8 @@ if __name__=="__main__":
     # check_maps_IQU(sorted_fgps, lmax, nside)
     bl_temp_arr, bl_grad_arr, bl_curl_arr = bl_creater(lmax)
 
-    bin_mask=np.load('../mask/north/BINMASKG2048.npy')
-    apo_mask=np.load('../mask/north/APOMASK2048C1_1.npy')
+    bin_mask=np.load('../mask/north/BINMASKG.npy')
+    apo_mask=np.load('../mask/north_smooth/APOMASKC1_10.npy')
 
     # data_creater('./PART_PATCH/noPS_northNOI_binMask', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd, bin_mask=bin_mask, apo_mask=apo_mask)
 
@@ -274,6 +274,6 @@ if __name__=="__main__":
     # sortedcmbfg = sorted(cmbfg, key=lambda x: int(Path(x).stem))
     # check_maps_IQU(maps_pos_list=sortedcmbfg, lmax=lmax, nside=nside)
 
-    # data_creater('./TEST_PART/noPS_northNOI2048binary', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd, bin_mask=bin_mask, apo_mask=bin_mask)
-    data_creater('./TEST_PART/noPS_northNOI2048full', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd)
+    data_creater('./TEST_PART/noPS_northNOISM1', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd, bin_mask=bin_mask, apo_mask=bin_mask)
+    # data_creater('./TEST_PART/noPS_northNOI', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd)
 
