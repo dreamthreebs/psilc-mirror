@@ -12,7 +12,7 @@ import matplotlib.colors as mcolors
 df = pd.read_csv('../../FGSim/FreqBand')
 n_freq = len(df)
 print(f'{n_freq = }')
-lmax=300
+lmax=500
 base_beam = 9 # arcmin
 nside=512
 
@@ -111,8 +111,8 @@ def smooth_maps(bl_temp_arr, bl_grad_arr, bl_curl_arr, bl_std_temp, bl_std_grad,
 
         m = (cmb + fg + noise)
 
-        if apo_mask is not None: # TODO should be done on TEB maps?
-            m = m * apo_mask
+        if apo_mask is not None:
+            m = m * hp.smoothing(apo_mask, fwhm=np.deg2rad(1))
 
         alm_ori = hp.map2alm(m, lmax=lmax)
         alm_temp = hp.almxfl(alm_ori[0], bl_std_temp/bl_temp_arr[index])
@@ -243,14 +243,14 @@ if __name__=="__main__":
     # check_maps_IQU(sorted_fgps, lmax, nside)
     bl_temp_arr, bl_grad_arr, bl_curl_arr = bl_creater(lmax)
 
-    bin_mask=np.load('../mask/north/APOMASKC1_1.npy')
-    apo_mask=np.load('../mask/north/APOMASKC1_1.npy')
+    bin_mask=np.load('../mask/north/BINMASKG.npy')
+    apo_mask=np.load('../mask/north/APOMASKC1_5.npy')
 
-    # data_creater('./PART_PATCH/noPS_northNOI_binMask', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd, bin_mask=bin_mask, apo_mask=apo_mask)
+    data_creater('./SM2B/noPS_northNOI_Sm_1_bin', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd, bin_mask=bin_mask, apo_mask=bin_mask)
 
-    cmbfg = glob.glob('./PART_PATCH/noPS_northNOI_apoMask1/CMB/*.npy')
-    sortedcmbfg = sorted(cmbfg, key=lambda x: int(Path(x).stem))
-    check_maps_TEB(maps_pos_list=sortedcmbfg, lmax=lmax, nside=nside)
+    # cmbfg = glob.glob('./PART_PATCH/noPS_northNOI_apoMask1/CMB/*.npy')
+    # sortedcmbfg = sorted(cmbfg, key=lambda x: int(Path(x).stem))
+    # check_maps_TEB(maps_pos_list=sortedcmbfg, lmax=lmax, nside=nside)
 
 
 

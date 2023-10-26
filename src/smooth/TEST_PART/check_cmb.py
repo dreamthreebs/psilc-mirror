@@ -6,7 +6,7 @@ m1 = np.load('./noPS_northNOI/CMB/270.npy')
 m2 = np.load('./noPS_northNOISM1/CMB/30.npy')
 
 mask = np.load('../../mask/north/BINMASKG.npy')
-apo_mask = np.load('../../mask/north_smooth/APOMASKC1_10.npy')
+apo_mask = np.load('../../mask/north/APOMASKC1_5.npy')
 
 hp.orthview(m1[0]*mask, rot=[100,50,0], half_sky=True)
 hp.orthview(m2[0], rot=[100,50,0], half_sky=True)

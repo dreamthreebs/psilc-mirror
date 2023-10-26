@@ -14,7 +14,7 @@ mask = np.load('./north/BINMASKG.npy')
 # hp.orthview(new_mask-mask, rot=[100,50,0], half_sky=True,title='residual')
 # np.save('./north_smooth/new_bin_mask', new_mask)
 
-mask1 = np.load('./north_smooth/APOMASKC1_10.npy')
+mask1 = np.load('./north/APOMASKC1_10.npy')
 new_mask = np.ones_like(mask)
 new_mask[mask1<1] = 0
 
@@ -23,6 +23,7 @@ hp.orthview(mask, rot=[100,50,0], half_sky=True)
 hp.orthview(mask1, rot=[100,50,0], half_sky=True)
 hp.orthview(new_mask, rot=[100,50,0], half_sky=True,title='residual')
 hp.orthview(mask-new_mask, rot=[100,50,0], half_sky=True,title='residual')
+plt.show()
 
 np.save('./north_smooth/BINMASKG.npy', new_mask)
 

@@ -1,4 +1,4 @@
-from eblc_base import EBLeakageCorrection
+from .eblc_base import EBLeakageCorrection
 
 import numpy as np
 import healpy as hp
@@ -10,7 +10,7 @@ import glob
 import pymaster as nmt
 
 class EBLeakageCorrectionPipeline():
-    def __init__(self, m_list, lmax, nside, bin_mask, apo_mask, save_path, n_iter=1):
+    def __init__(self, m_list, lmax, nside, bin_mask, apo_mask, method, save_path, n_iter=1):
         ''' m in IQU '''
         self.m_list = m_list
         self.lmax = lmax
@@ -18,7 +18,8 @@ class EBLeakageCorrectionPipeline():
         self.bin_mask = bin_mask
         self.apo_mask = apo_mask
         self.n_iter = n_iter
-        self.df = pd.read_csv('../../FGSim/FreqBand')
+        self.method = method
+        # self.df = pd.read_csv('../../FGSim/FreqBand')
         self.b = nmt.NmtBin.from_lmax_linear(lmax, 40, is_Dell=True)
         self.ell_arr = self.b.get_effective_ells()
         self.save_path = save_path
@@ -43,7 +44,7 @@ class EBLeakageCorrectionPipeline():
             self.true_map = np.load(maps)
             self.do_eblc_for_check(self.true_map, method=method, n_iter=n_iter)
 
-            bl = hp.gauss_beam(np.deg2rad(self.df.at[index, 'beam'])/60, lmax=2000, pol=True)[:,2]
+            bl = hp.gauss_beam(np.deg2rad(self.df.at[index, 'beam'])/60, lmax=6400, pol=True)[:,2]
             dl_cut = self.calc_dl_from_scalar_map(self.cut_b, bl=bl)
             dl_lkg = self.calc_dl_from_scalar_map(self.lkg_b, bl=bl)
             dl_res = self.calc_dl_from_scalar_map(self.res_b, bl=bl)
@@ -86,7 +87,7 @@ class EBLeakageCorrectionPipeline():
 
     def class_main(self):
         # self.io_pipeline_for_check(method='itercrtqu', lmax=self.lmax, nside=self.nside, n_iter=self.n_iter)
-        self.io_pipeline(method='cutqufitqu', lmax=self.lmax, nside=self.nside)
+        self.io_pipeline(method=self.method, lmax=self.lmax, nside=self.nside)
 
 
 if __name__ == '__main__':
@@ -101,8 +102,9 @@ if __name__ == '__main__':
     # eblc_obj = EBLeakageCorrectionPipeline(m_list=sorted_cmb, lmax=lmax, nside=nside, bin_mask=bin_mask, apo_mask=apo_mask, n_iter=5, save_path=None)
     # eblc_obj.class_main()
 
-    save_path = './eblc_data/sim'
-    eblc_obj = EBLeakageCorrectionPipeline(m_list=sorted_cmb, lmax=lmax, nside=nside, bin_mask=bin_mask, apo_mask=apo_mask, n_iter=3, save_path=save_path)
+    # save_path = './eblc_data/sim'
+    save_path = None
+    eblc_obj = EBLeakageCorrectionPipeline(m_list=sorted_cmb, lmax=lmax, nside=nside, bin_mask=bin_mask, apo_mask=apo_mask, n_iter=3, save_path=save_path, method='cutqufitqu')
     eblc_obj.class_main()
 
 

@@ -3,7 +3,7 @@ import healpy as hp
 import matplotlib.pyplot as plt
 
 class EBLeakageCorrection:
-    def __init__(self, m, lmax, nside, mask, post_mask, method:str='zzr', check_res:bool=False, n_iter=3):
+    def __init__(self, m, lmax, nside, mask, post_mask, method:str='cutqufitqu', check_res:bool=False, n_iter=3):
         ''' m are IQU maps of one frequency '''
         self.m = m
         self.lmax = lmax
