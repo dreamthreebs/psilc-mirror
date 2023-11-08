@@ -25,8 +25,8 @@ print(f'{unlensedcl.shape}')
 
 # totcl[:,2] = totcl[:,2]
 for index, flag in enumerate(['TT', 'EE', 'BB']):
-    # plt.loglog(l*(l*1)*totcl[:,index]/(2*np.pi),label=f'{flag} lensed')
-    plt.loglog(l*(l*1)*unlensedcl[:,index]/(2*np.pi),label=f'{flag} unlensed')
+    plt.loglog(l*(l*1)*totcl[:,index]/(2*np.pi),label=f'{flag} lensed')
+    # plt.loglog(l*(l*1)*unlensedcl[:,index]/(2*np.pi),label=f'{flag} unlensed')
 
 plt.legend()
 plt.xlabel('l')
@@ -34,6 +34,6 @@ plt.ylabel('Dl')
 
 plt.show()
 
-# np.save('./cmbdata/cmbcl3.npy', unlensedcl)
+np.save('./cmbdata/cmbcl4.npy', totcl)
 
 

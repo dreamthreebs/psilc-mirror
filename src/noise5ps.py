@@ -78,25 +78,25 @@ def pilc_noisepp(lmax_pilc, nside_pilc, path_apo_mask, path_bin_mask, path_noise
 
 if __name__ == '__main__':
 
-    n_sim_start = 0
-    n_sim_end = 5
-
-    # for i in range(n_sim_start, n_sim_end):
-    #     eblc_at_diff_freq(lmax_eblc=500, nside_eblc=512, glob_path=f'./sim/NSIDE512BAND5/NOISESIM/{i}', save_path_eblc=f'../data/noapo/eblc/NOISESIM/{i}', method='cutqufitqu', path_bin_mask_eblc='./mask/north/BINMASKG.npy')
+    n_sim_start = 10
+    n_sim_end = 15
 
     for i in range(n_sim_start, n_sim_end):
-        smooth_eblc_result(lmax_sm=500, nside_sm=512, beam_base=63, path_df='../FGSim/FreqBand5', glob_path=f'../data/noapo/eblc/NOISESIM/{i}', save_path_sm=f'../data/band5std/SMNOISESIM/{i}', path_bin_mask_sm='./mask/north/BINMASKG.npy')
+        eblc_at_diff_freq(lmax_eblc=350, nside_eblc=512, glob_path=f'./sim/NSIDE512BAND5/NOISESIM/{i}', save_path_eblc=f'../data/noapo/eblc/NOISESIM/{i}', method='cutqufitqu', path_bin_mask_eblc='./mask/north/BINMASKG.npy')
 
     for i in range(n_sim_start, n_sim_end):
-        nilc_noisepp(lmax_nilc=500, nside_nilc=512, Rtol=1/1000, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_noise=f'../data/band5std/SMNOISESIM/{i}/data.npy', needlet_config=f'./eblcilc/needlets/needlet2.csv', load_path_weight='../data/band5std/simnilc/weight0.npz', save_path_nilc=f'../data/band5std/NOISENILC', number=i)
+        smooth_eblc_result(lmax_sm=350, nside_sm=512, beam_base=63, path_df='../FGSim/FreqBand5', glob_path=f'../data/noapo/eblc/NOISESIM/{i}', save_path_sm=f'../data/band5ps/SMNOISESIM/{i}', path_bin_mask_sm='./mask/north/BINMASKG.npy')
 
     for i in range(n_sim_start, n_sim_end):
-        print(f'{i = }')
-        hilc_noisepp(lmax_hilc=500, nside_hilc=512, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_noise=f'../data/band5std/SMNOISESIM/{i}/data.npy', load_path_wl='../data/band5std/simhilc/wl.npy', save_path_hilc='../data/band5std/NOISEHILC', number=i)
+        nilc_noisepp(lmax_nilc=350, nside_nilc=512, Rtol=1/1000, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_noise=f'../data/band5ps/SMNOISESIM/{i}/data.npy', needlet_config=f'./eblcilc/needlets/needlet2.csv', load_path_weight='../data/band5ps/simnilc/weight0.npz', save_path_nilc=f'../data/band5ps/NOISENILC', number=i)
 
     for i in range(n_sim_start, n_sim_end):
         print(f'{i = }')
-        pilc_noisepp(lmax_pilc=500, nside_pilc=512, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_noise=f'../data/band5std/SMNOISESIM/{i}/data.npy', load_path_w='../data/band5std/simpilc/w.npy', save_path_pilc='../data/band5std/NOISEPILC', number=i)
+        hilc_noisepp(lmax_hilc=350, nside_hilc=512, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_noise=f'../data/band5ps/SMNOISESIM/{i}/data.npy', load_path_wl='../data/band5ps/simhilc/wl.npy', save_path_hilc='../data/band5ps/NOISEHILC', number=i)
+
+    for i in range(n_sim_start, n_sim_end):
+        print(f'{i = }')
+        pilc_noisepp(lmax_pilc=350, nside_pilc=512, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_noise=f'../data/band5ps/SMNOISESIM/{i}/data.npy', load_path_w='../data/band5ps/simpilc/w.npy', save_path_pilc='../data/band5ps/NOISEPILC', number=i)
 
 
 

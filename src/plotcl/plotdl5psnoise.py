@@ -3,15 +3,16 @@ import healpy as hp
 import matplotlib.pyplot as plt
 import pymaster as nmt
 
+plt.rcParams['lines.markersize'] = 5
+
 def calc_dl_from_scalar_map(scalar_map, bl, apo_mask):
     scalar_field = nmt.NmtField(apo_mask, [scalar_map], beam=bl, masked_on_input=False)
     dl = nmt.compute_full_master(scalar_field, scalar_field, bin_dl)
     return dl[0]
 
-plt.rcParams['lines.markersize'] = 5
 
 if __name__ == '__main__':
-    lmax=500
+    lmax=350
     l = np.arange(lmax+1)
     nside=512
     iqutrue = np.load('../../FGSim/CMB/40.npy')
@@ -20,13 +21,13 @@ if __name__ == '__main__':
     full_mask = np.ones_like(mtrue)
     # smcmb = np.load('../../data/cutqufitb/smcmb/data.npy')[0]
 
-    mpilc = np.load('../../data/band5std/simpilc/pilc_map.npy')
-    mhilc = np.load('../../data/band5std/simhilc/hilc_map.npy')
-    mnilc = np.load('../../data/band5std/simnilc/nilc_map0.npy')
+    mpilc = np.load('../../newdata/band5ps350/simpilc/pilc_map.npy')
+    mhilc = np.load('../../newdata/band5ps350/simhilc/hilc_map.npy')
+    mnilc = np.load('../../newdata/band5ps350/simnilc/nilc_map0.npy')
     
-    mpfgres = np.load('../../data/band5std/simpilc/pilc_fgres_map.npy')
-    mhfgres = np.load('../../data/band5std/simhilc/hilc_fgres_map.npy')
-    mnfgres = np.load('../../data/band5std/simnilc/nilc_fgres_map0.npy')
+    mpfgres = np.load('../../newdata/band5ps350/simpilc/pilc_fgres_map.npy')
+    mhfgres = np.load('../../newdata/band5ps350/simhilc/hilc_fgres_map.npy')
+    mnfgres = np.load('../../newdata/band5ps350/simnilc/nilc_fgres_map0.npy')
 
     apo_mask = np.load('../mask/north_smooth/APOMASKC1_5.npy')
     fsky_apo_mask = np.sum(apo_mask) / np.size(apo_mask)
@@ -34,28 +35,47 @@ if __name__ == '__main__':
     bin_dl = nmt.NmtBin.from_edges([20,50,100,150,200,250],[50,100,150,200,250,300], is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
-    n_sim = 5
+    # n_sim = 100
 
-    dl_pnoiseres = 0
-    dl_hnoiseres = 0
-    dl_nnoiseres = 0
+    # dl_pnoiseres1 = np.zeros(6)
+    # dl_hnoiseres1 = np.zeros(6)
+    # dl_nnoiseres1 = np.zeros(6)
 
-    for i in range(n_sim):
-        print(f'loop={i}')
 
-        mpnoiseres = np.load(f'../../data/band5std/NOISEPILC/pilc_noise_res_map{i}.npy')
-        mhnoiseres = np.load(f'../../data/band5std/NOISEHILC/hilc_noise_res_map{i}.npy')
-        mnnoiseres = np.load(f'../../data/band5std/NOISENILC/nilc_noise_res_map{i}.npy')
+    # for i in range(n_sim):
+    #     print(f'loop={i}')
+    #     mpnoiseres = np.load(f'../../newdata/band5ps350/NOISEPILC/pilc_noise_res_map{i}.npy')
+    #     mhnoiseres = np.load(f'../../newdata/band5ps350/NOISEHILC/hilc_noise_res_map{i}.npy')
+    #     mnnoiseres = np.load(f'../../newdata/band5ps350/NOISENILC/nilc_noise_res_map{i}.npy')
+    #     dl_pnoiseres = calc_dl_from_scalar_map(mpnoiseres, bl, apo_mask)
+    #     dl_hnoiseres = calc_dl_from_scalar_map(mhnoiseres, bl, apo_mask)
+    #     dl_nnoiseres = calc_dl_from_scalar_map(mnnoiseres, bl, apo_mask)
+    #     dl_pnoiseres1 = dl_pnoiseres1 + dl_pnoiseres
+    #     dl_hnoiseres1 = dl_hnoiseres1 + dl_hnoiseres
+    #     dl_nnoiseres1 = dl_nnoiseres1 + dl_nnoiseres
+    # dl_pnoiseres = dl_pnoiseres1 / n_sim
+    # dl_hnoiseres = dl_hnoiseres1 / n_sim
+    # dl_nnoiseres = dl_nnoiseres1 / n_sim
 
-        dl_pnoiseres = dl_pnoiseres + calc_dl_from_scalar_map(mpnoiseres, bl, apo_mask)
-        dl_hnoiseres = dl_hnoiseres + calc_dl_from_scalar_map(mhnoiseres, bl, apo_mask)
-        dl_nnoiseres = dl_nnoiseres + calc_dl_from_scalar_map(mnnoiseres, bl, apo_mask)
+    # np.save('dl_pnoiseres', dl_pnoiseres)
+    # np.save('dl_hnoiseres', dl_hnoiseres)
+    # np.save('dl_nnoiseres', dl_nnoiseres)
 
-    dl_pnoiseres = dl_pnoiseres / n_sim
-    dl_hnoiseres = dl_hnoiseres / n_sim
-    dl_nnoiseres = dl_nnoiseres / n_sim
+    # mpnoiseres = np.load(f'../../newdata/band5ps350/NOISEPILC/pilc_noise_res_map10.npy')
+    # mhnoiseres = np.load(f'../../newdata/band5ps350/NOISEHILC/hilc_noise_res_map10.npy')
+    # mnnoiseres = np.load(f'../../newdata/band5ps350/NOISENILC/nilc_noise_res_map10.npy')
 
-   
+    # dl_pnoiseres = calc_dl_from_scalar_map(mpnoiseres, bl, apo_mask)
+    # dl_hnoiseres = calc_dl_from_scalar_map(mhnoiseres, bl, apo_mask)
+    # dl_nnoiseres = calc_dl_from_scalar_map(mnnoiseres, bl, apo_mask)
+
+
+    dl_pnoiseres = np.load('./dl_pnoiseres.npy')
+    dl_hnoiseres = np.load('./dl_hnoiseres.npy')
+    dl_nnoiseres = np.load('./dl_nnoiseres.npy')
+
+
+
     # dl_smcmb = calc_dl_from_scalar_map(smcmb, bl, apo_mask=apo_mask)
 
     dl_true = calc_dl_from_scalar_map(mtrue, bl, apo_mask=apo_mask)

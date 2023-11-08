@@ -3,8 +3,8 @@ import healpy as hp
 import matplotlib.pyplot as plt
 import pymaster as nmt
 
-def calc_dl_from_scalar_map(scalar_map, bl, apo_mask):
-    scalar_field = nmt.NmtField(apo_mask, [scalar_map], beam=bl, masked_on_input=False)
+def calc_dl_from_scalar_map(scalar_map, bl_func, apo_mask):
+    scalar_field = nmt.NmtField(apo_mask, [scalar_map], beam=bl_func, masked_on_input=False)
     dl = nmt.compute_full_master(scalar_field, scalar_field, bin_dl)
     return dl[0]
 
@@ -13,22 +13,23 @@ if __name__ == '__main__':
     lmax=500
     l = np.arange(lmax+1)
     nside=512
-    iqutrue = np.load('../../FGSim/CMB/270.npy')
+    iqutrue = np.load('../../FGSim/CMB/40.npy')
     mtrue = hp.alm2map(hp.map2alm(iqutrue, lmax=lmax)[2], nside=nside)
     cl = hp.anafast(mtrue, lmax=lmax)
     full_mask = np.ones_like(mtrue)
     # smcmb = np.load('../../data/cutqufitb/smcmb/data.npy')[0]
 
-    mpilc = np.load('../../data/band5cmbfg/simpilc/pilc_map.npy')
-    mhilc = np.load('../../data/band5cmbfg/simhilc/hilc_map.npy')
-    mnilc = np.load('../../data/band5cmbfg/simnilc/nilc_map0.npy')
+    mpilc = np.load('../../data/band5cmbpsfg/simpilc/pilc_map.npy')
+    mhilc = np.load('../../data/band5cmbpsfg/simhilc/hilc_map.npy')
+    mnilc = np.load('../../data/band5cmbpsfg/simnilc/nilc_map0.npy')
     
-    mpfgres = np.load('../../data/band5cmbfg/simpilc/pilc_fgres_map.npy')
-    mhfgres = np.load('../../data/band5cmbfg/simhilc/hilc_fgres_map.npy')
-    mnfgres = np.load('../../data/band5cmbfg/simnilc/nilc_fgres_map0.npy')
+    mpfgres = np.load('../../data/band5cmbpsfg/simpilc/pilc_fgres_map.npy')
+    mhfgres = np.load('../../data/band5cmbpsfg/simhilc/hilc_fgres_map.npy')
+    mnfgres = np.load('../../data/band5cmbpsfg/simnilc/nilc_fgres_map0.npy')
 
-    apo_mask = np.load('../mask/north/APOMASKC1_10.npy')
-    bl = hp.gauss_beam(np.deg2rad(9)/60, lmax=2000, pol=True)[:,2]
+    apo_mask = np.load('../mask/north_smooth/APOMASKC1_5.npy')
+    bl = hp.gauss_beam(np.deg2rad(63)/60, lmax=2000, pol=True)[:,2]
+    # bl_true = hp.gauss_beam(np.deg2rad(9)/60, lmax=2000, pol=True)[:,2]
     bin_dl = nmt.NmtBin.from_edges([20,50,100,150,200,250],[50,100,150,200,250,300], is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
     
@@ -62,7 +63,7 @@ if __name__ == '__main__':
     plt.xlabel('$\\ell$')
     plt.ylabel('$D_\\ell$')
 
-    plt.legend()
+    plt.legend(loc='upper left')
     plt.semilogy()
     plt.show()
 

@@ -19,14 +19,14 @@ def eblc_at_diff_freq(lmax_eblc, nside_eblc, glob_path, save_path_eblc, method, 
     eblc_obj = EBLeakageCorrectionPipeline(method=method, m_list=sorted_sim, lmax=lmax_eblc, nside=nside_eblc, bin_mask=bin_mask_eblc, apo_mask=None, save_path=save_path_eblc)
     eblc_obj.class_main()
 
-def smooth_eblc_result(lmax_sm, nside_sm, beam_base, path_df, glob_path, save_path_sm, path_bin_mask_sm):
+def smooth_eblc_result(lmax_sm, nside_sm, beam_base, path_df, glob_path, save_path_sm, path_bin_mask_sm, smooth_scale):
     df = pd.read_csv(path_df)
     bl_std_curl = hp.gauss_beam(fwhm=np.deg2rad(beam_base/60), lmax=lmax_sm, pol=True)[:,2]
     bl_curl = bl_curl_creater(df=df, lmax=lmax_sm)
     bin_mask_sm = np.load(path_bin_mask_sm)
 
     sim_list = sorted(glob.glob(os.path.join(glob_path,'*.npy')), key=lambda x: int(Path(x).stem))
-    smooth_b(df=df, bl_std_curl=bl_std_curl, bl_curl=bl_curl, m_list=sim_list, bin_mask=bin_mask_sm, apo_mask=None, lmax=lmax_sm, nside=nside_sm, save_path=save_path_sm)
+    smooth_b(df=df, bl_std_curl=bl_std_curl, bl_curl=bl_curl, m_list=sim_list, bin_mask=bin_mask_sm, apo_mask=None, lmax=lmax_sm, nside=nside_sm, save_path=save_path_sm, smooth_scale=smooth_scale)
 
 def nilc_pp(lmax_nilc, nside_nilc, Rtol, path_apo_mask, path_bin_mask, path_sim, path_fg, path_noise, needlet_config, save_path_nilc, number):
     from eblcilc.nilc import NILC
@@ -109,19 +109,20 @@ def pilc_pp(lmax_pilc, nside_pilc, path_apo_mask, path_bin_mask, path_sim, path_
 
 if __name__ == '__main__':
 
-    eblc_at_diff_freq(lmax_eblc=500, nside_eblc=512, glob_path='./sim/NSIDE512BAND5/noPS/CMB', save_path_eblc='../data/band5std/eblc/cmb', method='cutqufitqu', path_bin_mask_eblc='./mask/north/BINMASKG.npy')
-    eblc_at_diff_freq(lmax_eblc=500, nside_eblc=512, glob_path='./sim/NSIDE512BAND5/noPS/SIM', save_path_eblc='../data/band5std/eblc/sim', method='cutqufitqu', path_bin_mask_eblc='./mask/north/BINMASKG.npy')
-    eblc_at_diff_freq(lmax_eblc=500, nside_eblc=512, glob_path='./sim/NSIDE512BAND5/noPS/FG', save_path_eblc='../data/band5std/eblc/fg', method='cutqufitqu', path_bin_mask_eblc='./mask/north/BINMASKG.npy')
-    eblc_at_diff_freq(lmax_eblc=500, nside_eblc=512, glob_path='./sim/NSIDE512BAND5/noPS/NOISE', save_path_eblc='../data/band5std/eblc/noise', method='cutqufitqu', path_bin_mask_eblc='./mask/north/BINMASKG.npy')
+    # eblc_at_diff_freq(lmax_eblc=500, nside_eblc=512, glob_path='./sim/NSIDE512BAND5/noPS/CMB', save_path_eblc='../data/band5smooth3/eblc/cmb', method='cutqufitqu', path_bin_mask_eblc='./mask/north/BINMASKG.npy')
+    # eblc_at_diff_freq(lmax_eblc=500, nside_eblc=512, glob_path='./sim/NSIDE512BAND5/noPS/SIM', save_path_eblc='../data/band5smooth3/eblc/sim', method='cutqufitqu', path_bin_mask_eblc='./mask/north/BINMASKG.npy')
+    # eblc_at_diff_freq(lmax_eblc=500, nside_eblc=512, glob_path='./sim/NSIDE512BAND5/noPS/FG', save_path_eblc='../data/band5smooth3/eblc/fg', method='cutqufitqu', path_bin_mask_eblc='./mask/north/BINMASKG.npy')
+    # eblc_at_diff_freq(lmax_eblc=500, nside_eblc=512, glob_path='./sim/NSIDE512BAND5/noPS/NOISE', save_path_eblc='../data/band5smooth3/eblc/noise', method='cutqufitqu', path_bin_mask_eblc='./mask/north/BINMASKG.npy')
 
-    smooth_eblc_result(lmax_sm=500, nside_sm=512, beam_base=63, path_df='../FGSim/FreqBand5', glob_path='../data/band5std/eblc/cmb', save_path_sm='../data/band5std/smcmb', path_bin_mask_sm='./mask/north/BINMASKG.npy')
-    smooth_eblc_result(lmax_sm=500, nside_sm=512, beam_base=63, path_df='../FGSim/FreqBand5', glob_path='../data/band5std/eblc/sim', save_path_sm='../data/band5std/smsim', path_bin_mask_sm='./mask/north/BINMASKG.npy')
-    smooth_eblc_result(lmax_sm=500, nside_sm=512, beam_base=63, path_df='../FGSim/FreqBand5', glob_path='../data/band5std/eblc/fg', save_path_sm='../data/band5std/smfg', path_bin_mask_sm='./mask/north/BINMASKG.npy')
-    smooth_eblc_result(lmax_sm=500, nside_sm=512, beam_base=63, path_df='../FGSim/FreqBand5', glob_path='../data/band5std/eblc/noise', save_path_sm='../data/band5std/smnoise', path_bin_mask_sm='./mask/north/BINMASKG.npy')
+    # smooth_scale = 30
+    # smooth_eblc_result(lmax_sm=500, nside_sm=512, beam_base=63, path_df='../FGSim/FreqBand5', glob_path='../data/band5smooth3/eblc/cmb', save_path_sm='../data/band5smooth6/smcmb', path_bin_mask_sm='./mask/north/BINMASKG.npy', smooth_scale=smooth_scale)
+    # smooth_eblc_result(lmax_sm=500, nside_sm=512, beam_base=63, path_df='../FGSim/FreqBand5', glob_path='../data/band5smooth3/eblc/sim', save_path_sm='../data/band5smooth6/smsim', path_bin_mask_sm='./mask/north/BINMASKG.npy', smooth_scale=smooth_scale)
+    # smooth_eblc_result(lmax_sm=500, nside_sm=512, beam_base=63, path_df='../FGSim/FreqBand5', glob_path='../data/band5smooth3/eblc/fg', save_path_sm='../data/band5smooth6/smfg', path_bin_mask_sm='./mask/north/BINMASKG.npy', smooth_scale=smooth_scale)
+    # smooth_eblc_result(lmax_sm=500, nside_sm=512, beam_base=63, path_df='../FGSim/FreqBand5', glob_path='../data/band5smooth3/eblc/noise', save_path_sm='../data/band5smooth6/smnoise', path_bin_mask_sm='./mask/north/BINMASKG.npy', smooth_scale=smooth_scale)
 
-    nilc_pp(lmax_nilc=500, nside_nilc=512, Rtol=1/1000, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_sim=f'../data/band5std/smsim/data.npy', path_fg=f'../data/band5std/smfg/data.npy', path_noise=f'../data/band5std/smnoise/data.npy', needlet_config=f'./eblcilc/needlets/needlet2.csv', save_path_nilc=f'../data/band5std/simnilc', number=0)
-    hilc_pp(lmax_hilc=500, nside_hilc=512, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_sim=f'../data/band5std/smsim/data.npy', path_fg='../data/band5std/smfg/data.npy', path_noise=f'../data/band5std/smnoise/data.npy', save_path_hilc='../data/band5std/simhilc')
-    pilc_pp(lmax_pilc=500, nside_pilc=512, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_sim=f'../data/band5std/smsim/data.npy', path_fg='../data/band5std/smfg/data.npy', path_noise=f'../data/band5std/smnoise/data.npy', save_path_pilc='../data/band5std/simpilc')
+    nilc_pp(lmax_nilc=500, nside_nilc=512, Rtol=1/1000, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_sim=f'../data/band5smooth3/smsim/data.npy', path_fg=f'../data/band5smooth3/smfg/data.npy', path_noise=f'../data/band5smooth3/smnoise/data.npy', needlet_config=f'./eblcilc/needlets/needlet2.csv', save_path_nilc=f'../data/band5smooth4/simnilc', number=0)
+    hilc_pp(lmax_hilc=500, nside_hilc=512, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_sim=f'../data/band5smooth3/smsim/data.npy', path_fg='../data/band5smooth3/smfg/data.npy', path_noise=f'../data/band5smooth3/smnoise/data.npy', save_path_hilc='../data/band5smooth4/simhilc')
+    pilc_pp(lmax_pilc=500, nside_pilc=512, path_apo_mask='./mask/north/APOMASKC1_10.npy', path_bin_mask='./mask/north/BINMASKG.npy', path_sim=f'../data/band5smooth3/smsim/data.npy', path_fg='../data/band5smooth3/smfg/data.npy', path_noise=f'../data/band5smooth3/smnoise/data.npy', save_path_pilc='../data/band5smooth4/simpilc')
 
 
 

@@ -22,7 +22,7 @@ fgnps_all = glob.glob('../../FGSim/FG_noPS5/*.npy')
 sorted_fgnps = sorted(fgnps_all, key=lambda x: int(Path(x).stem))
 print(f'{sorted_fgnps}')
 
-fgps_all = glob.glob('../../FGSim/FG/*.npy')
+fgps_all = glob.glob('../../FGSim/FG5/*.npy')
 sorted_fgps = sorted(fgps_all, key=lambda x: int(Path(x).stem))
 print(f'{sorted_fgps}')
 
@@ -122,15 +122,15 @@ def data_creater(root_path, cmb_data_list=None, fg_data_list=None, nstd_data_lis
         os.makedirs(CMBFGPATH)
     create_sim(m_cmb_files=cmb_data_list, m_fg_files=fg_data_list,m_nstd_files=None, save_path=CMBFGPATH)
 
-def noise_simulator(n_simulation):
+def noise_simulator(n_simulation_start, n_simulation_end):
     print('simulate noise')
-    for i in range(n_simulation):
+    for i in range(n_simulation_start, n_simulation_end):
         print(f'simulation:{i}')
         create_noise(m_nstd_files=sorted_nstd, num_sim=i, save_path='./NSIDE512BAND5/NOISESIM')
 
 if __name__ == '__main__':
-    # data_creater('./NSIDE512BAND5/noPS', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd)
-    noise_simulator(50)
+    # data_creater('./NSIDE512BAND5/PS', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgps, nstd_data_list=sorted_nstd)
+    noise_simulator(50,100)
 
 
 

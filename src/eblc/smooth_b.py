@@ -19,10 +19,10 @@ def bl_curl_creater(df, lmax):
     print(f'{bl_curl_arr.shape}')
     return bl_curl_arr
 
-def smooth_b(df, bl_std_curl, bl_curl, m_list, bin_mask, apo_mask, lmax, nside, save_path):
+def smooth_b(df, bl_std_curl, bl_curl, m_list, bin_mask, apo_mask, lmax, nside, save_path, smooth_scale=30):
     smooth_list = []
     for index, m_pos in enumerate(m_list):
-        m = np.load(m_pos) * hp.smoothing(bin_mask, fwhm=np.deg2rad(2))
+        m = np.load(m_pos) * hp.smoothing(bin_mask, fwhm=np.deg2rad(smooth_scale)/60)
 
         alm_ori = hp.map2alm(m, lmax=lmax)
         alm_base = hp.almxfl(alm_ori, bl_std_curl / bl_curl[index])

@@ -101,7 +101,7 @@ def data_creater(root_path, cmb_data_list=None, fg_data_list=None, nstd_data_lis
     create_sim(m_cmb_files=cmb_data_list, m_fg_files=fg_data_list,m_nstd_files=None, save_path=CMBFGPATH)
 
 if __name__ == '__main__':
-    data_creater('./NSIDE512/noPS', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgnps, nstd_data_list=sorted_nstd)
+    data_creater('./NSIDE512/PS', cmb_data_list=sorted_cmb, fg_data_list=sorted_fgps, nstd_data_list=sorted_nstd)
 
 
 
