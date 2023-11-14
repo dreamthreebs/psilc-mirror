@@ -11,12 +11,14 @@ faintps = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/observatio
 #     plt.show()
 
 strongps_P2 = strongps[1]**2 + strongps[2]**2
-threhold = 1
+faintps_P2 = faintps[1]**2 + faintps[2]**2
+threhold = 0
 filtered_indices = np.where(strongps_P2 > threhold)
 filtered_values = strongps_P2[filtered_indices]
 print(f'{filtered_values.shape}')
 
-# hp.mollview(strongps_P2, norm='hist')
-# plt.show()
+hp.mollview(strongps_P2, norm='hist', title='strong ps P2')
+hp.mollview(faintps_P2, norm='log', title='faint ps P2', min=1e-4)
+plt.show()
 
 

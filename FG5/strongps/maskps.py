@@ -3,6 +3,8 @@ import healpy as hp
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.io import readsav
+import os
+from pathlib import Path
 
 
 def mask_ps(nside, freq, radius):
@@ -46,15 +48,18 @@ if __name__ == '__main__':
     df = pd.read_csv('../../FGSim/FreqBand5')
     
     nside = 512
+    fold = 0.5
+    directory = Path(f"./psmaskfits/{fold}")
+    directory.mkdir(parents=True, exist_ok=True)
 
     for i in range(len(df)):
         freq = df.at[i, 'freq']
         beam = df.at[i, 'beam']
         print(f'{freq=}, {beam=}')
-        radius = 2 * beam
+        radius = fold * beam
         print(f'{radius=}')
-        mask = mask_ps(nside, freq, radius=2*beam)
-        np.save(f'./psmask/psmask{freq}_{radius}.npy', mask)
+        mask = mask_ps(nside, freq, radius=radius)
+        hp.write_map(f'./psmaskfits/{fold}/{freq}.fits', mask, overwrite=True)
 
 
 
