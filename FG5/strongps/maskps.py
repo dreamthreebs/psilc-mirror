@@ -47,9 +47,9 @@ if __name__ == '__main__':
 
     df = pd.read_csv('../../FGSim/FreqBand5')
     
-    nside = 512
-    fold = 0.5
-    directory = Path(f"./psmaskfits/{fold}")
+    nside = 2048
+    fold = 1.5
+    directory = Path(f"./psmaskfits2048/{fold}")
     directory.mkdir(parents=True, exist_ok=True)
 
     for i in range(len(df)):
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         radius = fold * beam
         print(f'{radius=}')
         mask = mask_ps(nside, freq, radius=radius)
-        hp.write_map(f'./psmaskfits/{fold}/{freq}.fits', mask, overwrite=True)
+        hp.write_map(f'./psmaskfits2048/{fold}/{freq}.fits', mask, overwrite=True)
 
 
 

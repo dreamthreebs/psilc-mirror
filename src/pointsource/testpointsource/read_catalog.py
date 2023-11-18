@@ -22,6 +22,10 @@ filtered_indices = np.where(I > threhold)
 filtered_values = I[filtered_indices]
 print(f'{filtered_values.shape}')
 
+hp.gnomview(m[0])
+
+plt.show()
+
 
 
 
