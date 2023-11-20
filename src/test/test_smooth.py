@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 nside = 2048
 # lmax = 3 * nside -1
 # lmax = 4 * nside
-lmax = 1000
+lmax = 1700
 
 m = np.zeros(hp.nside2npix(nside))
 
@@ -21,7 +21,7 @@ plt.show()
 
 m2 = hp.smoothing(m, fwhm=np.deg2rad(1), lmax=lmax, iter=5, use_pixel_weights=True)
 m3 = hp.smoothing(m, fwhm=np.deg2rad(1.5), lmax=lmax, iter=5, use_pixel_weights=True)
-m1 = hp.smoothing(m, fwhm=np.deg2rad(30)/60, lmax=lmax, iter=5, use_pixel_weights=True)
+m1 = hp.smoothing(m, fwhm=np.deg2rad(17)/60, lmax=lmax, iter=5, use_pixel_weights=True)
 hp.gnomview(m2, title='smooth to 1 degree')
 hp.gnomview(m1, title='smooth to 10 arcmin')
 hp.gnomview(m3, title='smooth to 1.5 arcmin')
@@ -29,7 +29,7 @@ plt.show()
 
 bl = hp.gauss_beam(fwhm=np.deg2rad(1), lmax=lmax)
 bl3 = hp.gauss_beam(fwhm=np.deg2rad(1.5), lmax=lmax)
-bl1 = hp.gauss_beam(fwhm=np.deg2rad(30)/60, lmax=lmax)
+bl1 = hp.gauss_beam(fwhm=np.deg2rad(17)/60, lmax=lmax)
 
 m2_3 = hp.alm2map(hp.almxfl(hp.map2alm(m2, lmax=lmax, use_pixel_weights=True), bl3/bl), nside=nside)
 m2_1 = hp.alm2map(hp.almxfl(hp.map2alm(m2, lmax=lmax, use_pixel_weights=True), bl1/bl), nside=nside)

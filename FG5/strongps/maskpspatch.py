@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 
 
-def mask_ps(nside, freq, radius):
+def mask_ps(nside, radius):
 
     mask = np.ones(hp.nside2npix(nside))
     data = readsav(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{freq}GHz/strongirps_cat_{freq}GHz.sav', python_dict=True, verbose=False)
@@ -48,18 +48,16 @@ if __name__ == '__main__':
     df = pd.read_csv('../../FGSim/FreqBand5')
     
     nside = 2048
-    fold = 2.0
-    directory = Path(f"./psmaskfits2048/{fold}")
+    fold = 1.0
+    beam = 23
+    directory = Path(f"./psmaskfits2048patch/{fold}")
     directory.mkdir(parents=True, exist_ok=True)
 
-    for i in range(len(df)):
-        freq = df.at[i, 'freq']
-        beam = df.at[i, 'beam']
-        print(f'{freq=}, {beam=}')
-        radius = fold * beam
-        print(f'{radius=}')
-        mask = mask_ps(nside, freq, radius=radius)
-        hp.write_map(f'./psmaskfits2048/{fold}/{freq}.fits', mask, overwrite=True)
+    print(f'{beam=}')
+    radius = fold * beam
+    print(f'{radius=}')
+    mask = mask_ps(nside, radius=radius)
+    hp.write_map(f'./psmaskfits2048patch/{fold}/{freq}.fits', mask, overwrite=True)
 
 
 

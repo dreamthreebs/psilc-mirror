@@ -14,7 +14,9 @@ m = hp.read_map(f'../CMBPS5/{freq}.fits', field=(0,1,2))
 
 beam = df.at[index, 'beam']
 print(f'{beam=}')
-bl_std = hp.gauss_beam(fwhm=np.deg2rad(30)/60, lmax=lmax, pol=True)
+beam_std = 11
+print(f'{beam_std=}')
+bl_std = hp.gauss_beam(fwhm=np.deg2rad(beam_std)/60, lmax=lmax, pol=True)
 bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)
 div = bl/bl_std
 print(f'{div=}')
@@ -26,7 +28,7 @@ alm_B = hp.almxfl(hp.map2alm(m, lmax=lmax)[2], bl_std[:,2]/bl[:,2])
 
 sm = hp.alm2map([alm_T, alm_E, alm_B], nside=nside)
 
-hp.write_map(f"./30arcmin/{freq}.fits", sm[0], overwrite=True)
+hp.write_map(f"./{beam_std}arcmin/{freq}.fits", sm[0], overwrite=True)
 
 # for i, type_m in enumerate("TQU"):
 #     # hp.gnomview(sm[i], title=f'{type_m}')
