@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 nside = 2048
 # lmax = 3 * nside -1
 # lmax = 4 * nside
-lmax = 1700
+lmax = 1000
 
 m = np.zeros(hp.nside2npix(nside))
 
@@ -19,9 +19,9 @@ hp.gnomview(m)
 # # hp.projscatter(theta=np.pi/2, phi=0)
 plt.show()
 
-m2 = hp.smoothing(m, fwhm=np.deg2rad(1), lmax=lmax, iter=5, use_pixel_weights=True)
-m3 = hp.smoothing(m, fwhm=np.deg2rad(1.5), lmax=lmax, iter=5, use_pixel_weights=True)
-m1 = hp.smoothing(m, fwhm=np.deg2rad(17)/60, lmax=lmax, iter=5, use_pixel_weights=True)
+m2 = hp.smoothing(m, fwhm=np.deg2rad(1), lmax=lmax, iter=3, use_pixel_weights=True)
+m3 = hp.smoothing(m, fwhm=np.deg2rad(1.5), lmax=lmax, iter=3, use_pixel_weights=True)
+m1 = hp.smoothing(m, fwhm=np.deg2rad(17)/60, lmax=lmax, iter=20, use_pixel_weights=True)
 hp.gnomview(m2, title='smooth to 1 degree')
 hp.gnomview(m1, title='smooth to 10 arcmin')
 hp.gnomview(m3, title='smooth to 1.5 arcmin')

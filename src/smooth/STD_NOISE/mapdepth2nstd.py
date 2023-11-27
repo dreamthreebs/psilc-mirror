@@ -24,7 +24,7 @@ print(f'{n_freq}')
 for i in range(n_freq):
     freq = df.at[i,'freq']
     Delta = df.at[i,'mapdepth'] * u.uK * u.arcmin
-    Nside = 512
+    Nside = 2048
 
     sigma = calc_sigma(Delta, Nside)
     print(f"The noise standard deviation (sigma) at {freq=} is: {sigma}")
