@@ -9,7 +9,6 @@ from astropy import units as u
 
 imap_out = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/30GHz/strongirps_map_30GHz.fits', field=(0,1,2))[0]
 
-
 imap_out_270 = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/270GHz/strongirps_map_270GHz.fits', field=(0,1,2))[0]
 
 

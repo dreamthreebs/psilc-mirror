@@ -56,18 +56,23 @@ ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=2 * np.deg2rad(beam
 
 print(f'{ipix_fit.shape=}')
 
-def fit_model(theta, norm_beam, const):
+def fit_model(ipix_fit, norm_beam, const):
+
+    vec_around = hp.pix2vec(nside=nside, ipix=ipix_fit.astype(int))
+
+    print(f'{vec_around=}')
+
+    theta = np.arccos(np.array(center_vec) @ np.array(vec_around))
+
+    theta = np.nan_to_num(theta)
+
+    print(f'{theta=}')
     beam_profile = 1 / (2*np.pi*sigma**2) * np.exp(- theta**2 / (2 * sigma**2))
     # print(f'{beam_profile=}')
     return norm_beam * beam_profile + const
 
-vec_around = hp.pix2vec(nside=nside, ipix=ipix_fit.astype(int))
-print(f'{vec_around=}')
-theta = np.arccos(np.array(center_vec) @ np.array(vec_around))
-theta = np.nan_to_num(theta)
 # theta = np.sqrt(2*(1-np.array(center_vec) @ np.array(vec_around)))
 
-print(f'{theta=}')
 
 y_arr = m[ipix_fit]
 print(f'{y_arr}')
@@ -76,7 +81,7 @@ print(f'{y_err}')
 # plt.plot(ipix_fit, y_arr)
 # plt.show()
 
-lsq = LeastSquares(x=theta, y=y_arr, yerror=y_err, model=fit_model)
+lsq = LeastSquares(x=ipix_fit, y=y_arr, yerror=y_err, model=fit_model)
 
 obj_minuit = Minuit(lsq, norm_beam=1, const=0)
 obj_minuit.limits = [(0,None),(-100,100)]
@@ -87,12 +92,29 @@ print(obj_minuit.hesse())
 
 print(obj_minuit.minos())
 
-fit_res = fit_model(theta, 1.57, 0)
+fit_res = fit_model(ipix_fit, 1.57, 14.8)
 
-plt.plot(theta, fit_res, label='hand')
-plt.plot(theta, m[ipix_fit], label='true')
-plt.legend()
+new_m = np.zeros(hp.nside2npix(nside))
+new_m[ipix_fit] = fit_res
+true_m = np.zeros(hp.nside2npix(nside))
+true_m[ipix_fit] = m[ipix_fit]
+hp.gnomview(new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
+hp.gnomview(true_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
+hp.gnomview(true_m-new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], title='residual')
 plt.show()
+
+# plt.scatter(ipix_fit, fit_res, label='hand')
+# plt.scatter(ipix_fit, m[ipix_fit], label='hand')
+
+# plt.legend()
+# plt.loglog()
+
+plt.show()
+
+# plt.plot(theta, fit_res, label='hand')
+# plt.plot(theta, m[ipix_fit], label='true')
+# plt.legend()
+# plt.show()
 
 
 

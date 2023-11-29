@@ -59,7 +59,7 @@ def lsq(lon_bias, lat_bias, norm_beam, const):
         m_ps[new_center_ipix] = norm_beam
         return hp.smoothing(m_ps, fwhm=np.deg2rad(beam)/60, lmax=400, iter=1)[ipix_disc] + const
 
-    y_model = model2()
+    y_model = model1()
     print(f'{y_model.shape=}')
 
     y_data = m[ipix_disc]
@@ -84,14 +84,15 @@ def lsq(lon_bias, lat_bias, norm_beam, const):
 
 
 
-obj_minuit = Minuit(lsq, lon_bias=0, lat_bias=0, norm_beam=3.5e7, const=0)
+obj_minuit = Minuit(lsq, lon_bias=0, lat_bias=0, norm_beam=7, const=0)
 bias_lonlat = np.deg2rad(0.5)
-obj_minuit.limits = [(-0.5,0.5),(-0.5,0.5),(1e5,1e8),(-100,100)]
+# obj_minuit.limits = [(-bias_lonlat,bias_lonlat),(-bias_lonlat,bias_lonlat),(0,10),(-100,100)]
+obj_minuit.limits = [(-0.5,0.5),(-0.5,0.5),(0,10),(-100,100)]
 # print(obj_minuit.scan(ncall=100))
 # obj_minuit.errors = (0.1, 0.2)
 print(obj_minuit.migrad())
 print(obj_minuit.hesse())
-ndof = 4220
+ndof = 16912
 str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {ndof} = {obj_minuit.fval/ndof}"
 print(str_chi2)
 
