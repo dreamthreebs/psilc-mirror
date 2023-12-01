@@ -2,11 +2,15 @@ import numpy as np
 import healpy as hp
 import matplotlib.pyplot as plt
 
-m = np.load('./40.npy')
+freqlist = [30, 85, 95, 145, 155, 215, 270 ]
 
-m2048 = hp.ud_grade(m, nside_out=2048, power=1)
+for freq in freqlist:
 
-# hp.mollview(m2048)
-# plt.show()
-
-np.save('./2048/40.npy', m2048)
+    m = np.load(f'./{freq}.npy')
+    
+    m2048 = hp.ud_grade(m, nside_out=2048, power=1)
+    
+    # hp.mollview(m2048)
+    # plt.show()
+    
+    np.save(f'./2048/{freq}.npy', m2048)

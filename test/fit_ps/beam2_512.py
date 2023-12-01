@@ -40,37 +40,42 @@ def see_true_map():
 # see_true_map()
 
 
-def lsq(lon_bias, lat_bias, norm_beam, const, lmax_sm):
-    lon_fit = lon + lon_bias
-    lat_fit = lat + lat_bias
-    new_center_ipix = hp.ang2pix(nside=nside, theta=np.rad2deg(lon_fit), phi=np.rad2deg(lat_fit), lonlat=True)
-    new_center_vec = hp.pix2vec(nside=nside, ipix=new_center_ipix)
-    ipix_disc = hp.query_disc(nside=nside, vec=new_center_vec, radius=0.5*np.deg2rad(beam)/60)
+def lsq(lon_bias1, lat_bias1, lon_bias2, lat_bias2, norm_beam1, norm_beam2, const):
+    lon_fit1 = lon + lon_bias1
+    lat_fit1 = lat + lat_bias1
+    center_ipix1 = hp.ang2pix(nside=nside, theta=np.rad2deg(lon_fit1), phi=np.rad2deg(lat_fit1), lonlat=True)
+    center_vec1 = hp.pix2vec(nside=nside, ipix=center_ipix1)
+    ipix_disc1 = hp.query_disc(nside=nside, vec=center_vec1, radius=1*np.deg2rad(beam)/60)
 
-    vec_around = hp.pix2vec(nside=nside, ipix=ipix_disc.astype(int))
-    theta = np.arccos(np.array(new_center_vec) @ np.array(vec_around))
-    theta = np.nan_to_num(theta)
+    vec_around1 = hp.pix2vec(nside=nside, ipix=ipix_disc1.astype(int))
+    theta1 = np.arccos(np.array(center_vec1) @ np.array(vec_around1))
+    theta1 = np.nan_to_num(theta1)
 
-    def model1():
-        return norm_beam / (2*np.pi*sigma_true**2) * np.exp(- (theta)**2 / (2 * sigma_true**2)) + const
+    lon_fit2 = lon + lon_bias2
+    lat_fit2 = lat + lat_bias2
+    center_ipix2 = hp.ang2pix(nside=nside, theta=np.rad2deg(lon_fit2), phi=np.rad2deg(lat_fit2), lonlat=True)
+    center_vec2 = hp.pix2vec(nside=nside, ipix=center_ipix2)
+    ipix_disc2 = hp.query_disc(nside=nside, vec=center_vec2, radius=1*np.deg2rad(beam)/60)
 
-    def model2():
-        m_ps = np.zeros(hp.nside2npix(nside))
-        m_ps[new_center_ipix] = norm_beam
-        return hp.smoothing(m_ps, fwhm=np.deg2rad(beam)/60, lmax=int(lmax_sm), iter=1)[ipix_disc] + const
+    vec_around2 = hp.pix2vec(nside=nside, ipix=ipix_disc2.astype(int))
+    theta2 = np.arccos(np.array(center_vec2) @ np.array(vec_around2))
+    theta2 = np.nan_to_num(theta2)
 
-    y_model = model1()
+    def model():
+        return norm_beam1 / (2*np.pi*sigma_true**2) * np.exp(- (theta1)**2 / (2 * sigma_true**2)) + norm_beam2 / (2*np.pi*sigma_true**2) * np.exp(- (theta2)**2 / (2 * sigma_true**2)) + const
+
+    y_model = model()
     print(f'{y_model.shape=}')
 
-    y_data = m[ipix_disc]
+    y_data = m[ipix_disc1]
     # print(f'{y_data.shape=}')
-    y_data_err = nstd[ipix_disc]
+    y_data_err = nstd[ipix_disc1]
 
     z = (y_data - y_model) / (y_data_err)
     return np.sum(z**2)
 
-# lsq_val = lsq(lon_bias=0, lat_bias=0, norm_beam=7.83, const=0)
-# print(f'{lsq_val=}')
+lsq_val = lsq(lon_bias1=0, lat_bias1=0, lon_bias2=0, lat_bias2=0, norm_beam1=7.83,norm_beam2=7.83, const=0)
+print(f'{lsq_val=}')
 
 # new_center_ipix = hp.ang2pix(nside=nside, theta=np.rad2deg(lon), phi=np.rad2deg(lat), lonlat=True)
 # new_center_vec = hp.pix2vec(nside=nside, ipix=new_center_ipix)
@@ -84,11 +89,10 @@ def lsq(lon_bias, lat_bias, norm_beam, const, lmax_sm):
 
 
 
-obj_minuit = Minuit(lsq, lon_bias=0, lat_bias=0, norm_beam=1, const=0, lmax_sm=400)
+obj_minuit = Minuit(lsq, lon_bias1=0, lat_bias1=0, lon_bias2=0, lat_bias2=0, norm_beam1=1, norm_beam2=1, const=0)
 bias_lonlat = np.deg2rad(0.5)
 # obj_minuit.limits = [(-bias_lonlat,bias_lonlat),(-bias_lonlat,bias_lonlat),(1e5,1e8),(-100,100),(200,2000)]
-obj_minuit.limits = [(-bias_lonlat,bias_lonlat),(-bias_lonlat,bias_lonlat),(0,10),(-100,100),(200,2000)]
-obj_minuit.fixed[4] = True
+obj_minuit.limits = [(-bias_lonlat,bias_lonlat),(-bias_lonlat,bias_lonlat),(-bias_lonlat,bias_lonlat),(-bias_lonlat,bias_lonlat),(0,10),(0,10),(-100,100)]
 # obj_minuit.limits = [(-0.5,0.5),(-0.5,0.5),(0,10),(-100,100)]
 # print(obj_minuit.scan(ncall=100))
 # obj_minuit.errors = (0.1, 0.2)

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from iminuit import Minuit
 from iminuit.cost import LeastSquares
 
-m = np.load('./ps.npy')
+m = np.load('./psnoise/sm_ps.npy')
 nstd = np.load('../../FGSim/NSTDNORTH/40.npy')[0]
 
 nside = 512
@@ -48,7 +48,7 @@ def lsq(lon_bias, lat_bias, norm_beam, const):
     def model2():
         m_ps = np.zeros(hp.nside2npix(nside))
         m_ps[new_center_ipix] = norm_beam
-        return hp.smoothing(m_ps, fwhm=np.deg2rad(beam)/60, lmax=400, iter=1)[ipix_disc] + const
+        return hp.smoothing(m_ps, fwhm=np.deg2rad(beam)/60, lmax=2000, iter=3)[ipix_disc] + const
 
     y_model = model1()
     print(f'{y_model.shape=}')
@@ -61,7 +61,7 @@ def lsq(lon_bias, lat_bias, norm_beam, const):
     return np.sum(z**2)
 
 
-obj_minuit = Minuit(lsq, lon_bias=0, lat_bias=0, norm_beam=7, const=0)
+obj_minuit = Minuit(lsq, lon_bias=0, lat_bias=0, norm_beam=1, const=0)
 bias_lonlat = np.deg2rad(0.5)
 # obj_minuit.limits = [(-bias_lonlat,bias_lonlat),(-bias_lonlat,bias_lonlat),(0,10),(-100,100)]
 obj_minuit.limits = [(-0.5,0.5),(-0.5,0.5),(0,10),(-10,10)]
@@ -74,9 +74,5 @@ print(obj_minuit.hesse())
 ndof = 265
 str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {ndof} = {obj_minuit.fval/ndof}"
 print(str_chi2)
-
-
-
-
 
 

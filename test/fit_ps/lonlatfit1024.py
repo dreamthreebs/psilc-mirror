@@ -9,10 +9,10 @@ beam = 63 # arcmin
 sigma_true = np.deg2rad(beam)/60 / (np.sqrt(8*np.log(2)))
 print(f'{sigma_true=}')
 
-nside = 512
+nside = 1024
 
-m = np.load('../../FGSim/PSNOISE/40.npy')[0]
-nstd = np.load('../../FGSim/NSTDNORTH/40.npy')[0]
+m = np.load('../../FGSim/PSNOISE/1024/40psnoise.npy')[0]
+nstd = np.load('../../FGSim/PSNOISE/1024/40nstd.npy')[0]
 
 df = pd.read_csv('../ps_sort/sort_by_iflux/40.csv')
 lon = df.at[44, 'lon']
@@ -40,12 +40,12 @@ def see_true_map():
 # see_true_map()
 
 
-def lsq(lon_bias, lat_bias, norm_beam, const, lmax_sm):
+def lsq(lon_bias, lat_bias, norm_beam, const):
     lon_fit = lon + lon_bias
     lat_fit = lat + lat_bias
     new_center_ipix = hp.ang2pix(nside=nside, theta=np.rad2deg(lon_fit), phi=np.rad2deg(lat_fit), lonlat=True)
     new_center_vec = hp.pix2vec(nside=nside, ipix=new_center_ipix)
-    ipix_disc = hp.query_disc(nside=nside, vec=new_center_vec, radius=0.5*np.deg2rad(beam)/60)
+    ipix_disc = hp.query_disc(nside=nside, vec=new_center_vec, radius=1*np.deg2rad(beam)/60)
 
     vec_around = hp.pix2vec(nside=nside, ipix=ipix_disc.astype(int))
     theta = np.arccos(np.array(new_center_vec) @ np.array(vec_around))
@@ -57,7 +57,7 @@ def lsq(lon_bias, lat_bias, norm_beam, const, lmax_sm):
     def model2():
         m_ps = np.zeros(hp.nside2npix(nside))
         m_ps[new_center_ipix] = norm_beam
-        return hp.smoothing(m_ps, fwhm=np.deg2rad(beam)/60, lmax=int(lmax_sm), iter=1)[ipix_disc] + const
+        return hp.smoothing(m_ps, fwhm=np.deg2rad(beam)/60, lmax=400, iter=1)[ipix_disc] + const
 
     y_model = model1()
     print(f'{y_model.shape=}')
@@ -84,17 +84,15 @@ def lsq(lon_bias, lat_bias, norm_beam, const, lmax_sm):
 
 
 
-obj_minuit = Minuit(lsq, lon_bias=0, lat_bias=0, norm_beam=1, const=0, lmax_sm=400)
+obj_minuit = Minuit(lsq, lon_bias=0, lat_bias=0, norm_beam=7, const=0)
 bias_lonlat = np.deg2rad(0.5)
-# obj_minuit.limits = [(-bias_lonlat,bias_lonlat),(-bias_lonlat,bias_lonlat),(1e5,1e8),(-100,100),(200,2000)]
-obj_minuit.limits = [(-bias_lonlat,bias_lonlat),(-bias_lonlat,bias_lonlat),(0,10),(-100,100),(200,2000)]
-obj_minuit.fixed[4] = True
-# obj_minuit.limits = [(-0.5,0.5),(-0.5,0.5),(0,10),(-100,100)]
+# obj_minuit.limits = [(-bias_lonlat,bias_lonlat),(-bias_lonlat,bias_lonlat),(0,10),(-100,100)]
+obj_minuit.limits = [(-0.5,0.5),(-0.5,0.5),(0,10),(-100,100)]
 # print(obj_minuit.scan(ncall=100))
 # obj_minuit.errors = (0.1, 0.2)
 print(obj_minuit.migrad())
 print(obj_minuit.hesse())
-ndof = 1051
+ndof = 1055
 str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {ndof} = {obj_minuit.fval/ndof}"
 print(str_chi2)
 

@@ -14,15 +14,13 @@ m = np.load('../../FGSim/PSNOISE/40.npy')[0]
 noise_nstd = np.load('../../FGSim/NSTDNORTH/40.npy')[0]
 
 df = pd.read_csv('../ps_sort/sort_by_iflux/40.csv')
-lon = df.at[5, 'lon']
-lat = df.at[5, 'lat']
-iflux = df.at[5, 'iflux']
+lon = df.at[82, 'lon']
+lat = df.at[82, 'lat']
+iflux = df.at[82, 'iflux']
 
 print(f'{iflux=}')
 
 def see_true_map():
-   
-    
     # hp.mollview(m, norm='hist');plt.show()
     
     hp.gnomview(m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
@@ -38,7 +36,27 @@ def see_true_map():
     hp.gnomview(mask, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
     plt.show()
 
-# see_true_map()
+see_true_map()
+
+def see_high_true_map():
+    # hp.mollview(m, norm='hist');plt.show()
+    m = np.load('../../FGSim/PSNOISE/270.npy')[0]
+
+    
+    hp.gnomview(m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
+    plt.show()
+    
+    vec = hp.ang2vec(theta=np.rad2deg(lon), phi=np.rad2deg(lat), lonlat=True)
+    
+    ipix_disc = hp.query_disc(nside=nside, vec=vec, radius=np.deg2rad(63)/60)
+    
+    mask = np.ones(hp.nside2npix(nside))
+    mask[ipix_disc] = 0
+    
+    hp.gnomview(mask, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
+    plt.show()
+
+# see_high_true_map()
 
 center_pix = hp.ang2pix(nside=nside, theta=np.rad2deg(lon), phi=np.rad2deg(lat), lonlat=True)
 # center_pix = 100000
@@ -47,7 +65,7 @@ center_vec = hp.pix2vec(nside=nside, ipix=center_pix)
 center_vec = np.array(center_vec).astype(np.float32)
 print(f'{center_vec=}')
 
-ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=2 * np.deg2rad(beam)/60)
+ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1 * np.deg2rad(beam)/60)
 
 # m_fit = np.ones(hp.nside2npix(nside))
 # m_fit[ipix_fit] = 0
@@ -84,24 +102,24 @@ print(f'{y_err}')
 lsq = LeastSquares(x=ipix_fit, y=y_arr, yerror=y_err, model=fit_model)
 
 obj_minuit = Minuit(lsq, norm_beam=1, const=0)
-obj_minuit.limits = [(0,None),(-100,100)]
+obj_minuit.limits = [(0,10),(-100,100)]
 # print(obj_minuit.scan(ncall=100))
 # obj_minuit.errors = (0.1, 0.2)
 print(obj_minuit.migrad())
 print(obj_minuit.hesse())
 
-print(obj_minuit.minos())
+# print(obj_minuit.minos())
 
-fit_res = fit_model(ipix_fit, 1.57, 14.8)
+# fit_res = fit_model(ipix_fit, 1.57, 14.8)
 
-new_m = np.zeros(hp.nside2npix(nside))
-new_m[ipix_fit] = fit_res
-true_m = np.zeros(hp.nside2npix(nside))
-true_m[ipix_fit] = m[ipix_fit]
-hp.gnomview(new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
-hp.gnomview(true_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
-hp.gnomview(true_m-new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], title='residual')
-plt.show()
+# new_m = np.zeros(hp.nside2npix(nside))
+# new_m[ipix_fit] = fit_res
+# true_m = np.zeros(hp.nside2npix(nside))
+# true_m[ipix_fit] = m[ipix_fit]
+# hp.gnomview(new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
+# hp.gnomview(true_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
+# hp.gnomview(true_m-new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], title='residual')
+# plt.show()
 
 # plt.scatter(ipix_fit, fit_res, label='hand')
 # plt.scatter(ipix_fit, m[ipix_fit], label='hand')
@@ -109,7 +127,7 @@ plt.show()
 # plt.legend()
 # plt.loglog()
 
-plt.show()
+# plt.show()
 
 # plt.plot(theta, fit_res, label='hand')
 # plt.plot(theta, m[ipix_fit], label='true')

@@ -11,9 +11,11 @@ nside = 2048
 
 m = hp.synfast(cmbcl.T, nside=nside, lmax=lmax, new=True)
 
-for index, cmb_type in enumerate('TQU'):
-    hp.mollview(m[index], norm='hist')
-    plt.show()
-    np.save(f'./cmbdata/cmbmap.npy', m)
+# for index, cmb_type in enumerate('TQU'):
+#     hp.mollview(m[index], norm='hist')
+#     plt.show()
+
+# np.save(f'./cmbdata/cmbmap1.npy', m)
+hp.write_map(f'./cmbdata/1.fits', m)
 
 

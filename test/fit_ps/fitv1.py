@@ -11,8 +11,12 @@ print(f'{sigma=}')
 
 nside = 2048
 
+# m = np.load('../../FGSim/STRPSCMBFGNOISE/40.npy')[0]
+# m = np.load('../../FGSim/STRPSFGNOISE/40.npy')[0]
+# m = np.load('../../FGSim/STRPSCMBNOISE/40.npy')[0]
 m = np.load('../../FGSim/PSNOISE/2048/40.npy')[0]
 noise_nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
+cstd = np.ones(hp.nside2npix(nside)) *  75.2896
 
 df = pd.read_csv('../ps_sort/sort_by_iflux/40.csv')
 lon = df.at[44, 'lon']
@@ -39,7 +43,7 @@ def see_true_map():
     hp.gnomview(mask, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
     plt.show()
 
-# see_true_map()
+see_true_map()
 
 center_pix = hp.ang2pix(nside=nside, theta=np.rad2deg(lon), phi=np.rad2deg(lat), lonlat=True)
 # center_pix = 100000
@@ -48,7 +52,7 @@ center_vec = hp.pix2vec(nside=nside, ipix=center_pix)
 center_vec = np.array(center_vec).astype(np.float64)
 print(f'{center_vec=}')
 
-ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=0.8 * np.deg2rad(beam)/60)
+ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1 * np.deg2rad(beam)/60)
 
 # m_fit = np.ones(hp.nside2npix(nside))
 # m_fit[ipix_fit] = 0
@@ -72,6 +76,7 @@ print(f'{theta=}')
 
 y_arr = m[ipix_fit]
 print(f'{y_arr}')
+# y_err = noise_nstd[ipix_fit] + cstd[ipix_fit]
 y_err = noise_nstd[ipix_fit]
 print(f'{y_err}')
 # plt.plot(ipix_fit, y_arr)
@@ -80,23 +85,23 @@ print(f'{y_err}')
 lsq = LeastSquares(x=theta, y=y_arr, yerror=y_err, model=fit_model)
 
 obj_minuit = Minuit(lsq, norm_beam=1,  const=0)
-obj_minuit.limits = [(0,10),(-100,100)]
+obj_minuit.limits = [(0,10),(-1e4,1e4)]
 # print(obj_minuit.scan(ncall=100))
 # obj_minuit.errors = (0.1, 0.2)
 print(obj_minuit.migrad())
 print(obj_minuit.hesse())
 
 
-fit_res = fit_model(theta,0.24698 , 0.02)
+# fit_res = fit_model(theta,0.24698 , 0.02)
 
-new_m = np.zeros(hp.nside2npix(nside))
-new_m[ipix_fit] = fit_res
-true_m = np.zeros(hp.nside2npix(nside))
-true_m[ipix_fit] = m[ipix_fit]
-hp.gnomview(new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
-hp.gnomview(true_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
-hp.gnomview(true_m-new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], title='residual')
-plt.show()
+# new_m = np.zeros(hp.nside2npix(nside))
+# new_m[ipix_fit] = fit_res
+# true_m = np.zeros(hp.nside2npix(nside))
+# true_m[ipix_fit] = m[ipix_fit]
+# hp.gnomview(new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
+# hp.gnomview(true_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
+# hp.gnomview(true_m-new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], title='residual')
+# plt.show()
 
 
 
