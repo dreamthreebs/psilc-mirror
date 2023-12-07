@@ -2,36 +2,27 @@ import numpy as np
 import healpy as hp
 import matplotlib.pyplot as plt
 import pandas as pd
-import time
+import pickle
 from numpy.polynomial.legendre import Legendre
+import time
 
-lmax = 500
-radius_fold = 0.1
+lmax = 350
+radius_fold = 0.8
 print(f'{lmax=}')
 print(f'{radius_fold=}')
 
-legendre_cache = {}
+def evaluate_interp_func(l, x, interp_funcs):
+    for interp_func, x_range in interp_funcs[l]:
+        if x_range[0] <= x <= x_range[1]:
+            return interp_func(x)
+    raise ValueError(f"x = {x} is out of the interpolation range for l = {l}")
 
-def calc_C_theta(x, lmax, cl):
-    legendre_polys = [Legendre([0]*l + [1])(x) for l in range(lmax + 1)]
-    coefficients = (2 * np.arange(lmax + 1) + 1) * cl
-    sum_val = np.dot(coefficients, legendre_polys)
-    return 1/(4*np.pi)*sum_val
-
-def calc_C_theta_cache(x, lmax, cl):
-    global legendre_cache
+def calc_C_theta_itp(x, lmax, cl, itp_funcs):
     sum_val = 0.0
     for l in range(lmax + 1):
-        # Check if the polynomial is already in the cache
-        if l not in legendre_cache:
-            coeffs = [0] * l + [1]
-            Pl = Legendre(coeffs)
-            legendre_cache[l] = Pl
-        else:
-            Pl = legendre_cache[l]
-        # Evaluate the polynomial at x and add to the sum
-        sum_val += (2 * l + 1) * cl[l] * Pl(x)
-    return 1 / (4 * np.pi) * sum_val
+        sum_val += (2 * l + 1) * cl[l] * evaluate_interp_func(l, x, interp_funcs=itp_funcs)
+    return 1/(4*np.pi)*sum_val
+
 
 # y = calc_C_theta(np.pi/2, lmax=2, cl=np.ones(lmax+1))
 # print(f'{y=}')
@@ -68,27 +59,30 @@ n_cov = len(ipix_fit)
 cov = np.zeros((n_cov, n_cov))
 print(f'{cov.shape=}')
 
-cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:,0]
+bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
+cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
+cl = cl * bl**2
 
 time0 = time.time()
-for i in range(n_cov):
-    print(f'{i=}')
-    for j in range(i+1):
-        ipix_i = ipix_fit[i]
-        ipix_j = ipix_fit[j]
-        vec_i = hp.pix2vec(nside=nside, ipix=ipix_i)
-        vec_j = hp.pix2vec(nside=nside, ipix=ipix_j)
-        cos_theta = np.array(vec_i) @ np.array(vec_j)
-        # print(f'{cos_theta=}')
-        cov[i,j] = calc_C_theta_cache(x=cos_theta, lmax=lmax, cl=cl[0:lmax+1])
-        if i!=j:
-            cov[j,i] = cov[i,j]
-
+with open('../interpolate_cov/lgd_itp_funcs500.pkl', 'rb') as f:
+    loaded_itp_funcs = pickle.load(f)
+    for i in range(n_cov):
+        print(f'{i=}')
+        for j in range(i+1):
+            ipix_i = ipix_fit[i]
+            ipix_j = ipix_fit[j]
+            vec_i = hp.pix2vec(nside=nside, ipix=ipix_i)
+            vec_j = hp.pix2vec(nside=nside, ipix=ipix_j)
+            cos_theta = np.array(vec_i) @ np.array(vec_j)
+            cos_theta = np.where(cos_theta>1.0, 1.0, cos_theta)
+            # print(f'{cos_theta=}')
+            cov[i,j] = calc_C_theta_itp(x=cos_theta, lmax=lmax, cl=cl[0:lmax+1], itp_funcs=loaded_itp_funcs)
+            if i!=j:
+                cov[j,i] = cov[i,j]
 timecov = time.time()-time0
 print(f'{timecov=}')
-
 print(f'{cov=}')
-np.save(f'./cmb_cov_data/lmax{lmax}rf{radius_fold}', cov)
+np.save(f'./cov_beam_itp_data/lmax{lmax}rf{radius_fold}', cov)
 
 
 

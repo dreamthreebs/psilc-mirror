@@ -54,7 +54,7 @@ if __name__=='__main__':
     center_disc_vec = hp.pix2vec(nside=nside, ipix=center_disc_pix)
     print(f'{center_disc_vec=}')
 
-    ipix_disc = hp.query_disc(nside=nside, vec=center_disc_vec, radius=np.deg2rad(1.1))
+    ipix_disc = hp.query_disc(nside=nside, vec=center_disc_vec, radius=np.deg2rad(1.3))
     vec_around = hp.pix2vec(nside=nside, ipix=ipix_disc)
     cos_theta = np.array(center_disc_vec) @ np.array(vec_around)
     print(f'{cos_theta.shape=}')

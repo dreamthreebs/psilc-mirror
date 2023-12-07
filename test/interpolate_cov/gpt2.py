@@ -56,14 +56,14 @@ def evaluate_interp_func(l, x, interp_funcs):
             return interp_func(x)
     raise ValueError(f"x = {x} is out of the interpolation range for l = {l}")
 
-lmax = 1500  # Maximum degree of Legendre polynomial
-x_range = (0.9998, 1)
+lmax = 500  # Maximum degree of Legendre polynomial
+x_range = (0.998, 1)
 total_points = 1000  # Total number of points to be distributed
 
 interp_funcs = generate_interp_funcs(lmax, x_range, total_points)
 
 # Pickle the dictionary of interpolation functions
-with open('lgd_itp_funcs1500.pkl', 'wb') as f:
+with open('lgd_itp_funcs500.pkl', 'wb') as f:
     pickle.dump(interp_funcs, f)
 
 # Usage Example: Load and use the interpolation functions
