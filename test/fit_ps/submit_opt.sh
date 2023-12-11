@@ -25,8 +25,8 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=5
-#SBATCH --mem=20GB
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=5GB
 #SBATCH --exclude=aliws[020-048],aliws005
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
@@ -41,7 +41,7 @@
 
 
 date +%m-%d_%H-%M
-mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/test/fit_ps/calc_cov_itp.py
+mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/test/fit_ps/calc_cov_optimized.py
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)
 

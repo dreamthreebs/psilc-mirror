@@ -52,7 +52,7 @@ center_vec = hp.pix2vec(nside=nside, ipix=center_pix)
 center_vec = np.array(center_vec).astype(np.float64)
 print(f'{center_vec=}')
 
-ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=0.5 * np.deg2rad(beam)/60)
+ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1.0 * np.deg2rad(beam)/60)
 print(f'{ipix_fit.shape=}')
 
 lon_fit = df.at[44, 'lon']
@@ -62,7 +62,7 @@ vec_around = hp.pix2vec(nside=nside, ipix=ipix_fit.astype(int))
 theta = np.arccos(center_vec @ np.array(vec_around))
 theta = np.nan_to_num(theta)
 
-cov = np.load('./cov_beam_itp_data/lmax500rf0.5.npy')
+cov = np.load('./cov_beam_optimized_data/lmax350rf1.0.npy')
 # cov = np.zeros((len(ipix_fit), len(ipix_fit)))
 nstd2 = (nstd**2)[ipix_fit]
 for i in range(len(ipix_fit)):
@@ -86,7 +86,7 @@ def lsq(norm_beam, const):
     z = (y_diff) @ inv_cov @ (y_diff)
     return z
 
-obj_minuit = Minuit(lsq, norm_beam=0.25,  const=0)
+obj_minuit = Minuit(lsq, norm_beam=0.2476,  const=0)
 obj_minuit.limits = [(0,10),(-1e4,1e4)]
 # print(obj_minuit.scan(ncall=1000))
 # obj_minuit.errors = (0.1, 0.2)
@@ -97,7 +97,7 @@ str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {ndof} = {obj_minuit.fval/ndo
 print(str_chi2)
 
 
-fit_res = model1(theta, 0.266 , 20)
+fit_res = model1(theta, 0.2476 , -10)
 
 new_m = np.zeros(hp.nside2npix(nside))
 new_m[ipix_fit] = fit_res
