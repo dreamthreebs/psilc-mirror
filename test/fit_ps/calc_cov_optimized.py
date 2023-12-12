@@ -77,7 +77,7 @@ with open('../interpolate_cov/lgd_itp_funcs500.pkl', 'rb') as f:
         print(f'{i=}')
         for j in range(i+1):
             if i == j:
-                cov[i, i] = np.sum(1 / (4 * np.pi) * (2 * np.arange(lmax + 1) + 1) * cl[:lmax+1])
+                cov[i, i] = 1 / (4 * np.pi) * np.sum((2 * np.arange(lmax + 1) + 1) * cl[:lmax+1])
             else:
                 ipix_i = ipix_fit[i]
                 ipix_j = ipix_fit[j]

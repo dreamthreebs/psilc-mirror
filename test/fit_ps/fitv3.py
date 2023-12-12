@@ -11,9 +11,9 @@ print(f'{sigma=}')
 
 nside = 2048
 
-m = np.load('../../FGSim/STRPSCMBFGNOISE/40.npy')[0]
+# m = np.load('../../FGSim/STRPSCMBFGNOISE/40.npy')[0]
 # m = np.load('../../FGSim/STRPSFGNOISE/40.npy')[0]
-# m = np.load('../../FGSim/STRPSCMBNOISE/40.npy')[0]
+m = np.load('../../FGSim/STRPSCMBNOISE/40.npy')[0]
 # m = np.load('../../FGSim/PSNOISE/2048/40.npy')[0]
 nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
 cstd = np.ones(hp.nside2npix(nside)) *  75.2896
@@ -52,7 +52,7 @@ center_vec = hp.pix2vec(nside=nside, ipix=center_pix)
 center_vec = np.array(center_vec).astype(np.float64)
 print(f'{center_vec=}')
 
-ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1.0 * np.deg2rad(beam)/60)
+ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1.5 * np.deg2rad(beam)/60)
 print(f'{ipix_fit.shape=}')
 
 lon_fit = df.at[44, 'lon']
@@ -62,7 +62,7 @@ vec_around = hp.pix2vec(nside=nside, ipix=ipix_fit.astype(int))
 theta = np.arccos(center_vec @ np.array(vec_around))
 theta = np.nan_to_num(theta)
 
-cov = np.load('./cov_beam_optimized_data/lmax350rf1.0.npy')
+cov = np.load('./cov_beam_optimized_data/lmax350rf1.5.npy')
 # cov = np.zeros((len(ipix_fit), len(ipix_fit)))
 nstd2 = (nstd**2)[ipix_fit]
 for i in range(len(ipix_fit)):
