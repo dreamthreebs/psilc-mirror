@@ -44,8 +44,8 @@ def interpolate_legendre(l, x_range, extrema_count, total_points):
             plt.plot(x_seg, interp_func(x_seg), label=f'Segment {i+1}')
 
 # Example usage
-l = 500  # Degree of Legendre polynomial
-x_range = (0.998, 1)
+l = 350  # Degree of Legendre polynomial
+x_range = (0.99, 1)
 total_points = 2000  # Total number of points to be distributed
 
 # Count local extrema in the range
@@ -60,16 +60,16 @@ def evaluate_interp_func(l, x, interp_funcs):
             return interp_func(x)
     raise ValueError(f"x = {x} is out of the interpolation range for l = {l}")
 
-with open('./lgd_itp_funcs500.pkl', 'rb') as f:
+with open('./lgd_itp_funcs350.pkl', 'rb') as f:
     loaded_interp_funcs = pickle.load(f)
     # Example: Evaluate the interpolated function for l=3 at x=0.9999
-    l = 500
+    l = 350
     data = []
-    for x_value in np.linspace(0.998, 1, 1000):
+    for x_value in np.linspace(0.99, 1, 2000):
         interpolated_value = evaluate_interp_func(l, x_value, loaded_interp_funcs)
         data.append(interpolated_value)
 
-    x = np.linspace(x_range[0], x_range[1], 1000)
+    x = np.linspace(x_range[0], x_range[1], 2000)
     plt.plot(x, data, label='itp res', linestyle=':')
 
 

@@ -14,36 +14,32 @@ nside = 2048
 # m = np.load('../../FGSim/STRPSCMBFGNOISE/40.npy')[0]
 # m = np.load('../../FGSim/STRPSFGNOISE/40.npy')[0]
 # m = np.load('../../FGSim/STRPSCMBNOISE/40.npy')[0]
-m = np.load('../../FGSim/PSNOISE/2048/40.npy')[0]
-noise_nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
+m = np.load('./ps_ns.npy')
+nstd = np.load('../../../../FGSim/NSTDNORTH/2048/40.npy')[0]
 cstd = np.ones(hp.nside2npix(nside)) *  75.2896
 
-df = pd.read_csv('../ps_sort/sort_by_iflux/40.csv')
-lon = df.at[44, 'lon']
-lat = df.at[44, 'lat']
-iflux = df.at[44, 'iflux']
-
-print(f'{iflux=}')
+lon = 0
+lat = 0
 
 def see_true_map():
-   
-    
+
+
     # hp.mollview(m, norm='hist');plt.show()
-    
-    hp.gnomview(m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], reso=6, xsize=50, ysize=50)
+
+    hp.gnomview(m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
     plt.show()
-    
+
     vec = hp.ang2vec(theta=np.rad2deg(lon), phi=np.rad2deg(lat), lonlat=True)
-    
+
     ipix_disc = hp.query_disc(nside=nside, vec=vec, radius=np.deg2rad(beam)/60)
-    
+
     mask = np.ones(hp.nside2npix(nside))
     mask[ipix_disc] = 0
-    
+
     hp.gnomview(mask, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
     plt.show()
 
-see_true_map()
+# see_true_map()
 
 center_pix = hp.ang2pix(nside=nside, theta=np.rad2deg(lon), phi=np.rad2deg(lat), lonlat=True)
 # center_pix = 100000
@@ -52,7 +48,7 @@ center_vec = hp.pix2vec(nside=nside, ipix=center_pix)
 center_vec = np.array(center_vec).astype(np.float64)
 print(f'{center_vec=}')
 
-ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1.5 * np.deg2rad(beam)/60)
+ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=2.0 * np.deg2rad(beam)/60)
 
 # m_fit = np.ones(hp.nside2npix(nside))
 # m_fit[ipix_fit] = 0
@@ -62,7 +58,7 @@ ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1.5 * np.deg2rad(be
 print(f'{ipix_fit.shape=}')
 
 def fit_model(theta, norm_beam, const):
-    beam_profile = norm_beam / (2*np.pi*sigma**2) * np.exp(- (theta)**2 / (2 * sigma**2)) 
+    beam_profile = norm_beam / (2*np.pi*sigma**2) * np.exp(- (theta)**2 / (2 * sigma**2))
     # print(f'{beam_profile=}')
     return beam_profile + const
 
@@ -77,7 +73,7 @@ print(f'{theta=}')
 y_arr = m[ipix_fit]
 print(f'{y_arr}')
 # y_err = noise_nstd[ipix_fit] + cstd[ipix_fit]
-y_err = noise_nstd[ipix_fit]
+y_err = nstd[ipix_fit]
 print(f'{y_err}')
 # plt.plot(ipix_fit, y_arr)
 # plt.show()
@@ -109,8 +105,4 @@ print(obj_minuit.hesse())
 # plt.plot(theta, m[ipix_fit], label='true')
 # plt.legend()
 # plt.show()
-
-
-
-
 

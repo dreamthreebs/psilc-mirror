@@ -67,7 +67,7 @@ class GnomProj:
         flatten_y = self.y.flatten()
         theta_cache = {}
         # cos_theta_list = [] # DEBUG:for checking if interpolate function could be used
-        with open('../interpolate_cov/lgd_itp_funcs350.pkl', 'rb') as f:
+        with open('../interpolate_cov/lgd_itp_funcs500.pkl', 'rb') as f:
             loaded_itp_funcs = pickle.load(f)
 
         for p1 in range(n_pts):
@@ -101,85 +101,48 @@ class GnomProj:
 
         sigma = np.deg2rad(beam) / 60 / np.sqrt(8 * np.log(2))
 
-        def fit_model(theta, norm_beam, const):
-            beam_profile = norm_beam / (2*np.pi*sigma**2) * np.exp(- (theta)**2 / (2 * sigma**2)) 
-            # print(f'{beam_profile=}')
-            return beam_profile + const
-
         n_pts = self.xsize * self.ysize
-        flatten_x = self.x.flatten()
-        flatten_y = self.y.flatten()
+        def lsq(lon_bias, lat_bias, reso_bias, phi_fit, norm_beam, const):
+            lon_fit = self.lon + lon_bias
+            lat_fit = self.lat + lat_bias
+            reso_fit = self.reso + reso_bias
+            self.gproj_obj = hp.projector.GnomonicProj(rot=[lon_fit, lat_fit, phi_fit], xsize=self.xsize, ysize=self.ysize, reso=reso_fit)
+            self.m_proj = self.gproj_obj.projmap(self.m, self.my_vec2pix_func)
 
-        vec_center1 = hp.ang2vec(theta=self.lon, phi=self.lat, lonlat=True)
-        print(f'{vec_center1=}')
-        vec_center = self.gproj_obj.xy2vec(x=0, y=0)
-        print(f'{vec_center=}')
-        vec_around  = self.gproj_obj.xy2vec(x=flatten_x, y=flatten_y)
+            self.x,self.y = self.gproj_obj.ij2xy() # the x and y coordinate value of every point
+            flatten_x = self.x.flatten()
+            flatten_y = self.y.flatten()
 
-        theta = np.arccos(np.array(vec_center) @ np.array(vec_around))
-        theta = np.nan_to_num(theta)
-        print(f'{theta.shape=}')
+            vec_center = hp.ang2vec(theta=lon_fit, phi=lat_fit, lonlat=True)
+            vec_around  = self.gproj_obj.xy2vec(x=flatten_x, y=flatten_y)
+    
+            theta = np.arccos(np.array(vec_center) @ np.array(vec_around))
+            theta = np.nan_to_num(theta)
+            print(f'{theta.shape=}')
+    
+            y = self.m_proj.flatten()
+            print(f'{y.shape=}')
+    
+            y_err = 6.17 * np.ones_like(y)
 
-        y = self.m_proj.flatten()
-        print(f'{y.shape=}')
+            def fit_model():
+                beam_profile = norm_beam / (2*np.pi*sigma**2) * np.exp(- (theta)**2 / (2 * sigma**2)) 
+                # print(f'{beam_profile=}')
+                return beam_profile + const
 
-        y_err = 6.17 * np.ones_like(y)
+            y_model = fit_model()
+            z = (y_model - y) / (y_err)
+            return np.sum(z**2)
 
-        lsq = LeastSquares(x=theta, y=y, yerror=y_err, model=fit_model)
-        obj_minuit = Minuit(lsq, norm_beam=1,  const=0)
-        obj_minuit.limits = [(0,10),(-1e4,1e4)]
-        # print(obj_minuit.scan(ncall=100))
+        obj_minuit = Minuit(lsq, lon_bias=0, lat_bias=0,reso_bias=5, phi_fit=0, norm_beam=1,  const=0)
+        obj_minuit.limits = [(-0.5,0.5),(-0.5,0.5),(-0.7,10),(-1,1), (0,10),(-1e2,1e2)]
+        print(obj_minuit.scan(ncall=100))
         # obj_minuit.errors = (0.1, 0.2)
-        print(obj_minuit.migrad())
-        print(obj_minuit.hesse())
-
-    def fit_ps_cmb_ns_plane(self, beam, nstd, cmbcov):
-        from iminuit import Minuit
-        from iminuit.cost import LeastSquares
-
-        sigma = np.deg2rad(beam) / 60 / np.sqrt(8 * np.log(2))
-        n_pts = self.xsize * self.ysize
-        flatten_x = self.x.flatten()
-        flatten_y = self.y.flatten()
-
-        vec_center1 = hp.ang2vec(theta=self.lon, phi=self.lat, lonlat=True)
-        print(f'{vec_center1=}')
-        vec_center = self.gproj_obj.xy2vec(x=0, y=0)
-        print(f'{vec_center=}')
-        vec_around  = self.gproj_obj.xy2vec(x=flatten_x, y=flatten_y)
-
-        theta = np.arccos(np.array(vec_center) @ np.array(vec_around))
-        theta = np.nan_to_num(theta)
-        print(f'{theta.shape=}')
-        for i in range(n_pts):
-            cmbcov[i,i] = cmbcov[i,i] + 6.17 **2
-        inv_cov = np.linalg.inv(cmbcov) # now added noise
-
-        def fit_model(theta, norm_beam, const):
-            beam_profile = norm_beam / (2*np.pi*sigma**2) * np.exp(- (theta)**2 / (2 * sigma**2)) 
-            # print(f'{beam_profile=}')
-            return beam_profile + const
-
-
-        def lsq(norm_beam, const):
-
-            y_data = self.m_proj.flatten()
-            print(f'{y_data.shape=}')
-            y_model = fit_model(theta, norm_beam, const)
-            y_diff = y_data - y_model
-            z = (y_diff) @ inv_cov @ (y_diff)
-            return z
-
-        obj_minuit = Minuit(lsq, norm_beam=1,  const=0)
-        obj_minuit.limits = [(0,10),(-1e4,1e4)]
-        # print(obj_minuit.scan(ncall=100))
-        # obj_minuit.errors = (0.1, 0.2)
-        print(obj_minuit.migrad())
-        print(obj_minuit.hesse())
         ndof = n_pts
+        print(obj_minuit.migrad())
+        print(obj_minuit.hesse())
         str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {ndof} = {obj_minuit.fval/ndof}"
         print(str_chi2)
-
 
 
     def see_map(self, xsize, ysize, reso):
@@ -221,20 +184,17 @@ if __name__ == '__main__':
     # m = np.load(f'./data/ps_maps/lon{ps_lon}lat{ps_lat}.npy')
     m = np.load(f'../../FGSim/PSNOISE/2048/40.npy')[0]
     # m = np.load(f'./data/ps_ns_maps/ps_ns.npy')
-    # m = np.load(f'../../FGSim/STRPSCMBFGNOISE/40.npy')[0]
-    hp.gnomview(m, rot=[ps_lon, ps_lat, 0])
-    plt.show()
+    # hp.gnomview(m)
+    # plt.show()
     nstd = np.load(f'../../FGSim/NSTDNORTH/2048/40.npy')[0]
-    cmbcov = np.load('./data/cov_size_60_reso5.npy')
 
-    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
-    cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
-    cl = cl * bl**2
+    # bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
+    # cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
+    # cl = cl * bl**2
 
-    xsize = 61
-    ysize = 61
-    # reso = 1.0 * hp.nside2resol(nside=2048, arcmin=True)
-    reso = 5
+    xsize = 100
+    ysize = 100
+    reso = 5 * hp.nside2resol(nside=2048, arcmin=True)
     obj = GnomProj(m, lon=ps_lon, lat=ps_lat, xsize=xsize, ysize=ysize, reso=reso)
     obj.print_init_info()
 
@@ -242,10 +202,9 @@ if __name__ == '__main__':
     # np.save(f'./data/cov_lon{ps_lon}lat{ps_lat}.npy', cov)
     # obj.test_flatten()
 
-    # obj.see_map(xsize=xsize, ysize=ysize, reso=reso)
+    obj.see_map(xsize=xsize, ysize=ysize, reso=reso)
 
     obj.test_origin()
     obj.fit_ps_ns_plane(beam=beam)
-    # obj.fit_ps_cmb_ns_plane(beam=beam, nstd=nstd, cmbcov=cmbcov)
 
 
