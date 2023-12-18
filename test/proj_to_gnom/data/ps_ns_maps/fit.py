@@ -48,7 +48,7 @@ center_vec = hp.pix2vec(nside=nside, ipix=center_pix)
 center_vec = np.array(center_vec).astype(np.float64)
 print(f'{center_vec=}')
 
-ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=2.0 * np.deg2rad(beam)/60)
+ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=4.0 * np.deg2rad(beam)/60)
 
 # m_fit = np.ones(hp.nside2npix(nside))
 # m_fit[ipix_fit] = 0

@@ -110,15 +110,11 @@ class GnomProj:
         flatten_x = self.x.flatten()
         flatten_y = self.y.flatten()
 
-        vec_center1 = hp.ang2vec(theta=self.lon, phi=self.lat, lonlat=True)
-        print(f'{vec_center1=}')
-        vec_center = self.gproj_obj.xy2vec(x=0, y=0)
-        print(f'{vec_center=}')
-        vec_around  = self.gproj_obj.xy2vec(x=flatten_x, y=flatten_y)
-
-        theta = np.arccos(np.array(vec_center) @ np.array(vec_around))
+        np.set_printoptions(threshold=np.inf)
+        theta = np.arctan(np.sqrt(flatten_x**2 + flatten_y**2))
         theta = np.nan_to_num(theta)
         print(f'{theta.shape=}')
+        print(f'{theta=}')
 
         y = self.m_proj.flatten()
         print(f'{y.shape=}')
@@ -219,22 +215,22 @@ if __name__ == '__main__':
 
 
     # m = np.load(f'./data/ps_maps/lon{ps_lon}lat{ps_lat}.npy')
-    # m = np.load(f'../../FGSim/PSNOISE/2048/40.npy')[0]
+    m = np.load(f'../../FGSim/PSNOISE/2048/40.npy')[0]
     # m = np.load(f'./data/ps_ns_maps/ps_ns.npy')
-    m = np.load(f'../../FGSim/STRPSCMBFGNOISE/40.npy')[0]
+    # m = np.load(f'../../FGSim/STRPSCMBFGNOISE/40.npy')[0]
     hp.gnomview(m, rot=[ps_lon, ps_lat, 0])
     plt.show()
     nstd = np.load(f'../../FGSim/NSTDNORTH/2048/40.npy')[0]
-    cmbcov = np.load('./data/cov_size_100_reso1.7.npy')
+    cmbcov = np.load('./data/cov_size_80_reso1.575.npy')
 
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
     cl = cl * bl**2
 
-    xsize = 100
-    ysize = 100
+    xsize = 80
+    ysize = 80
     # reso = 1.0 * hp.nside2resol(nside=2048, arcmin=True)
-    reso = 1.7
+    reso = 1.575
     obj = GnomProj(m, lon=ps_lon, lat=ps_lat, xsize=xsize, ysize=ysize, reso=reso)
     obj.print_init_info()
 
@@ -245,7 +241,7 @@ if __name__ == '__main__':
     # obj.see_map(xsize=xsize, ysize=ysize, reso=reso)
 
     obj.test_origin()
-    # obj.fit_ps_ns_plane(beam=beam)
-    obj.fit_ps_cmb_ns_plane(beam=beam, nstd=nstd, cmbcov=cmbcov)
+    obj.fit_ps_ns_plane(beam=beam)
+    # obj.fit_ps_cmb_ns_plane(beam=beam, nstd=nstd, cmbcov=cmbcov)
 
 

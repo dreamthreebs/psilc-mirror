@@ -99,6 +99,9 @@ class GnomProj:
         from iminuit import Minuit
         from iminuit.cost import LeastSquares
 
+        flatten_x = self.x.flatten()
+        flatten_y = self.y.flatten()
+
         sigma = np.deg2rad(beam) / 60 / np.sqrt(8 * np.log(2))
 
         def fit_model(theta, norm_beam, const):
@@ -107,16 +110,32 @@ class GnomProj:
             return beam_profile + const
 
         n_pts = self.xsize * self.ysize
-        flatten_x = self.x.flatten()
-        flatten_y = self.y.flatten()
+        
 
-        vec_center1 = hp.ang2vec(theta=self.lon, phi=self.lat, lonlat=True)
-        print(f'{vec_center1=}')
+        vec_center = hp.ang2vec(theta=self.lon, phi=self.lat, lonlat=True)
+        
+        # print(f'{vec_center1=}')
         vec_center = self.gproj_obj.xy2vec(x=0, y=0)
         print(f'{vec_center=}')
+
+        # vec_list = []
+        # ipix_list = []
+        # for row in range(self.ysize):
+        #     for col in range(self.xsize):
+        #         vec = self.gproj_obj.xy2vec(x=self.x[row,col], y=self.y[row,col])
+        #         vec_list.append(vec)
+        #         ipix_list.append(hp.vec2pix(nside=self.nside, x=vec[0], y=vec[1], z=vec[2]))
+        #         print(f'{vec=}')
+        # print(f'{ipix_list=}')
+        # m1 = self.m[ipix_list]
+        # m2 = self.m_proj.flatten()
+        # print(f'{m1-m2=}')
+
+        # self.ipix_around = hp.vec2pix(nside=self.nside, x=vec_around[0], y=vec_around[1], z=vec_around[2] )
+
         vec_around  = self.gproj_obj.xy2vec(x=flatten_x, y=flatten_y)
 
-        theta = np.arccos(np.array(vec_center) @ np.array(vec_around))
+        theta = np.arccos(np.array(vec_center) @ vec_around)
         theta = np.nan_to_num(theta)
         print(f'{theta.shape=}')
 
@@ -211,30 +230,30 @@ if __name__ == '__main__':
     # nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     # hp.mollview(nstd);plt.show()
 
-    ps_lon = np.rad2deg(lon)
-    ps_lat = np.rad2deg(lat)
+    # ps_lon = np.rad2deg(lon)
+    # ps_lat = np.rad2deg(lat)
 
-    # ps_lon = 0
-    # ps_lat = 0
+    ps_lon = 0
+    ps_lat = 0
 
 
     # m = np.load(f'./data/ps_maps/lon{ps_lon}lat{ps_lat}.npy')
     # m = np.load(f'../../FGSim/PSNOISE/2048/40.npy')[0]
-    # m = np.load(f'./data/ps_ns_maps/ps_ns.npy')
-    m = np.load(f'../../FGSim/STRPSCMBFGNOISE/40.npy')[0]
+    m = np.load(f'./data/ps_ns_maps/ps_ns.npy')
+    # m = np.load(f'../../FGSim/STRPSCMBFGNOISE/40.npy')[0]
     hp.gnomview(m, rot=[ps_lon, ps_lat, 0])
     plt.show()
     nstd = np.load(f'../../FGSim/NSTDNORTH/2048/40.npy')[0]
-    cmbcov = np.load('./data/cov_size_100_reso1.7.npy')
+    cmbcov = np.load('./data/cov_size_60_reso5.npy')
 
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
     cl = cl * bl**2
 
-    xsize = 100
-    ysize = 100
+    xsize = 300
+    ysize = 300
     # reso = 1.0 * hp.nside2resol(nside=2048, arcmin=True)
-    reso = 1.7
+    reso = 1.0
     obj = GnomProj(m, lon=ps_lon, lat=ps_lat, xsize=xsize, ysize=ysize, reso=reso)
     obj.print_init_info()
 
@@ -244,8 +263,8 @@ if __name__ == '__main__':
 
     # obj.see_map(xsize=xsize, ysize=ysize, reso=reso)
 
-    obj.test_origin()
-    # obj.fit_ps_ns_plane(beam=beam)
-    obj.fit_ps_cmb_ns_plane(beam=beam, nstd=nstd, cmbcov=cmbcov)
+    # obj.test_origin()
+    obj.fit_ps_ns_plane(beam=beam)
+    # obj.fit_ps_cmb_ns_plane(beam=beam, nstd=nstd, cmbcov=cmbcov)
 
 
