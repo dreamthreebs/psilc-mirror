@@ -88,16 +88,16 @@ print(obj_minuit.migrad())
 print(obj_minuit.hesse())
 
 
-# fit_res = fit_model(theta,0.24698 , 0.02)
+fit_res = fit_model(theta,0.27 , -0.035)
 
-# new_m = np.zeros(hp.nside2npix(nside))
-# new_m[ipix_fit] = fit_res
-# true_m = np.zeros(hp.nside2npix(nside))
-# true_m[ipix_fit] = m[ipix_fit]
-# hp.gnomview(new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
-# hp.gnomview(true_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
-# hp.gnomview(true_m-new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], title='residual')
-# plt.show()
+new_m = np.zeros(hp.nside2npix(nside))
+new_m[ipix_fit] = fit_res
+true_m = np.zeros(hp.nside2npix(nside))
+true_m[ipix_fit] = m[ipix_fit]
+hp.gnomview(new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
+hp.gnomview(true_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
+hp.gnomview(true_m-new_m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], title='residual')
+plt.show()
 
 
 

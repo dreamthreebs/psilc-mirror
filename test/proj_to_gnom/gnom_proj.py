@@ -221,7 +221,7 @@ if __name__ == '__main__':
     # m = np.load(f'./data/ps_maps/lon{ps_lon}lat{ps_lat}.npy')
     # m = np.load(f'../../FGSim/PSNOISE/2048/40.npy')[0]
     # m = np.load(f'./data/ps_ns_maps/ps_ns.npy')
-    m = np.load(f'../../FGSim/STRPSCMBFGNOISE/40.npy')[0]
+    m = np.load(f'../../FGSim/STRPSCMBNOISE/40.npy')[0]
     hp.gnomview(m, rot=[ps_lon, ps_lat, 0])
     plt.show()
     nstd = np.load(f'../../FGSim/NSTDNORTH/2048/40.npy')[0]

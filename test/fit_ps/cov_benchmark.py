@@ -1,6 +1,11 @@
 import numpy as np
 import healpy as hp
 import matplotlib.pyplot as plt
+import pandas as pd
+import pickle
+from numpy.polynomial.legendre import Legendre
+from scipy.interpolate import CubicSpline
+import time
 
 lmax = 350
 radius_fold = 0.2
@@ -85,23 +90,61 @@ print(f'{C_theta_list=}')
 timecov = time.time()-time0
 print(f'{timecov=}')
 
-
-cs = CubicSpline(cos_theta_list, C_theta_list)
-cos_theta_list1 = np.linspace(0.99, 1, 200000)
-C_theta_itp_list = []
-
+lmax=300
+C_theta_list1 = []
 time0 = time.time()
-for cos_theta in cos_theta_list1:
-    C_theta_itp = cs(cos_theta)
-    C_theta_itp_list.append(C_theta_itp)
+for cos_theta in cos_theta_list:
+    C_theta = calc_C_theta_itp1(x=cos_theta, lmax=lmax, cl=cl[0:lmax+1], itp_funcs=loaded_itp_funcs)
+    C_theta_list1.append(C_theta)
+print(f'{C_theta_list1=}')
+timecov = time.time()-time0
+print(f'{timecov=}')
+
+lmax=250
+C_theta_list2 = []
+time0 = time.time()
+for cos_theta in cos_theta_list:
+    C_theta = calc_C_theta_itp1(x=cos_theta, lmax=lmax, cl=cl[0:lmax+1], itp_funcs=loaded_itp_funcs)
+    C_theta_list2.append(C_theta)
+print(f'{C_theta_list2=}')
+timecov = time.time()-time0
+print(f'{timecov=}')
+
+lmax=200
+C_theta_list3 = []
+time0 = time.time()
+for cos_theta in cos_theta_list:
+    C_theta = calc_C_theta_itp1(x=cos_theta, lmax=lmax, cl=cl[0:lmax+1], itp_funcs=loaded_itp_funcs)
+    C_theta_list3.append(C_theta)
+print(f'{C_theta_list3=}')
 timecov = time.time()-time0
 print(f'{timecov=}')
 
 
-plt.plot(cos_theta_list, C_theta_list, linestyle='--')
-plt.plot(cos_theta_list1, C_theta_itp_list)
-plt.show()
+# cs = CubicSpline(cos_theta_list, C_theta_list)
+# cos_theta_list1 = np.linspace(0.99, 1, 200)
+# C_theta_itp_list = []
 
+# time0 = time.time()
+# for cos_theta in cos_theta_list1:
+#     C_theta_itp = cs(cos_theta)
+#     C_theta_itp_list.append(C_theta_itp)
+# timecov = time.time()-time0
+# print(f'{timecov=}')
+
+
+# plt.plot(cos_theta_list, C_theta_list, linestyle='--')
+# plt.plot(cos_theta_list1, C_theta_itp_list)
+# plt.show()
+
+plt.plot(cos_theta_list, C_theta_list, label='lmax350')
+plt.plot(cos_theta_list, C_theta_list1, label='lmax300')
+plt.plot(cos_theta_list, C_theta_list2, label='lmax250')
+plt.plot(cos_theta_list, C_theta_list3, label='lmax200')
+plt.xlabel('cos_theta')
+plt.ylabel('C_theta')
+plt.legend()
+plt.show()
 
 
 

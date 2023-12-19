@@ -190,8 +190,8 @@ if __name__ == '__main__':
 
     xsize = 100
     ysize = 100
-    reso = 1.5 * hp.nside2resol(nside=2048, arcmin=True)
-    # reso = 1.7
+    # reso = 1.5 * hp.nside2resol(nside=2048, arcmin=True)
+    reso = 1.7
     obj = GnomProj(m, lon=ps_lon, lat=ps_lat, xsize=xsize, ysize=ysize, reso=reso)
     obj.print_init_info()
 
