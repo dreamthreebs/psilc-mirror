@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 nside = 2048
 mask = np.load('../../src/mask/north/BINMASKG2048.npy')
-df = pd.read_csv('../../test/ps_sort/sort_by_iflux/40.csv')
+df = pd.read_csv('../../test/ps_sort/sort_by_iflux/40.csv', index_col=0)
 
 def in_or_out_mask(row):
     lon = row['lon']
@@ -22,5 +22,5 @@ condition = df.apply(in_or_out_mask, axis=1)
 
 filtered_data = df[condition]
 
-filtered_data.to_csv('./ps_in_mask/mask40.csv', index=False)
+filtered_data.to_csv('./ps_in_mask/mask40.csv', index=True)
 
