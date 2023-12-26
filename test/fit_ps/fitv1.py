@@ -19,16 +19,20 @@ noise_nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
 cstd = np.ones(hp.nside2npix(nside)) *  75.2896
 
 df = pd.read_csv('../ps_sort/sort_by_iflux/40.csv')
-lon = df.at[44, 'lon']
-lat = df.at[44, 'lat']
-iflux = df.at[44, 'iflux']
+lon = df.at[56, 'lon']
+lat = df.at[56, 'lat']
+iflux = df.at[56, 'iflux']
 
 print(f'{iflux=}')
 
 def see_true_map():
-   
-    
-    # hp.mollview(m, norm='hist');plt.show()
+    radiops = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/40GHz/strongradiops_map_40GHz.fits', field=0)
+    irps = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/40GHz/strongirps_map_40GHz.fits', field=0)
+
+    hp.gnomview(irps, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], xsize=200, ysize=200, title='irps')
+    hp.gnomview(radiops, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], xsize=200, ysize=200, title='radiops')
+    plt.show()
+
     
     hp.gnomview(m, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], reso=6, xsize=50, ysize=50)
     plt.show()

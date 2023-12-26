@@ -7,8 +7,9 @@ import os
 from pathlib import Path
 from scipy.io import readsav
 
-freq = 270
-data = readsav(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{freq}GHz/strongirps_cat_{freq}GHz.sav', python_dict=True, verbose=True)
+freq = 40
+# data = readsav(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{freq}GHz/strongirps_cat_{freq}GHz.sav', python_dict=True, verbose=True)
+data = readsav(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/40GHz/strongradiops_cat_40GHz.sav', python_dict=True, verbose=True)
 
 lon = data['comp']['lon'][0][0][0]
 lat = data['comp']['lat'][0][0][0]
@@ -27,12 +28,13 @@ df = pd.DataFrame({
     "pflux": pflux.astype('float64')
         }
         )
-df.to_csv(f'irps{freq}.csv', index=False)
+# df.to_csv(f'irps{freq}.csv', index=False)
 
 df1 = df.sort_values(by='iflux', ascending=False)
 
 df2 = df1.reset_index()
-df2.to_csv(f'./sorted_csv/irps{freq}.csv', index=False)
+# df2.to_csv(f'./irps{freq}.csv', index=False)
+df2.to_csv(f'./radiops{freq}.csv', index=False)
 
 
 

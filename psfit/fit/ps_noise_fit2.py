@@ -29,8 +29,8 @@ def see_true_map():
     radiops = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/40GHz/strongradiops_map_40GHz.fits', field=0)
     irps = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/40GHz/strongirps_map_40GHz.fits', field=0)
 
-    hp.gnomview(irps, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], xsize=200, ysize=200, title='irps')
-    hp.gnomview(radiops, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], xsize=200, ysize=200, title='radiops')
+    hp.gnomview(irps, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], xsize=240, ysize=240,reso=1, title='irps')
+    hp.gnomview(radiops, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], xsize=240, ysize=240,reso=1, title='radiops')
     plt.show()
     # hp.mollview(m, norm='hist');plt.show()
     
@@ -47,7 +47,7 @@ def see_true_map():
     hp.gnomview(mask, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
     plt.show()
 
-see_true_map()
+# see_true_map()
 
 center_pix = hp.ang2pix(nside=nside, theta=np.rad2deg(lon), phi=np.rad2deg(lat), lonlat=True)
 # center_pix = 100000
@@ -57,39 +57,34 @@ center_vec = np.array(center_vec).astype(np.float64)
 print(f'{center_vec=}')
 
 ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1.0 * np.deg2rad(beam)/60)
-
-# m_fit = np.ones(hp.nside2npix(nside))
-# m_fit[ipix_fit] = 0
-# hp.gnomview(m_fit, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
-# plt.show()
-
 print(f'{ipix_fit.shape=}')
 
-def fit_model(theta, norm_beam, const):
-    beam_profile = norm_beam / (2*np.pi*sigma**2) * np.exp(- (theta)**2 / (2 * sigma**2)) 
+# center_2 = 
+
+def fit_model(ipix_fit, norm_beam_center, norm_beam_center1, lon1_bias, lat1_bias, const):
+
+    vec_around = hp.pix2vec(nside=nside, ipix=ipix_fit.astype(int))
+    # print(f'{vec_around=}')
+    theta = np.arccos(np.array(center_vec) @ np.array(vec_around))
+
+    center1_pix = hp.ang2pix(nside=nside, theta=np.rad2deg(lon)+lon1_bias, phi=np.rad2deg(lat)+lat1_bias, lonlat=True)
+    center1_vec = hp.pix2vec(nside=nside, ipix=center1_pix)
+    center1_vec = np.array(center_vec).astype(np.float64)
+    theta1 = np.arccos(np.array(center1_vec) @ np.array(vec_around))
+
+    beam_profile = norm_beam_center / (2*np.pi*sigma**2) * np.exp(- (theta)**2 / (2 * sigma**2)) + norm_beam_center1 / (2*np.pi*sigma**2) * np.exp(- (theta1)**2 / (2 * sigma**2))
     # print(f'{beam_profile=}')
     return beam_profile + const
 
-vec_around = hp.pix2vec(nside=nside, ipix=ipix_fit.astype(int))
-print(f'{vec_around=}')
-theta = np.arccos(np.array(center_vec) @ np.array(vec_around))
-theta = np.nan_to_num(theta)
-# theta = np.sqrt(2*(1-np.array(center_vec) @ np.array(vec_around)))
-
-print(f'{theta=}')
-
 y_arr = m[ipix_fit]
 print(f'{y_arr}')
-# y_err = noise_nstd[ipix_fit] + cstd[ipix_fit]
 y_err = noise_nstd[ipix_fit]
 print(f'{y_err}')
-# plt.plot(ipix_fit, y_arr)
-# plt.show()
 
-lsq = LeastSquares(x=theta, y=y_arr, yerror=y_err, model=fit_model)
+lsq = LeastSquares(x=ipix_fit, y=y_arr, yerror=y_err, model=fit_model)
 
-obj_minuit = Minuit(lsq, norm_beam=1,  const=0)
-obj_minuit.limits = [(0,10),(-1e4,1e4)]
+obj_minuit = Minuit(lsq, norm_beam_center=1,norm_beam_center1=1, lon1_bias=0, lat1_bias=0, const=0)
+obj_minuit.limits = [(0,10),(0,10),(-3,3),(-3,3), (-1e4,1e4)]
 # print(obj_minuit.scan(ncall=100))
 # obj_minuit.errors = (0.1, 0.2)
 print(obj_minuit.migrad())

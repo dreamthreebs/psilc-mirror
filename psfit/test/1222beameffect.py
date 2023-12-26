@@ -12,12 +12,12 @@ print(f'{sigma=}')
 
 m = np.zeros(hp.nside2npix(nside))
 
-factor = 1.2
+factor = 12
 lon1 = - factor * beam / 60 # degree
 lat1 = 0
 dir1 = (lon1, lat1)
 ipix1 = hp.ang2pix(nside=nside, theta=lon1, phi=lat1, lonlat=True)
-m[ipix1] = 1e6
+m[ipix1] = 3.06e4
 
 lon2 = factor * beam / 60
 lat2 = 0
@@ -40,7 +40,7 @@ noise = 6.17 * np.random.normal(loc=0, scale=1, size=(hp.nside2npix(nside)))
 m = sm_m + noise
 
 center_vec = np.array(hp.pix2vec(nside=nside, ipix=ipix1))
-ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1.0 * np.deg2rad(beam)/60)
+ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1.2 * np.deg2rad(beam)/60)
 print(f'{ipix_fit.shape=}')
 def fit_model(theta, norm_beam, const):
     beam_profile = norm_beam / (2*np.pi*sigma**2) * np.exp(- (theta)**2 / (2 * sigma**2)) 
