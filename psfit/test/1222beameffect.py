@@ -17,7 +17,7 @@ lon1 = - factor * beam / 60 # degree
 lat1 = 0
 dir1 = (lon1, lat1)
 ipix1 = hp.ang2pix(nside=nside, theta=lon1, phi=lat1, lonlat=True)
-m[ipix1] = 3.06e4
+m[ipix1] = 2.99e4
 
 lon2 = factor * beam / 60
 lat2 = 0
