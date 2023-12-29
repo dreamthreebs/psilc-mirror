@@ -10,7 +10,9 @@ from iminuit.cost import LeastSquares
 from numpy.polynomial.legendre import Legendre
 from scipy.interpolate import CubicSpline
 
-from fit_ps_base import FitPointSource
+# from fit_ps_base import FitPointSource
+# from fitv1 import FitPointSource
+from fitv2 import FitPointSource
 
 def main():
     m = np.load('../../FGSim/PSNOISE/2048/40.npy')[0]
@@ -55,7 +57,7 @@ def main1():
     fit_lon_list = []
     fit_lat_list = []
 
-    for flux_idx in range(0,len(df_mask)):
+    for flux_idx in range(1,139):
         print(f'{flux_idx=}')
         lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
         lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
