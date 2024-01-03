@@ -3,5 +3,8 @@
 /**/*.npz
 /**/*.log
 /**/*.pkl
+/**/__pycache__
+/**/*.pyc
 tags
+
 

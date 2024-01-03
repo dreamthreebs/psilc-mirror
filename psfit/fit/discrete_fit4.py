@@ -11,6 +11,9 @@ from numpy.polynomial.legendre import Legendre
 from scipy.interpolate import CubicSpline
 
 class FitPointSource:
+    '''
+    stop finding minimum value if chi2/dof satisfy command
+    '''
     def __init__(self, m, nstd, flux_idx, df_mask, df_ps, cl_cmb, lon, lat, iflux, lmax, nside, radius_factor, beam, sigma_threshold=5):
         self.m = m # sky maps (npix,)
         self.input_lon = lon # input longitude in degrees
