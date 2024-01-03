@@ -12,7 +12,9 @@ from scipy.interpolate import CubicSpline
 
 # from fit_ps_base import FitPointSource
 # from fitv1 import FitPointSource
-from fitv2 import FitPointSource
+# from fitv2 import FitPointSource
+# from discrete_fit1 import FitPointSource
+from discrete_fit5 import FitPointSource
 
 def main():
     m = np.load('../../FGSim/PSNOISE/2048/40.npy')[0]
@@ -57,7 +59,7 @@ def main1():
     fit_lon_list = []
     fit_lat_list = []
 
-    for flux_idx in range(1,139):
+    for flux_idx in range(0,139):
         print(f'{flux_idx=}')
         lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
         lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
@@ -74,6 +76,9 @@ def main1():
         norm_beam_list.append(norm_beam)
         fit_lon_list.append(fit_lon)
         fit_lat_list.append(fit_lat)
+    np.save("norm_beam1.npy",np.array(norm_beam_list))
+    np.save("fit_lon1.npy",np.array(fit_lon_list))
+    np.save("fit_lat1.npy",np.array(fit_lat_list))
 
 
 if __name__ == '__main__':
