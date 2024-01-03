@@ -526,7 +526,7 @@ if __name__ == '__main__':
     m = np.load('../../FGSim/PSNOISE/2048/40.npy')[0]
     nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
-    flux_idx = 53
+    flux_idx = 1
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']

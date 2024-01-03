@@ -1,5 +1,9 @@
 import numpy as np
 import healpy as hp
+import pickle
+import time
+import pandas as pd
+from scipy.interpolate import CubicSpline
 import matplotlib.pyplot as plt
 
 lmax = 350
@@ -75,7 +79,7 @@ with open('../interpolate_cov/lgd_itp_funcs350.pkl', 'rb') as f:
     loaded_itp_funcs = pickle.load(f)
 
 # cos_theta = 0.99998
-cos_theta_list = np.linspace(0.99, 1, 1000)
+cos_theta_list = np.linspace(0.99, 1, 10000)
 C_theta_list = []
 time0 = time.time()
 for cos_theta in cos_theta_list:

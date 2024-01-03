@@ -19,9 +19,9 @@ noise_nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
 cstd = np.ones(hp.nside2npix(nside)) *  75.2896
 
 df = pd.read_csv('../ps_sort/sort_by_iflux/40.csv')
-lon = df.at[56, 'lon']
-lat = df.at[56, 'lat']
-iflux = df.at[56, 'iflux']
+lon = df.at[238, 'lon']
+lat = df.at[238, 'lat']
+iflux = df.at[238, 'iflux']
 
 print(f'{iflux=}')
 
@@ -29,8 +29,8 @@ def see_true_map():
     radiops = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/40GHz/strongradiops_map_40GHz.fits', field=0)
     irps = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/40GHz/strongirps_map_40GHz.fits', field=0)
 
-    hp.gnomview(irps, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], xsize=200, ysize=200, title='irps')
-    hp.gnomview(radiops, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], xsize=200, ysize=200, title='radiops')
+    hp.gnomview(irps, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], xsize=200, ysize=200, reso=1.0, title='irps')
+    hp.gnomview(radiops, rot=[np.rad2deg(lon), np.rad2deg(lat), 0], xsize=200, ysize=200, reso=1.0, title='radiops')
     plt.show()
 
     
@@ -47,13 +47,13 @@ def see_true_map():
     hp.gnomview(mask, rot=[np.rad2deg(lon), np.rad2deg(lat), 0])
     plt.show()
 
-see_true_map()
+# see_true_map()
 
 center_pix = hp.ang2pix(nside=nside, theta=np.rad2deg(lon), phi=np.rad2deg(lat), lonlat=True)
 # center_pix = 100000
 print(f'{center_pix=}')
 center_vec = hp.pix2vec(nside=nside, ipix=center_pix)
-center_vec = np.array(center_vec).astype(np.float64)
+center_vec = np.array(center_vec)
 print(f'{center_vec=}')
 
 ipix_fit = hp.query_disc(nside=nside, vec=center_vec, radius=1.0 * np.deg2rad(beam)/60)
@@ -72,8 +72,7 @@ def fit_model(theta, norm_beam, const):
 
 vec_around = hp.pix2vec(nside=nside, ipix=ipix_fit.astype(int))
 print(f'{vec_around=}')
-theta = np.arccos(np.array(center_vec) @ np.array(vec_around))
-theta = np.nan_to_num(theta)
+theta = hp.rotator.angdist(dir1=center_vec, dir2=vec_around)
 # theta = np.sqrt(2*(1-np.array(center_vec) @ np.array(vec_around)))
 
 print(f'{theta=}')
@@ -88,8 +87,8 @@ print(f'{y_err}')
 
 lsq = LeastSquares(x=theta, y=y_arr, yerror=y_err, model=fit_model)
 
-obj_minuit = Minuit(lsq, norm_beam=1,  const=0)
-obj_minuit.limits = [(0,10),(-1e4,1e4)]
+obj_minuit = Minuit(lsq, norm_beam=0.5,  const=0)
+obj_minuit.limits = [(0,1),(-1e3,1e3)]
 # print(obj_minuit.scan(ncall=100))
 # obj_minuit.errors = (0.1, 0.2)
 print(obj_minuit.migrad())
