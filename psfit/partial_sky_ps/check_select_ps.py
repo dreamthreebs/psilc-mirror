@@ -48,6 +48,6 @@ def see_one_point():
 
 
 if __name__ == '__main__':
-    # check_pos_ps()
+    check_pos_ps()
     # see_one_beam_size_in_mask()
-    see_one_point()
+    # see_one_point()

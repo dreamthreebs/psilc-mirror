@@ -6,7 +6,7 @@ import pickle
 from numpy.polynomial.legendre import Legendre
 import time
 
-lmax = 500
+lmax = 350
 radius_fold = 1.0
 print(f'{lmax=}')
 print(f'{radius_fold=}')
