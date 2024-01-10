@@ -12,7 +12,7 @@ from numpy.polynomial.legendre import Legendre
 from scipy.interpolate import CubicSpline
 
 class FitPointSource:
-    def __init__(self, m, nstd, flux_idx, df_mask, df_ps, cl_cmb, lon, lat, iflux, lmax, nside, radius_factor, beam, lmin=0, sigma_threshold=5):
+    def __init__(self, m, nstd, flux_idx, df_mask, df_ps, cl_cmb, lon, lat, iflux, lmax, nside, radius_factor, beam, sigma_threshold=5):
         self.m = m # sky maps (npix,)
         self.input_lon = lon # input longitude in degrees
         self.input_lat = lat # input latitude in degrees
@@ -46,7 +46,7 @@ class FitPointSource:
         # print(f'{ipix_fit.shape=}')
         self.ndof = len(self.ipix_fit)
 
-        self.lmin = lmin
+        self.lmin = 171
 
 
 
@@ -229,15 +229,14 @@ class FitPointSource:
             theta = hp.rotator.angdist(dir1=ctr0_vec, dir2=vec_around)
 
             def model():
-                return const
+                return 0
 
             y_model = model()
             y_data = self.m[ipix_fit]
-            y_err = self.nstd[ipix_fit]
             y_diff = y_data - y_model
-            print(f'{y_diff=}')
 
             z = (y_diff) @ self.inv_cov @ (y_diff)
+            print(f'{z=}')
             return z
 
         ctr0_pix = hp.ang2pix(nside=self.nside, theta=self.lon, phi=self.lat, lonlat=True)
@@ -274,7 +273,7 @@ class FitPointSource:
 
 if __name__ == '__main__':
     # m = np.load('../../FGSim/FITDATA/PSCMB/40.npy')[0]
-    m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
+    m = np.load('../../inpaintingdata/CMBREALIZATION/40GHz/0.npy')[0]
     nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
     flux_idx = 1

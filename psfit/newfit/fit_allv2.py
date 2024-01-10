@@ -518,7 +518,7 @@ if __name__ == '__main__':
     # plt.plot(l*(l+1)*cl_cmb/(2*np.pi))
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
-    for lmin in np.linspace(172,199, 28):
+    for lmin in np.linspace(200,220, 21):
         print(f'{lmin=}')
         lmin = int(lmin)
 

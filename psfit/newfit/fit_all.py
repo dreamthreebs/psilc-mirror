@@ -490,10 +490,10 @@ class FitPointSource:
 
 
 if __name__ == '__main__':
-    m = np.load('../../FGSim/FITDATA/PSCMB/40.npy')[0]
+    m = np.load('../../FGSim/FITDATA/PSCMBFGNOISE/40.npy')[0]
     nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
-    flux_idx = 4
+    flux_idx = 1
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
@@ -520,8 +520,8 @@ if __name__ == '__main__':
 
     # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
-    obj.calc_C_theta_itp_func('../../test/interpolate_cov/lgd_itp_funcs350.pkl')
-    # obj.calc_covariance_matrix(mode='cmb')
-    # obj.fit_all()
+    # obj.calc_C_theta_itp_func('../../test/interpolate_cov/lgd_itp_funcs350.pkl')
+    obj.calc_covariance_matrix(mode='cmb+noise', cmb_cov_fold='./covlmin/180')
+    obj.fit_all()
 
 
