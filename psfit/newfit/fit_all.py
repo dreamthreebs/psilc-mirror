@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import time
 import pickle
+import os
 
 from iminuit import Minuit
 from iminuit.cost import LeastSquares
@@ -36,6 +37,105 @@ class FitPointSource:
         self.ini_norm_beam = self.flux2norm_beam(self.iflux)
 
         self.sigma = np.deg2rad(beam) / 60 / (np.sqrt(8 * np.log(2)))
+
+        ctr0_pix = hp.ang2pix(nside=self.nside, theta=self.lon, phi=self.lat, lonlat=True)
+        ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
+
+        self.ipix_fit = hp.query_disc(nside=self.nside, vec=ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
+        self.vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=self.ipix_fit.astype(int))).astype(np.float64)
+        # print(f'{ipix_fit.shape=}')
+        self.ndof = len(self.ipix_fit)
+
+
+
+    def calc_C_theta_itp_func(self, lgd_itp_func_pos):
+        def evaluate_interp_func(l, x, interp_funcs):
+            for interp_func, x_range in interp_funcs[l]:
+                if x_range[0] <= x <= x_range[1]:
+                    return interp_func(x)
+            raise ValueError(f"x = {x} is out of the interpolation range for l = {l}")
+
+        def calc_C_theta_itp(x, lmax, cl, itp_funcs):
+            Pl = np.zeros(lmax+1)
+            for l in range(lmax+1):
+                Pl[l] = evaluate_interp_func(l, x, interp_funcs=itp_funcs)
+            ell = np.arange(lmax+1)
+            sum_val = 1 / (4 * np.pi) * np.sum((2 * ell + 1) * cl * Pl)
+            print(f'{sum_val=}')
+            return sum_val
+
+        with open(lgd_itp_func_pos, 'rb') as f:
+            loaded_itp_funcs = pickle.load(f)
+        cos_theta_list = np.linspace(0.99, 1, 1000)
+        C_theta_list = []
+        time0 = time.time()
+        for cos_theta in cos_theta_list:
+            C_theta = calc_C_theta_itp(x=cos_theta, lmax=self.lmax, cl=self.cl_cmb[0:self.lmax+1], itp_funcs=loaded_itp_funcs)
+            C_theta_list.append(C_theta)
+        print(f'{C_theta_list=}')
+        timecov = time.time()-time0
+        print(f'{timecov=}')
+
+        self.cs = CubicSpline(cos_theta_list, C_theta_list)
+        return self.cs
+
+    def calc_C_theta(self, lgd_itp_func_pos='../../test/interpolate_cov/lgd_itp_funcs350.pkl', save_path='./cov'):
+        if not hasattr(self, "cs"):
+            self.cs = self.calc_C_theta_itp_func(lgd_itp_func_pos)
+            print('cs is ok')
+
+        ipix_fit = self.ipix_fit
+        nside = self.nside
+
+        n_cov = len(self.ipix_fit)
+        cov = np.zeros((n_cov, n_cov))
+        print(f'{cov.shape=}')
+
+        theta_cache = {}
+        time0 = time.time()
+        for i in range(n_cov):
+            print(f'{i=}')
+            for j in range(i+1):
+                if i == j:
+                    cov[i, i] = 1 / (4 * np.pi) * np.sum((2 * np.arange(self.lmax + 1) + 1) * self.cl_cmb[:self.lmax+1])
+                else:
+                    ipix_i = ipix_fit[i]
+                    ipix_j = ipix_fit[j]
+                    vec_i = hp.pix2vec(nside=nside, ipix=ipix_i)
+                    vec_j = hp.pix2vec(nside=nside, ipix=ipix_j)
+                    cos_theta = np.dot(vec_i, vec_j)  # Assuming this results in a single value
+                    cos_theta = min(1.0, max(cos_theta, -1.0))  # Ensuring it's within [-1, 1]
+
+                    # Use cos_theta as a key in the dictionary
+                    if cos_theta not in theta_cache:
+                        cov_ij = self.cs(cos_theta)
+                        theta_cache[cos_theta] = cov_ij
+                    else:
+                        cov_ij = theta_cache[cos_theta]
+
+                    cov[i, j] = cov_ij
+                    cov[j, i] = cov_ij
+
+        timecov = time.time()-time0
+        print(f'{timecov=}')
+        print(f'{cov=}')
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        np.save(os.path.join(save_path,f'{self.flux_idx}.npy'), cov)
+
+    def calc_covariance_matrix(self, mode='cmb+noise', cmb_cov_fold='../fit/cov'):
+
+        cmb_cov_path = os.path.join(cmb_cov_fold, f'{self.flux_idx}.npy')
+        cov = np.load(cmb_cov_path)
+
+        if mode == 'cmb':
+            self.inv_cov = np.linalg.inv(cov)
+
+        if mode == 'cmb+noise':
+            nstd2 = (self.nstd**2)[self.ipix_fit]
+            for i in range(len(self.ipix_fit)):
+                cov[i,i] = cov[i,i] + nstd2[i]
+            self.inv_cov = np.linalg.inv(cov)
 
     def flux2norm_beam(self, flux):
         # from mJy to muK_CMB to norm_beam
@@ -121,7 +221,7 @@ class FitPointSource:
 
         return num_ps, tuple(sum(zip(iflux_list, lon_list, lat_list), ()))
 
-    def fit_ps_ns(self, mode:str='pipeline'):
+    def fit_all(self, mode:str='pipeline'):
         def lsq_2_params(norm_beam, const):
 
             theta = hp.rotator.angdist(dir1=ctr0_vec, dir2=vec_around)
@@ -132,9 +232,10 @@ class FitPointSource:
             y_model = model()
             y_data = self.m[ipix_fit]
             y_err = self.nstd[ipix_fit]
+            y_diff = y_data - y_model
 
-            z = (y_data - y_model) / y_err
-            return np.sum(z**2)
+            z = (y_diff) @ self.inv_cov @ (y_diff)
+            return z
 
         def lsq_params(*args):
             # args is expected to be in the format:
@@ -165,16 +266,16 @@ class FitPointSource:
             y_data = self.m[ipix_fit]
             y_err = self.nstd[ipix_fit]
         
-            z = (y_data - y_model) / y_err
-            return np.sum(z**2)
+            y_diff = y_data - y_model
+
+            z = (y_diff) @ self.inv_cov @ (y_diff)
+            return z
 
         ctr0_pix = hp.ang2pix(nside=self.nside, theta=self.lon, phi=self.lat, lonlat=True)
         ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
 
-        ipix_fit = hp.query_disc(nside=self.nside, vec=ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
-        vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=ipix_fit.astype(int))).astype(np.float64)
-        # print(f'{ipix_fit.shape=}')
-        self.ndof = len(ipix_fit)
+        ipix_fit = self.ipix_fit
+        vec_around = self.vec_around
 
         num_ps, near = self.find_nearby_ps(num_ps=10)
         print(f'{num_ps=}, {near=}')
@@ -250,7 +351,6 @@ class FitPointSource:
             fit_lat = self.lat + obj_minuit.values['ctr1_lat_shift']
 
             return chi2dof, obj_minuit.values['norm_beam1'],obj_minuit.errors['norm_beam1'], fit_lon, fit_lat
-
 
         def fit_10_params():
             num_ps, (self.ctr2_iflux, self.ctr2_lon, self.ctr2_lat, self.ctr3_iflux, self.ctr3_lon, self.ctr3_lat) = self.find_nearby_ps(num_ps=2)
@@ -382,7 +482,7 @@ class FitPointSource:
 
             fit_error = np.abs(fit_norm - true_norm_beam) / true_norm_beam
 
-            print(f'{chi2dof=}, {fit_norm=}, {norm_error=}, {fit_lon=}, {fit_lat=}')
+            print(f'{num_ps=}, {chi2dof=}, {fit_norm=}, {norm_error=}, {fit_lon=}, {fit_lat=}')
             print(f'{true_norm_beam=}, {fit_norm=}, {fit_error=}')
             return num_ps, chi2dof, fit_norm, norm_error, fit_lon, fit_lat
 
@@ -390,10 +490,10 @@ class FitPointSource:
 
 
 if __name__ == '__main__':
-    m = np.load('../../FGSim/PSNOISE/2048/40.npy')[0]
+    m = np.load('../../FGSim/FITDATA/PSCMB/40.npy')[0]
     nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
-    flux_idx = 0
+    flux_idx = 4
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
@@ -404,15 +504,24 @@ if __name__ == '__main__':
     nside = 2048
     beam = 63
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
+    # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
+    # cl1 = hp.anafast(m, lmax=lmax)
     cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
+    # l = np.arange(lmax+1)
+
+    # plt.plot(l*(l+1)*cl_cmb/(2*np.pi))
     cl_cmb = cl_cmb * bl**2
+
+    # plt.plot(l*(l+1)*cl_cmb/(2*np.pi))
+    # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
+    # plt.show()
 
     obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.0, beam=beam)
 
     # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
-    # obj.find_nearby_ps_lon_lat()
-    # obj.find_first_second_nearby_ps_lon_lat()
-    # obj.fit_ps_ns(mode='10params')
-    obj.fit_ps_ns()
+
+    obj.calc_C_theta_itp_func('../../test/interpolate_cov/lgd_itp_funcs350.pkl')
+    # obj.calc_covariance_matrix(mode='cmb')
+    # obj.fit_all()
 
 
