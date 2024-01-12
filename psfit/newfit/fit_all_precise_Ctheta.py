@@ -46,9 +46,7 @@ class FitPointSource:
         # print(f'{ipix_fit.shape=}')
         self.ndof = len(self.ipix_fit)
 
-
-
-    def calc_C_theta_itp_func(self, lgd_itp_func_pos):
+    def calc_C_theta(self, lgd_itp_func_pos='../../test/interpolate_cov/lgd_itp_funcs350.pkl', save_path='./cov'):
         def evaluate_interp_func(l, x, interp_funcs):
             for interp_func, x_range in interp_funcs[l]:
                 if x_range[0] <= x <= x_range[1]:
@@ -64,26 +62,6 @@ class FitPointSource:
             print(f'{sum_val=}')
             return sum_val
 
-        with open(lgd_itp_func_pos, 'rb') as f:
-            loaded_itp_funcs = pickle.load(f)
-        cos_theta_list = np.linspace(0.99, 1, 1000)
-        C_theta_list = []
-        time0 = time.time()
-        for cos_theta in cos_theta_list:
-            C_theta = calc_C_theta_itp(x=cos_theta, lmax=self.lmax, cl=self.cl_cmb[0:self.lmax+1], itp_funcs=loaded_itp_funcs)
-            C_theta_list.append(C_theta)
-        print(f'{C_theta_list=}')
-        timecov = time.time()-time0
-        print(f'{timecov=}')
-
-        self.cs = CubicSpline(cos_theta_list, C_theta_list)
-        return self.cs
-
-    def calc_C_theta(self, lgd_itp_func_pos='../../test/interpolate_cov/lgd_itp_funcs350.pkl', save_path='./cov'):
-        if not hasattr(self, "cs"):
-            self.cs = self.calc_C_theta_itp_func(lgd_itp_func_pos)
-            print('cs is ok')
-
         ipix_fit = self.ipix_fit
         nside = self.nside
 
@@ -93,6 +71,9 @@ class FitPointSource:
 
         theta_cache = {}
         time0 = time.time()
+        with open(lgd_itp_func_pos, 'rb') as f:
+            loaded_itp_funcs = pickle.load(f)
+
         for i in range(n_cov):
             print(f'{i=}')
             for j in range(i+1):
@@ -106,11 +87,12 @@ class FitPointSource:
                     vec_j = hp.pix2vec(nside=nside, ipix=ipix_j)
                     cos_theta = np.dot(vec_i, vec_j)  # Assuming this results in a single value
                     cos_theta = min(1.0, max(cos_theta, -1.0))  # Ensuring it's within [-1, 1]
-                    print(f'{cos_theta=}')
+                    # print(f'{cos_theta=}')
 
                     # Use cos_theta as a key in the dictionary
                     if cos_theta not in theta_cache:
-                        cov_ij = self.cs(cos_theta)
+
+                        cov_ij = calc_C_theta_itp(cos_theta, lmax=self.lmax, cl=self.cl_cmb, itp_funcs=loaded_itp_funcs)
                         theta_cache[cos_theta] = cov_ij
                     else:
                         cov_ij = theta_cache[cos_theta]

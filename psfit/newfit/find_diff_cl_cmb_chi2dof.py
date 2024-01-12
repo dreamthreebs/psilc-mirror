@@ -16,7 +16,7 @@ from fit_test_cmb import FitPointSource
 def main():
 
     rlz_list = []
-    for idx_rlz in range(10):
+    for idx_rlz in range(5,13):
         m = np.load(f'../../inpaintingdata/CMBREALIZATION/40GHz/{idx_rlz}.npy')[0]
         nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
         df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
@@ -54,7 +54,7 @@ def main():
         chi2dof_list = []
         for j in range(150, 220):
             time0 = time.time()
-            obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold=f'./covlmin/{j}')
+            obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold=f'./cov_diff_cl/{j}/rlz{idx_rlz}')
             chi2dof = obj.fit_all()
             chi2dof_list.append(chi2dof)
             print(f'time={time.time()-time0}')
@@ -65,7 +65,7 @@ def main():
     return rlz_arr
 
 rlz_arr = main()
-np.save('rlz_arr.npy', rlz_arr)
+np.save('rlz_arr_diff_cl.npy', rlz_arr)
 
 
 

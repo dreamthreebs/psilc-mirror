@@ -66,7 +66,7 @@ class FitPointSource:
 
         with open(lgd_itp_func_pos, 'rb') as f:
             loaded_itp_funcs = pickle.load(f)
-        cos_theta_list = np.linspace(0.99, 1, 1000)
+        cos_theta_list = np.linspace(0.99, 1, 5000)
         C_theta_list = []
         time0 = time.time()
         for cos_theta in cos_theta_list:
@@ -523,7 +523,10 @@ if __name__ == '__main__':
     # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
     # obj.calc_C_theta_itp_func('../../test/interpolate_cov/lgd_itp_funcs350.pkl')
-    obj.calc_C_theta()
+    if not os.path.exists('./cov5000'):
+        os.makedirs('./cov5000')
+
+    obj.calc_C_theta(save_path='./cov5000')
 
     # obj.calc_covariance_matrix(mode='cmb+noise', cmb_cov_fold='./covlmin/180')
     # obj.fit_all()
