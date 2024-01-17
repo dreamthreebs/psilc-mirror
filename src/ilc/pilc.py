@@ -39,22 +39,22 @@ ilc_cl = hp.anafast(ilc_res, lmax=lmax)
 fgres_cl = hp.anafast(fgres, lmax=lmax)
 noise_cl = hp.anafast(noiseres, lmax=lmax)
 
-np.save('./PILCRESULT/w2.npy',weight)
-np.save('./PILCRESULT/pilc_cl2.npy',ilc_cl)
-np.save('./PILCRESULT/pilc_fgres_cl2.npy',fgres_cl)
-np.save('./PILCRESULT/pilc_noise_cl2.npy',noise_cl)
+# np.save('./PILCRESULT/w2.npy',weight)
+# np.save('./PILCRESULT/pilc_cl2.npy',ilc_cl)
+# np.save('./PILCRESULT/pilc_fgres_cl2.npy',fgres_cl)
+# np.save('./PILCRESULT/pilc_noise_cl2.npy',noise_cl)
 
-n_sim = 50
-noise_cl_sum = 0
-for i in range(n_sim):
-    print(f'loop:{i}')
-    noise = np.load(f'../smooth/FULL_PATCH/noPS_northNOI/NOISESIM/{i}/{cl_type}/data.npy')
-    noiseres = weight @ noise
-    noise_res_cl = hp.anafast(noiseres, lmax=lmax)
-    noise_cl_sum = noise_cl_sum + noise_res_cl
+# n_sim = 50
+# noise_cl_sum = 0
+# for i in range(n_sim):
+#     print(f'loop:{i}')
+#     noise = np.load(f'../smooth/FULL_PATCH/noPS_northNOI/NOISESIM/{i}/{cl_type}/data.npy')
+#     noiseres = weight @ noise
+#     noise_res_cl = hp.anafast(noiseres, lmax=lmax)
+#     noise_cl_sum = noise_cl_sum + noise_res_cl
 
-noise_res_avg = noise_cl_sum / n_sim
-np.save('./PILCRESULT/pilc_noise_avg2',noise_res_avg)
+# noise_res_avg = noise_cl_sum / n_sim
+# np.save('./PILCRESULT/pilc_noise_avg2',noise_res_avg)
 
 
 
