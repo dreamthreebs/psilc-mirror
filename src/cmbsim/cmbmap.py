@@ -8,11 +8,11 @@ l = np.arange(cmbcl.shape[0])
 print(f'{cmbcl.shape}')
 
 lmax = 1000
-nside = 512
+nside = 256
 
-if not os.path.exists('./cmbdata/rlz_nside512'):
-    os.mkdir('./cmbdata/rlz_nside512')
-for i in range(100):
+if not os.path.exists('./cmbdata/rlz_nside256'):
+    os.mkdir('./cmbdata/rlz_nside256')
+for i in range(200):
     print(f'{i=}')
     m = hp.synfast(cmbcl.T[0], nside=nside, lmax=lmax, new=True)
 
@@ -21,7 +21,7 @@ for i in range(100):
 #     plt.show()
 
 
-    np.save(f'./cmbdata/rlz_nside512/{i}.npy', m)
+    np.save(f'./cmbdata/rlz_nside256/{i}.npy', m)
 # hp.write_map(f'./cmbdata/1.fits', m)
 
 

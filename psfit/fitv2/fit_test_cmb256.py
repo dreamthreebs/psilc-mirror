@@ -126,32 +126,20 @@ class FitPointSource:
         np.save(os.path.join(save_path,f'{self.flux_idx}.npy'), cov)
 
     def calc_covariance_matrix(self, mode='cmb+noise', cmb_cov_fold='../fit/cov'):
-        def is_symmetric_positive_semidefinite(matrix):
-            # 检查矩阵是否对称
-            if not np.allclose(matrix, matrix.T):
-                print('not symmetric')
-                return False
-            
-            # 计算特征值
-            eigenvalues = np.linalg.eigvalsh(matrix)
-            np.set_printoptions(threshold=np.inf)
-            print(f'{eigenvalues=}')
-            
-            # 检查特征值是否都是非负的
-            if np.all(eigenvalues >= 0):
-                return True
-            else:
-                print('no!!!!!!!!!')
-                return False
 
         cmb_cov_path = os.path.join(cmb_cov_fold, f'{self.flux_idx}.npy')
         cov = np.load(cmb_cov_path)
-        cov = cov + 1e-4 * np.eye(cov.shape[0])
-        print("Is symmetric positive semi-definite:", is_symmetric_positive_semidefinite(cov))
+        eigenvalues_min = np.min(np.linalg.eigvalsh(cov))
+        print(f'{eigenvalues_min=}')
 
+        epsilon = 1e-5
+        print(f"{np.linalg.cond(cov)=}")
+        cov = cov + epsilon * np.eye(cov.shape[0])
 
         if mode == 'cmb':
-            self.inv_cov = np.linalg.inv(cov)
+            # self.inv_cov = np.linalg.inv(cov)
+            # self.inv_cov,_,_,_ = np.linalg.lstsq(cov, np.eye(cov.shape[0]), rcond=None)
+            self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
 
         if mode == 'cmb+noise':
             nstd2 = (self.nstd**2)[self.ipix_fit]
@@ -293,7 +281,7 @@ class FitPointSource:
 
 if __name__ == '__main__':
     # m = np.load('../../FGSim/FITDATA/PSCMB/40.npy')[0]
-    m = np.load('../../inpaintingdata/CMBREALIZATION/40GHz/1.npy')[0]
+    m = np.load('../../src/cmbsim/cmbdata/rlz_nside256/40GHz/0.npy')
     nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
     flux_idx = 1
@@ -304,30 +292,29 @@ if __name__ == '__main__':
     df_ps = pd.read_csv('../../test/ps_sort/sort_by_iflux/40.csv')
     
     lmax = 350
-    nside = 2048
+    nside = 256
     beam = 63
-    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
+    # bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
     # cl1 = hp.anafast(m, lmax=lmax)
-    cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
-    l = np.arange(lmax+1)
+    # cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
+    # l = np.arange(lmax+1)
 
     # plt.plot(l*(l+1)*cl_cmb/(2*np.pi))
-    cl_cmb = cl_cmb * bl**2
+    # cl_cmb = cl_cmb * bl**2
 
     # plt.plot(l*(l+1)*cl_cmb/(2*np.pi))
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.0, beam=beam)
+    obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=None, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.0, beam=beam)
 
     # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
     # obj.calc_C_theta_itp_func('../../test/interpolate_cov/lgd_itp_funcs350.pkl')
     # obj.calc_C_theta()
     # obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='./cov')
-    obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='../cmb_cov_calc/cov')
+    obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='../fitv3/cov')
     obj.fit_all()
-
 
 

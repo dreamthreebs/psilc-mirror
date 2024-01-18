@@ -1,6 +1,6 @@
 import numpy as np
 
-cov = np.load('../../cmb_cov_512/cov/1.npy')
+cov = np.load('../../fitv3/cov/1.npy')
 
 # A = np.random.rand(100, 100)
 # cov = np.dot(A, A.transpose())

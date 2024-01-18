@@ -14,10 +14,6 @@ from scipy.interpolate import CubicSpline
 class FitPointSource:
     def __init__(self, m, nstd, flux_idx, df_mask, df_ps, cl_cmb, lon, lat, iflux, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4):
         self.m = m # sky maps (npix,)
-        self.input_lon = lon # input longitude in degrees
-        self.input_lat = lat # input latitude in degrees
-        ipix = hp.ang2pix(nside=nside, theta=lon, phi=lat, lonlat=True)
-        lon, lat = hp.pix2ang(nside=nside, ipix=ipix, lonlat=True)
         self.lon = lon
         self.lat = lat
         print(f'{lon=}')
@@ -128,18 +124,31 @@ class FitPointSource:
 
     def calc_covariance_matrix(self, mode='cmb+noise', cmb_cov_fold='../fit/cov'):
 
+        if mode == 'noise':
+            nstd2 = (self.nstd**2)[self.ipix_fit]
+            cov = np.zeros((self.ndof,self.ndof))
+
+            for i in range(len(self.ipix_fit)):
+                cov[i,i] = cov[i,i] + nstd2[i]
+            print(f'{cov=}')
+            self.inv_cov = np.linalg.inv(cov)
+            return None
+
         cmb_cov_path = os.path.join(cmb_cov_fold, f'{self.flux_idx}.npy')
         cov = np.load(cmb_cov_path)
         cov  = cov + self.epsilon * np.eye(cov.shape[0])
 
         if mode == 'cmb':
             self.inv_cov = np.linalg.inv(cov)
+            return None
 
         if mode == 'cmb+noise':
             nstd2 = (self.nstd**2)[self.ipix_fit]
             for i in range(len(self.ipix_fit)):
                 cov[i,i] = cov[i,i] + nstd2[i]
             self.inv_cov = np.linalg.inv(cov)
+            return None
+
 
     def flux2norm_beam(self, flux):
         # from mJy to muK_CMB to norm_beam
@@ -205,7 +214,6 @@ class FitPointSource:
                 lon = np.rad2deg(self.df_ps.at[index + 1, 'lon'])
                 lat = np.rad2deg(self.df_ps.at[index + 1, 'lat'])
                 iflux = self.flux2norm_beam(self.df_ps.at[index + 1, 'iflux'])
-            lon, lat = self.input_lonlat2pix_lonlat(lon, lat)
             lon_list.append(lon)
             lat_list.append(lat)
             iflux_list.append(iflux)
@@ -275,8 +283,7 @@ class FitPointSource:
             z = (y_diff) @ self.inv_cov @ (y_diff)
             return z
 
-        ctr0_pix = hp.ang2pix(nside=self.nside, theta=self.lon, phi=self.lat, lonlat=True)
-        ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
+        ctr0_vec = hp.ang2vec(theta=self.lon, phi=self.lat, lonlat=True)
 
         ipix_fit = self.ipix_fit
         vec_around = self.vec_around
@@ -311,7 +318,7 @@ class FitPointSource:
             print(f'{self.fit_lon=}')
 
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","const"), *params)
-            obj_minuit.limits = [(0,1.0), (-0.01, 0.01), (-0.01,0.01), (-100,100)]
+            obj_minuit.limits = [(0,1.0), (-0.1, 0.1), (-0.1,0.1), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
             # for p in obj_minuit.params:
@@ -337,7 +344,8 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","const"), *params)
 
-            obj_minuit.limits = [(0,1), (-0.01,0.01), (-0.01,0.01),(0,1),(-0.01,0.01),(-0.01,0.01), (-100,100)]
+            shift_limit = 0.01
+            obj_minuit.limits = [(0,1), (-shift_limit,shift_limit), (-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
             # for p in obj_minuit.params:
@@ -364,7 +372,7 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","const"), *params)
 
-            shift_limit = 0.01
+            shift_limit = 0.1
             obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-100,100)]
             # obj_minuit.errors = (1e-3, 0.01, 0.01, 1e-3, 0.01, 0.01, 1e-3, 0.01, 0.01, 0.1)
             print(obj_minuit.migrad())
@@ -394,7 +402,7 @@ class FitPointSource:
 
             # obj_minuit.limits = [(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.4,0.4),(-0.4,0.4),(0,1),(-0.5,0.5),(-0.5,0.5), (0,1),(-0.5,0.5),(-0.5,0.5), (-100,100)]
 
-            shift_limit = 0.01
+            shift_limit = 0.1
             obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
@@ -426,7 +434,7 @@ class FitPointSource:
 
             # obj_minuit.limits = [(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5), (0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
 
-            shift_limit = 0.01
+            shift_limit = 0.1
             obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             obj_minuit.migrad()
             obj_minuit.hesse()
@@ -494,10 +502,10 @@ class FitPointSource:
 
 
 if __name__ == '__main__':
-    m = np.load('../../FGSim/FITDATA/PSCMB/40.npy')[0]
-    nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
+    m = np.load('../../FGSim/PSNOISE/40.npy')[0]
+    nstd = np.load('../../FGSim/NSTDNORTH/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
-    flux_idx = 1
+    flux_idx = 15
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
@@ -505,7 +513,7 @@ if __name__ == '__main__':
     df_ps = pd.read_csv('../../test/ps_sort/sort_by_iflux/40.csv')
     
     lmax = 350
-    nside = 2048
+    nside = 512
     beam = 63
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
@@ -522,9 +530,8 @@ if __name__ == '__main__':
 
     obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.0, beam=beam, epsilon=1e-2)
 
-    # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
+    obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
-
-    obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='../cmb_cov_calc/cov')
+    obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
     obj.fit_all()
 

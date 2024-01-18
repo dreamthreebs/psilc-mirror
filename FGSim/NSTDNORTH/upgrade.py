@@ -2,15 +2,16 @@ import numpy as np
 import healpy as hp
 import matplotlib.pyplot as plt
 
-freqlist = [30, 85, 95, 145, 155, 215, 270 ]
+freqlist = [30, 40, 85, 95, 145, 155, 215, 270 ]
+nside_out = 256
 
 for freq in freqlist:
 
     m = np.load(f'./{freq}.npy')
     
-    m2048 = hp.ud_grade(m, nside_out=2048, power=1)
+    ud_m = hp.ud_grade(m, nside_out=nside_out, power=1)
     
     # hp.mollview(m2048)
     # plt.show()
     
-    np.save(f'./2048/{freq}.npy', m2048)
+    np.save(f'./{nside_out}/{freq}.npy', ud_m)

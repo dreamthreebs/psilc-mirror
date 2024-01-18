@@ -132,13 +132,13 @@ class FitPointSource:
         eigenvalues_min = np.min(np.linalg.eigvalsh(cov))
         print(f'{eigenvalues_min=}')
 
-        # epsilon = 1e-8
-        # print(f"{np.linalg.cond(cov)=}")
-        # cov = cov + epsilon * np.eye(cov.shape[0])
+        epsilon = 1e-8
+        print(f"{np.linalg.cond(cov)=}")
+        cov = cov + epsilon * np.eye(cov.shape[0])
 
         if mode == 'cmb':
-            self.inv_cov = np.linalg.inv(cov)
-            # self.inv_cov,_,_,_ = np.linalg.lstsq(cov, np.eye(cov.shape[0]), rcond=None)
+            # self.inv_cov = np.linalg.inv(cov)
+            self.inv_cov,_,_,_ = np.linalg.lstsq(cov, np.eye(cov.shape[0]), rcond=None)
             # self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
 
         if mode == 'cmb+noise':
@@ -281,7 +281,7 @@ class FitPointSource:
 
 if __name__ == '__main__':
     # m = np.load('../../FGSim/FITDATA/PSCMB/40.npy')[0]
-    m = np.load('../../src/cmbsim/cmbdata/rlz_nside512/39.npy')
+    m = np.load('../../src/cmbsim/cmbdata/rlz_nside512/40GHz/5.npy')
     nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
     flux_idx = 1
@@ -314,7 +314,7 @@ if __name__ == '__main__':
     # obj.calc_C_theta_itp_func('../../test/interpolate_cov/lgd_itp_funcs350.pkl')
     # obj.calc_C_theta()
     # obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='./cov')
-    obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='../cmb_cov_512/cov')
+    obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='../cmb_cov_beam_512/cov')
     obj.fit_all()
 
 
