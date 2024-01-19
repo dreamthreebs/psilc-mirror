@@ -281,7 +281,7 @@ class FitPointSource:
 
 if __name__ == '__main__':
     # m = np.load('../../FGSim/FITDATA/PSCMB/40.npy')[0]
-    m = np.load('../../src/cmbsim/cmbdata/rlz_nside256/40GHz/0.npy')
+    m = np.load('../../src/cmbsim/cmbdata/rlz_nside256/40GHz/3.npy')
     nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
     flux_idx = 1
@@ -314,7 +314,7 @@ if __name__ == '__main__':
     # obj.calc_C_theta_itp_func('../../test/interpolate_cov/lgd_itp_funcs350.pkl')
     # obj.calc_C_theta()
     # obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='./cov')
-    obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='../fitv3/cov')
+    obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='../fitv3/cov_itp_256')
     obj.fit_all()
 
 

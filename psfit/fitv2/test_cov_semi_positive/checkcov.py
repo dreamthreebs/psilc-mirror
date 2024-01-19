@@ -1,6 +1,7 @@
 import numpy as np
 
-cov = np.load('../../fitv3/cov/1.npy')
+cov = np.load('../../fitv3/cov_cmb_noise.npy')
+print(f'{cov.shape=}')
 
 # A = np.random.rand(100, 100)
 # cov = np.dot(A, A.transpose())
@@ -17,8 +18,8 @@ print(f'{cov=}')
 
 eigenvalues_min = np.min(np.linalg.eigvalsh(cov))
 print(f'{eigenvalues_min=}')
-epsilon = 1e-8
-cov = cov + epsilon * np.eye(cov.shape[0])
+# epsilon = 1e-8
+# cov = cov + epsilon * np.eye(cov.shape[0])
 
 cond_number = np.linalg.cond(cov)
 print("Condition number of the matrix:", cond_number)

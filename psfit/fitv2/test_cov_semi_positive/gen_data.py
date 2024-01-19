@@ -14,7 +14,7 @@ from scipy.interpolate import CubicSpline
 n_samples = 1
 # cov = np.load('../../../test/fit_ps/cmb_cov_data/lmax500rf0.8.npy')
 # cov = np.load('../../cmb_cov_precise_calc/cov4/1.npy')
-cov = np.load('../../cmb_cov_512/cov/1.npy')
+cov = np.load('../../fitv3/precise_cov/1.npy')
 
 cond_number = np.linalg.cond(cov)
 print("Condition number of the matrix:", cond_number)

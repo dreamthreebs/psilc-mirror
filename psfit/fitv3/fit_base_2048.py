@@ -203,6 +203,7 @@ class FitPointSource:
             for i in range(self.ndof):
                 cov[i,i] = cov[i,i] + nstd2[i]
             # self.inv_cov = np.linalg.inv(cov)
+            np.save('./cov_cmb_noise.npy', cov)
             self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
             return None
 
@@ -309,16 +310,11 @@ class FitPointSource:
 
             def model():
                 return norm_beam / (2 * np.pi * self.sigma**2) * np.exp(- (theta)**2 / (2 * self.sigma**2)) + const
-                # return norm_beam / (2 * np.pi * self.sigma**2) * np.exp(- (theta)**2 / (2 * self.sigma**2))
-                # return 1 / (2 * np.pi * self.sigma**2) * np.exp(- (theta)**2 / (2 * self.sigma**2))
 
             y_model = model()
             y_data = self.m[ipix_fit]
             y_err = self.nstd[ipix_fit]
             y_diff = y_data - y_model
-
-            error_estimate = np.sum(y_model**2 / y_err**2)
-            print(f"{error_estimate=}")
 
             z = (y_diff) @ self.inv_cov @ (y_diff)
             return z
@@ -576,9 +572,9 @@ class FitPointSource:
 
 
 if __name__ == '__main__':
-    m = np.load('../../FGSim/FITDATA/256/PSNOISE/40.npy')[0]
-    # m = np.load('../../FGSim/TEST0118/256/PSCMB/40.npy')[0]
-    nstd = np.load('../../FGSim/NSTDNORTH/256/40.npy')[0]
+    m = np.load('../../FGSim/FITDATA/PSNOISE/40.npy')[0]
+    # m = np.load('../../FGSim/FITDATA/PSCMBNOISE/40.npy')[0]
+    nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
     flux_idx = 1
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
@@ -588,7 +584,7 @@ if __name__ == '__main__':
     df_ps = pd.read_csv('../../test/ps_sort/sort_by_iflux/40.csv')
     
     lmax = 350
-    nside = 256
+    nside = 2048
     beam = 63
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
@@ -603,17 +599,16 @@ if __name__ == '__main__':
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.0, beam=beam, epsilon=1e-5)
+    obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=2.0, beam=beam, epsilon=1e-4)
 
     obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
     obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
-
     # obj.calc_C_theta()
     # obj.calc_C_theta_itp_func(lgd_itp_func_pos='../../test/interpolate_cov/lgd_itp_funcs350.pkl')
-    # obj.calc_C_theta(save_path='./cov_256')
+    # obj.calc_C_theta(save_path='./cov_2048')
     # obj.calc_precise_C_theta()
-    # obj.calc_covariance_matrix(mode='cmb', cmb_cov_fold='./cov')
+    # obj.calc_covariance_matrix(mode='cmb+noise', cmb_cov_fold='../cmb_cov_calc/cov')
 
     obj.fit_all()
 

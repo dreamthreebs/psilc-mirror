@@ -132,14 +132,14 @@ class FitPointSource:
         eigenvalues_min = np.min(np.linalg.eigvalsh(cov))
         print(f'{eigenvalues_min=}')
 
-        epsilon = 1e-8
+        epsilon = 1e-6
         print(f"{np.linalg.cond(cov)=}")
         cov = cov + epsilon * np.eye(cov.shape[0])
 
         if mode == 'cmb':
             # self.inv_cov = np.linalg.inv(cov)
-            self.inv_cov,_,_,_ = np.linalg.lstsq(cov, np.eye(cov.shape[0]), rcond=None)
-            # self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
+            # self.inv_cov,_,_,_ = np.linalg.lstsq(cov, np.eye(cov.shape[0]), rcond=None)
+            self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
 
         if mode == 'cmb+noise':
             nstd2 = (self.nstd**2)[self.ipix_fit]
@@ -281,7 +281,7 @@ class FitPointSource:
 
 if __name__ == '__main__':
     # m = np.load('../../FGSim/FITDATA/PSCMB/40.npy')[0]
-    m = np.load('../../src/cmbsim/cmbdata/rlz_nside512/40GHz/5.npy')
+    m = np.load('../../src/cmbsim/cmbdata/rlz_nside512/40GHz/4.npy')
     nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
     flux_idx = 1

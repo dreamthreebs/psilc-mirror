@@ -68,9 +68,40 @@ def main():
     np.save("./ps_ns_data_256/fit_lon.npy",np.array(fit_lon_list))
     np.save("./ps_ns_data_256/fit_lat.npy",np.array(fit_lat_list))
 
+def calc_cov():
+    m = np.load('../../FGSim/FITDATA/256/PSNOISE/40.npy')[0]
+    nstd = np.load('../../FGSim/NSTDNORTH/256/40.npy')[0]
+    df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
+    df_ps = pd.read_csv('../../test/ps_sort/sort_by_iflux/40.csv')
+
+    lmax = 350
+    nside = 256
+    beam = 63
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
+    cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
+    cl_cmb = cl_cmb * bl**2
+
+    chi2dof_list = []
+    norm_beam_list = []
+    norm_error_list = []
+    fit_lon_list = []
+    fit_lat_list = []
+    num_ps_list = []
+
+    for flux_idx in range(0,139):
+        print(f'{flux_idx=}')
+        lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
+        lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
+        iflux = df_mask.at[flux_idx, 'iflux']
+
+        obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.0, beam=beam)
+
+        obj.calc_C_theta(save_path='./cov_256')
+
 
 if __name__ == '__main__':
-    main()
+    # main()
+    calc_cov()
 
 
 
