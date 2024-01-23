@@ -76,7 +76,7 @@ class FitPointSource:
                     vec_j = hp.pix2vec(nside=nside, ipix=ipix_j)
                     cos_theta = np.dot(vec_i, vec_j)  # Assuming this results in a single value
                     cos_theta = min(1.0, max(cos_theta, -1.0))  # Ensuring it's within [-1, 1]
-                    print(f'{cos_theta=}')
+                    # print(f'{cos_theta=}')
 
                     # Use cos_theta as a key in the dictionary
                     if cos_theta not in theta_cache:
@@ -158,7 +158,7 @@ class FitPointSource:
                     vec_j = hp.pix2vec(nside=nside, ipix=ipix_j)
                     cos_theta = np.dot(vec_i, vec_j)  # Assuming this results in a single value
                     cos_theta = min(1.0, max(cos_theta, -1.0))  # Ensuring it's within [-1, 1]
-                    print(f'{cos_theta=}')
+                    # print(f'{cos_theta=}')
 
                     # Use cos_theta as a key in the dictionary
                     if cos_theta not in theta_cache:
@@ -235,7 +235,9 @@ class FitPointSource:
         hp.gnomview(mask, rot=[lon, lat, 0])
         plt.show()
 
-    def find_nearby_ps(self, num_ps=1, threshold_factor=2.2):
+    def find_nearby_ps(self, num_ps=1):
+        threshold_factor = self.radius_factor + 1.1
+        print(f'{threshold_factor=}')
         dir_0 = (self.lon, self.lat)
         arr_1 = self.df_ps.loc[:, 'Unnamed: 0']
         print(f'{arr_1.shape=}')
@@ -524,6 +526,95 @@ class FitPointSource:
 
             return chi2dof, obj_minuit.values['norm_beam1'], obj_minuit.errors['norm_beam1'], fit_lon, fit_lat
 
+        def fit_19_params():
+            num_ps, (self.ctr2_iflux, self.ctr2_lon, self.ctr2_lat, self.ctr3_iflux, self.ctr3_lon, self.ctr3_lat, self.ctr4_iflux, self.ctr4_lon, self.ctr4_lat, self.ctr5_iflux, self.ctr5_lon, self.ctr5_lat, self.ctr6_iflux, self.ctr6_lon, self.ctr6_lat) = self.find_nearby_ps(num_ps=5)
+
+            params = (self.ini_norm_beam, 0, 0, self.ctr2_iflux, 0, 0, self.ctr3_iflux, 0, 0, self.ctr4_iflux, 0, 0, self.ctr5_iflux,0,0, self.ctr6_iflux, 0, 0, 0)
+            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat)
+            obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","const"), *params)
+
+            # obj_minuit.limits = [(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5), (0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
+
+            obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
+            print(obj_minuit.migrad())
+            print(obj_minuit.hesse())
+            # for p in obj_minuit.params:
+                # print(repr(p))
+
+            chi2dof = obj_minuit.fval / self.ndof
+            str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {self.ndof} = {chi2dof}"
+            print(str_chi2)
+
+            if obj_minuit.fmin.hesse_failed:
+                raise ValueError('hesse failed!')
+
+            print(f'19 parameter fitting is enough, hesse ok')
+            fit_lon = self.lon + obj_minuit.values['ctr1_lon_shift']
+            fit_lat = self.lon + obj_minuit.values['ctr1_lat_shift']
+
+            return chi2dof, obj_minuit.values['norm_beam1'], obj_minuit.errors['norm_beam1'], fit_lon, fit_lat
+
+        def fit_22_params():
+            num_ps, (self.ctr2_iflux, self.ctr2_lon, self.ctr2_lat, self.ctr3_iflux, self.ctr3_lon, self.ctr3_lat, self.ctr4_iflux, self.ctr4_lon, self.ctr4_lat, self.ctr5_iflux, self.ctr5_lon, self.ctr5_lat, self.ctr6_iflux, self.ctr6_lon, self.ctr6_lat, self.ctr7_iflux, self.ctr7_lon, self.ctr7_lat) = self.find_nearby_ps(num_ps=6)
+
+            params = (self.ini_norm_beam, 0, 0, self.ctr2_iflux, 0, 0, self.ctr3_iflux, 0, 0, self.ctr4_iflux, 0, 0, self.ctr5_iflux,0,0, self.ctr6_iflux, 0, 0, self.ctr7_iflux, 0, 0, 0)
+            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon, self.ctr7_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat)
+            obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","norm_beam7","ctr7_lon_shift","ctr7_lat_shift","const"), *params)
+
+            # obj_minuit.limits = [(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5), (0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
+
+            obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
+            print(obj_minuit.migrad())
+            print(obj_minuit.hesse())
+            # for p in obj_minuit.params:
+                # print(repr(p))
+
+            chi2dof = obj_minuit.fval / self.ndof
+            str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {self.ndof} = {chi2dof}"
+            print(str_chi2)
+
+            if obj_minuit.fmin.hesse_failed:
+                raise ValueError('hesse failed!')
+
+            print(f'22 parameter fitting is enough, hesse ok')
+            fit_lon = self.lon + obj_minuit.values['ctr1_lon_shift']
+            fit_lat = self.lon + obj_minuit.values['ctr1_lat_shift']
+
+            return chi2dof, obj_minuit.values['norm_beam1'], obj_minuit.errors['norm_beam1'], fit_lon, fit_lat
+
+        def fit_25_params():
+            num_ps, (self.ctr2_iflux, self.ctr2_lon, self.ctr2_lat, self.ctr3_iflux, self.ctr3_lon, self.ctr3_lat, self.ctr4_iflux, self.ctr4_lon, self.ctr4_lat, self.ctr5_iflux, self.ctr5_lon, self.ctr5_lat, self.ctr6_iflux, self.ctr6_lon, self.ctr6_lat, self.ctr7_iflux, self.ctr7_lon, self.ctr7_lat, self.ctr8_iflux, self.ctr8_lon, self.ctr8_lat) = self.find_nearby_ps(num_ps=7)
+
+            params = (self.ini_norm_beam, 0, 0, self.ctr2_iflux, 0, 0, self.ctr3_iflux, 0, 0, self.ctr4_iflux, 0, 0, self.ctr5_iflux,0,0, self.ctr6_iflux, 0, 0, self.ctr7_iflux, 0, 0,self.ctr8_iflux, 0, 0, 0)
+            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon, self.ctr7_lon, self.ctr8_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat, self.ctr8_lon)
+            obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","norm_beam7","ctr7_lon_shift","ctr7_lat_shift","norm_beam8","ctr8_lon_shift","ctr8_lat_shift","const"), *params)
+
+            # obj_minuit.limits = [(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5), (0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
+
+            obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
+            print(obj_minuit.migrad())
+            print(obj_minuit.hesse())
+            # for p in obj_minuit.params:
+                # print(repr(p))
+
+            chi2dof = obj_minuit.fval / self.ndof
+            str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {self.ndof} = {chi2dof}"
+            print(str_chi2)
+
+            if obj_minuit.fmin.hesse_failed:
+                raise ValueError('hesse failed!')
+
+            print(f'25 parameter fitting is enough, hesse ok')
+            fit_lon = self.lon + obj_minuit.values['ctr1_lon_shift']
+            fit_lat = self.lon + obj_minuit.values['ctr1_lat_shift']
+
+            return chi2dof, obj_minuit.values['norm_beam1'], obj_minuit.errors['norm_beam1'], fit_lon, fit_lat
+
+
+
         print(f'begin point source fitting, first do 2 parameter fit...')
         chi2dof, fit_norm, norm_error, fit_lon, fit_lat = fit_2_params()
         if fit_norm < self.sigma_threshold * norm_error:
@@ -550,7 +641,7 @@ class FitPointSource:
                             return fit_norm, norm_error, fit_lon, fit_lat
 
         if mode == 'pipeline':
-            shift_limit = 0.1
+            shift_limit = 0.03
             if self.flag_too_near == True:
                 shift_limit = 0.02
 
@@ -564,13 +655,19 @@ class FitPointSource:
                 chi2dof, fit_norm, norm_error, fit_lon, fit_lat = fit_13_params()
             elif num_ps == 4:
                 chi2dof, fit_norm, norm_error, fit_lon, fit_lat = fit_16_params()
+            elif num_ps == 5:
+                chi2dof, fit_norm, norm_error, fit_lon, fit_lat = fit_19_params()
+            elif num_ps == 6:
+                chi2dof, fit_norm, norm_error, fit_lon, fit_lat = fit_22_params()
+            elif num_ps == 7:
+                chi2dof, fit_norm, norm_error, fit_lon, fit_lat = fit_25_params()
 
 
             fit_error = np.abs(fit_norm - true_norm_beam) / true_norm_beam
 
             print(f'{num_ps=}, {chi2dof=}, {fit_norm=}, {norm_error=}, {fit_lon=}, {fit_lat=}')
             print(f'{true_norm_beam=}, {fit_norm=}, {fit_error=}')
-            return num_ps, chi2dof, fit_norm, norm_error, fit_lon, fit_lat
+            return num_ps, chi2dof, fit_norm, norm_error, fit_lon, fit_lat, fit_error
 
 
 
@@ -579,13 +676,13 @@ if __name__ == '__main__':
     m = np.load('../../FGSim/FITDATA/256/PSNOISE/40.npy')[0]
     # m = np.load('../../FGSim/TEST0118/256/PSCMB/40.npy')[0]
     nstd = np.load('../../FGSim/NSTDNORTH/256/40.npy')[0]
-    df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/mask40.csv')
-    flux_idx = 1
+    df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/2048/40mask.csv')
+    flux_idx = 0
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
 
-    df_ps = pd.read_csv('../../test/ps_sort/sort_by_iflux/40.csv')
+    df_ps = pd.read_csv('../partial_sky_ps/ps_in_mask/2048/40ps.csv')
     
     lmax = 350
     nside = 256
@@ -603,7 +700,7 @@ if __name__ == '__main__':
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.0, beam=beam, epsilon=1e-5)
+    obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=1e-5)
 
     obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
