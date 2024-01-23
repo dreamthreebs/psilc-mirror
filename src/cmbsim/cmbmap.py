@@ -7,12 +7,12 @@ cmbcl = np.load('./cmbdata/cmbcl.npy') # (n_ell, n_cl) TT, EE, BB, TE
 l = np.arange(cmbcl.shape[0])
 print(f'{cmbcl.shape}')
 
-lmax = 1000
-nside = 256
+lmax = 2000
+nside = 2048
 
-if not os.path.exists('./cmbdata/rlz_nside256'):
-    os.mkdir('./cmbdata/rlz_nside256')
-for i in range(200):
+if not os.path.exists('./cmbdata/m_realization'):
+    os.mkdir('./cmbdata/m_realization')
+for i in range(50,100):
     print(f'{i=}')
     m = hp.synfast(cmbcl.T[0], nside=nside, lmax=lmax, new=True)
 
@@ -21,7 +21,7 @@ for i in range(200):
 #     plt.show()
 
 
-    np.save(f'./cmbdata/rlz_nside256/{i}.npy', m)
+    np.save(f'./cmbdata/m_realization/{i}.npy', m)
 # hp.write_map(f'./cmbdata/1.fits', m)
 
 
