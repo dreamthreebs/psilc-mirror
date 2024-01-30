@@ -5,12 +5,14 @@ import pandas as pd
 import time
 import pickle
 import os
+import sys
 
 from pathlib import Path
 from iminuit import Minuit
 from iminuit.cost import LeastSquares
 from numpy.polynomial.legendre import Legendre
 from scipy.interpolate import CubicSpline
+from memory_profiler import profile
 
 class FitPointSource:
     def __init__(self, m, nstd, flux_idx, df_mask, df_ps, cl_cmb, lon, lat, iflux, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4):
@@ -105,10 +107,9 @@ class FitPointSource:
         timecov = time.time()-time0
         print(f'{timecov=}')
         print(f'{cov=}')
-        save_path = f'./cmb_cov_{self.nside}'
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
-        np.save(os.path.join(save_path,f'{self.flux_idx}.npy'), cov)
+        save_path = f'./cmb_cov_{self.nside}/r_{self.radius_factor}'
+        Path(save_path).mkdir(parents=True, exist_ok=True)
+        np.save(Path(save_path) / Path(f'{self.flux_idx}.npy'), cov)
 
     def calc_covariance_matrix(self, mode='cmb+noise'):
 
@@ -120,12 +121,12 @@ class FitPointSource:
                 cov[i,i] = cov[i,i] + nstd2[i]
             print(f'{cov=}')
             self.inv_cov = np.linalg.inv(cov)
-            path_inv_cov = Path(f'inv_cov_{self.nside}') / Path(mode)
+            path_inv_cov = Path(f'inv_cov_{self.nside}/r_{self.radius_factor}') / Path(mode)
             path_inv_cov.mkdir(parents=True, exist_ok=True)
             np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
 
-        cmb_cov_path = Path(f'./cmb_cov_{self.nside}') / Path(f'{self.flux_idx}.npy')
+        cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
         print(f'{cmb_cov_path=}')
 
         cov = np.load(cmb_cov_path)
@@ -134,7 +135,7 @@ class FitPointSource:
         if mode == 'cmb':
             # self.inv_cov = np.linalg.inv(cov)
             self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
-            path_inv_cov = Path(f'inv_cov_{self.nside}') / Path(mode)
+            path_inv_cov = Path(f'inv_cov_{self.nside}/r_{self.radius_factor}') / Path(mode)
             path_inv_cov.mkdir(parents=True, exist_ok=True)
             np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
@@ -145,7 +146,7 @@ class FitPointSource:
                 cov[i,i] = cov[i,i] + nstd2[i]
             # self.inv_cov = np.linalg.inv(cov)
             self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
-            path_inv_cov = Path(f'inv_cov_{self.nside}') / Path(mode)
+            path_inv_cov = Path(f'inv_cov_{self.nside}/r_{self.radius_factor}') / Path(mode)
             path_inv_cov.mkdir(parents=True, exist_ok=True)
             np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
@@ -160,6 +161,17 @@ class FitPointSource:
         ipix = hp.ang2pix(nside=self.nside, theta=input_lon, phi=input_lat, lonlat=True)
         out_lon, out_lat = hp.pix2ang(nside=self.nside, ipix=ipix, lonlat=True)
         return out_lon, out_lat
+
+    def adjust_lat(self, lat):
+        if lat < -90 or lat > 90:
+            lat = lat % 360
+            if lat < -90:
+                lat = -180 - lat
+            if (lat > 90) and (lat <= 270):
+                lat = 180 - lat
+            elif lat > 270:
+                lat = lat - 360
+        return lat
 
     def see_true_map(self, m, lon, lat, nside, beam):
         radiops = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/40GHz/strongradiops_map_40GHz.fits', field=0)
@@ -285,7 +297,10 @@ class FitPointSource:
                 # print(f'{lon_shift=},{lat_shift}')
                 lon = self.fit_lon[i] + lon_shift
                 lat = self.fit_lat[i] + lat_shift
-                # print(f'{lon=},{lat=}')
+                if np.isnan(lon): lon = self.fit_lon[i]+np.random.uniform(-0.01, 0.01)
+                if np.isnan(lat): lat = self.fit_lat[i]+np.random.uniform(-0.01, 0.01)
+                print(f'{lon=},{lat=}')
+                lat = self.adjust_lat(lat)
                 ctr_vec = np.array(hp.ang2vec(theta=lon, phi=lat, lonlat=True))
         
                 theta = hp.rotator.angdist(dir1=ctr_vec, dir2=vec_around)
@@ -303,7 +318,7 @@ class FitPointSource:
             z = (y_diff) @ self.inv_cov @ (y_diff)
             return z
 
-        self.inv_cov = np.load(f'./inv_cov_{self.nside}/{cov_mode}/{self.flux_idx}.npy')
+        self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.flux_idx}.npy')
 
         ctr0_vec = hp.ang2vec(theta=self.lon, phi=self.lat, lonlat=True)
 
@@ -317,7 +332,7 @@ class FitPointSource:
 
         def fit_2_params():
             obj_minuit = Minuit(lsq_2_params, norm_beam=self.ini_norm_beam, const=0.0)
-            obj_minuit.limits = [(0,1),  (-100,100)]
+            obj_minuit.limits = [(-1,1),  (-100,100)]
             print(obj_minuit.migrad())
             # for p in obj_minuit.params:
                 # print(repr(p))
@@ -338,8 +353,9 @@ class FitPointSource:
             self.fit_lat = (self.lat,)
             print(f'{self.fit_lon=}')
 
+            shift_limit = 0.05
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","const"), *params)
-            obj_minuit.limits = [(0,1.0), (-shift_limit, shift_limit), (-shift_limit,shift_limit), (-100,100)]
+            obj_minuit.limits = [(-1.0,1.0), (-shift_limit, shift_limit), (-shift_limit,shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
             # for p in obj_minuit.params:
@@ -365,7 +381,7 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","const"), *params)
 
-            obj_minuit.limits = [(0,1), (-shift_limit,shift_limit), (-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit, shift_limit), (-100,100)]
+            obj_minuit.limits = [(-1,1), (-shift_limit,shift_limit), (-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
             # for p in obj_minuit.params:
@@ -392,7 +408,7 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","const"), *params)
 
-            obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-100,100)]
+            obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-100,100)]
             # obj_minuit.errors = (1e-3, 0.01, 0.01, 1e-3, 0.01, 0.01, 1e-3, 0.01, 0.01, 0.1)
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
@@ -419,9 +435,9 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","const"), *params)
 
-            # obj_minuit.limits = [(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.4,0.4),(-0.4,0.4),(0,1),(-0.5,0.5),(-0.5,0.5), (0,1),(-0.5,0.5),(-0.5,0.5), (-100,100)]
+            # obj_minuit.limits = [(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.4,0.4),(-0.4,0.4),(-1,1),(-0.5,0.5),(-0.5,0.5), (-1,1),(-0.5,0.5),(-0.5,0.5), (-100,100)]
 
-            obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
+            obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
             # for p in obj_minuit.params:
@@ -450,9 +466,9 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","const"), *params)
 
-            # obj_minuit.limits = [(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5), (0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
+            # obj_minuit.limits = [(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5), (-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
 
-            obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
+            obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
             # for p in obj_minuit.params:
@@ -479,9 +495,9 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","const"), *params)
 
-            # obj_minuit.limits = [(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5), (0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
+            # obj_minuit.limits = [(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5), (-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
 
-            obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
+            obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
             # for p in obj_minuit.params:
@@ -508,9 +524,9 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","norm_beam7","ctr7_lon_shift","ctr7_lat_shift","const"), *params)
 
-            # obj_minuit.limits = [(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5), (0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
+            # obj_minuit.limits = [(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5), (-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
 
-            obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
+            obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
             # for p in obj_minuit.params:
@@ -537,9 +553,9 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat, self.ctr8_lon)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","norm_beam7","ctr7_lon_shift","ctr7_lat_shift","norm_beam8","ctr8_lon_shift","ctr8_lat_shift","const"), *params)
 
-            # obj_minuit.limits = [(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5), (0,1),(-0.3,0.3),(-0.3,0.3),(0,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
+            # obj_minuit.limits = [(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5), (-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
 
-            obj_minuit.limits = [(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(0,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(0,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
+            obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
             # for p in obj_minuit.params:
@@ -614,15 +630,18 @@ class FitPointSource:
             print(f'{true_norm_beam=}, {fit_norm=}, {fit_error=}')
             return num_ps, chi2dof, fit_norm, norm_error, fit_lon, fit_lat, fit_error
 
+        if mode == 'get_num_ps':
+            return num_ps
 
 
 
-if __name__ == '__main__':
+def main():
     # m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/40/1.npy')[0]
-    m = np.load('../../fitdata/synthesis_data/2048/PSCMBFGNOISE/40/2.npy')[0]
+    m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/40/0.npy')[0]
+    print(f'{sys.getrefcount(m)-1=}')
     nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/2048/40mask.csv')
-    flux_idx = 4
+    flux_idx = 0
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
@@ -645,8 +664,10 @@ if __name__ == '__main__':
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
+    print(f'{sys.getrefcount(m)-1=}')
     obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=1e-5)
 
+    print(f'{sys.getrefcount(m)-1=}')
     # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
     # obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
@@ -658,6 +679,12 @@ if __name__ == '__main__':
     # obj.calc_C_theta()
     # obj.calc_covariance_matrix(mode='cmb+noise')
 
+    # time0 = time.perf_counter()
     obj.fit_all(cov_mode='cmb+noise')
+    # print(f'{time.perf_counter()-time0}')
 
+
+
+if __name__ == '__main__':
+    main()
 
