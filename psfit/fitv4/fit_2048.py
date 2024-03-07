@@ -6,6 +6,7 @@ import time
 import pickle
 import os
 import sys
+import ipdb
 
 from pathlib import Path
 from iminuit import Minuit
@@ -46,6 +47,7 @@ class FitPointSource:
         # print(f'{ipix_fit.shape=}')
         self.ndof = len(self.ipix_fit)
 
+        self.num_near_ps = 0
         self.flag_too_near = False
 
     def calc_C_theta_itp_func(self, lgd_itp_func_pos='../../test/interpolate_cov/lgd_itp_funcs350.pkl'):
@@ -83,7 +85,7 @@ class FitPointSource:
             pickle.dump(self.cs, f)
         return self.cs
 
-    def calc_C_theta(self,):
+    def calc_C_theta(self, save_path):
         if not hasattr(self, "cs"):
             with open('./cs/cs.pkl', 'rb') as f:
                 self.cs = pickle.load(f)
@@ -100,6 +102,7 @@ class FitPointSource:
 
         vec = np.asarray(hp.pix2vec(nside=self.nside, ipix=ipix_fit))
         cos_theta = vec.T@vec
+        cos_theta = np.clip(cos_theta, -1, 1)
         print(f'{cos_theta.shape=}')
         cov = self.cs(cos_theta)
         print(f'{cov.shape=}')
@@ -248,17 +251,52 @@ class FitPointSource:
     
         # return tuple(iflux_list + lon_list + lat_list)
         iflux_arr = np.array(iflux_list)
+        ang_near_arr = np.array(ang_near)[0:num_ps]
+        lon_arr = np.array(lon_list)
+        lat_arr = np.array(lat_list)
         num_ps = np.count_nonzero(np.where(iflux_arr > self.flux2norm_beam(flux=100), iflux_arr, 0))
         print(f'there are {num_ps} ps > 100 mJy')
+        print(f'ang_near_arr before mask very faint: {ang_near_arr}')
+        print(f'lon_arr before mask very faint: {lon_arr}')
+        print(f'lat_arr before mask very faint: {lat_arr}')
+        print(f'iflux_arr before mask very faint: {iflux_arr}')
+
+        mask_very_faint = iflux_arr > self.flux2norm_beam(flux=100)
+
+        ang_near_arr = ang_near_arr[mask_very_faint].copy()
+        iflux_arr = iflux_arr[mask_very_faint].copy()
+        lon_arr = lon_arr[mask_very_faint].copy()
+        lat_arr = lat_arr[mask_very_faint].copy()
+
+        self.ang_near = ang_near_arr
+
+        print(f'ang_near_arr after mask very faint: {ang_near_arr}')
+        print(f'lon_arr after mask very faint: {lon_arr}')
+        print(f'lat_arr after mask very faint: {lat_arr}')
+        print(f'iflux_arr after mask very faint: {iflux_arr}')
 
         if num_ps > 0:
             ang_near_and_bigger_than_threshold = ang_near[0:num_ps]
-            if any(ang_near_and_bigger_than_threshold < 0.5):
+            if any(ang_near_and_bigger_than_threshold < 0.7):
                 self.flag_too_near = True
+
+                self.num_near_ps = np.count_nonzero(np.where(ang_near_and_bigger_than_threshold < 0.5, ang_near_and_bigger_than_threshold, 0))
+                print(f'{self.num_near_ps=}')
+                sorted_indices = np.argsort(ang_near_arr)
+
+                ang_near_arr = ang_near_arr[sorted_indices]
+                iflux_arr = iflux_arr[sorted_indices]
+                lon_arr = lon_arr[sorted_indices]
+                lat_arr = lat_arr[sorted_indices]
+
+                print(f'ang_near_arr after sort by ang: {ang_near_arr}')
+                print(f'lon_arr after sort by ang: {lon_arr}')
+                print(f'lat_arr after sort by ang: {lat_arr}')
+                print(f'iflux_arr after sort by ang: {iflux_arr}')
 
             print(f'{self.flag_too_near = }')
 
-        return num_ps, tuple(sum(zip(iflux_list, lon_list, lat_list), ()))
+        return num_ps, tuple(sum(zip(iflux_arr, lon_arr, lat_arr), ()))
 
     def fit_all(self, cov_mode:str, mode:str='pipeline'):
         def lsq_2_params(norm_beam, const):
@@ -275,8 +313,8 @@ class FitPointSource:
             y_err = self.nstd[ipix_fit]
             y_diff = y_data - y_model
 
-            error_estimate = np.sum(y_model**2 / y_err**2)
-            print(f"{error_estimate=}")
+            # error_estimate = np.sum(y_model**2 / y_err**2)
+            # print(f"{error_estimate=}")
 
             z = (y_diff) @ self.inv_cov @ (y_diff)
             return z
@@ -299,7 +337,7 @@ class FitPointSource:
                 lat = self.fit_lat[i] + lat_shift
                 if np.isnan(lon): lon = self.fit_lon[i]+np.random.uniform(-0.01, 0.01)
                 if np.isnan(lat): lat = self.fit_lat[i]+np.random.uniform(-0.01, 0.01)
-                print(f'{lon=},{lat=}')
+                # print(f'{lon=},{lat=}')
                 lat = self.adjust_lat(lat)
                 ctr_vec = np.array(hp.ang2vec(theta=lon, phi=lat, lonlat=True))
         
@@ -355,7 +393,7 @@ class FitPointSource:
 
             shift_limit = 0.05
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","const"), *params)
-            obj_minuit.limits = [(-1.0,1.0), (-shift_limit, shift_limit), (-shift_limit,shift_limit), (-100,100)]
+            obj_minuit.limits = [(-1,1), (-shift_limit, shift_limit), (-shift_limit,shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
             # for p in obj_minuit.params:
@@ -380,6 +418,12 @@ class FitPointSource:
             self.fit_lon = (self.lon, self.ctr2_lon)
             self.fit_lat = (self.lat, self.ctr2_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","const"), *params)
+
+            if self.flag_too_near is True:
+                obj_minuit.fixed['ctr1_lon_shift'] = True
+                obj_minuit.fixed['ctr1_lat_shift'] = True
+                obj_minuit.fixed['ctr2_lon_shift'] = True
+                obj_minuit.fixed['ctr2_lat_shift'] = True
 
             obj_minuit.limits = [(-1,1), (-shift_limit,shift_limit), (-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
@@ -407,6 +451,12 @@ class FitPointSource:
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon)
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","const"), *params)
+
+            if self.flag_too_near is True:
+                obj_minuit.fixed['ctr1_lon_shift'] = True
+                obj_minuit.fixed['ctr1_lat_shift'] = True
+                obj_minuit.fixed['ctr2_lon_shift'] = True
+                obj_minuit.fixed['ctr2_lat_shift'] = True
 
             obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-100,100)]
             # obj_minuit.errors = (1e-3, 0.01, 0.01, 1e-3, 0.01, 0.01, 1e-3, 0.01, 0.01, 0.1)
@@ -436,6 +486,12 @@ class FitPointSource:
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","const"), *params)
 
             # obj_minuit.limits = [(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.4,0.4),(-0.4,0.4),(-1,1),(-0.5,0.5),(-0.5,0.5), (-1,1),(-0.5,0.5),(-0.5,0.5), (-100,100)]
+
+            if self.flag_too_near is True:
+                obj_minuit.fixed['ctr1_lon_shift'] = True
+                obj_minuit.fixed['ctr1_lat_shift'] = True
+                obj_minuit.fixed['ctr2_lon_shift'] = True
+                obj_minuit.fixed['ctr2_lat_shift'] = True
 
             obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
@@ -468,6 +524,12 @@ class FitPointSource:
 
             # obj_minuit.limits = [(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5), (-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
 
+            if self.flag_too_near is True:
+                obj_minuit.fixed['ctr1_lon_shift'] = True
+                obj_minuit.fixed['ctr1_lat_shift'] = True
+                obj_minuit.fixed['ctr2_lon_shift'] = True
+                obj_minuit.fixed['ctr2_lat_shift'] = True
+
             obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
             print(obj_minuit.hesse())
@@ -483,7 +545,7 @@ class FitPointSource:
 
             print(f'16 parameter fitting is enough, hesse ok')
             fit_lon = self.lon + obj_minuit.values['ctr1_lon_shift']
-            fit_lat = self.lon + obj_minuit.values['ctr1_lat_shift']
+            fit_lat = self.lat + obj_minuit.values['ctr1_lat_shift']
 
             return chi2dof, obj_minuit.values['norm_beam1'], obj_minuit.errors['norm_beam1'], fit_lon, fit_lat
 
@@ -496,6 +558,12 @@ class FitPointSource:
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","const"), *params)
 
             # obj_minuit.limits = [(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5), (-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
+
+            if self.flag_too_near is True:
+                obj_minuit.fixed['ctr1_lon_shift'] = True
+                obj_minuit.fixed['ctr1_lat_shift'] = True
+                obj_minuit.fixed['ctr2_lon_shift'] = True
+                obj_minuit.fixed['ctr2_lat_shift'] = True
 
             obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
@@ -512,7 +580,7 @@ class FitPointSource:
 
             print(f'19 parameter fitting is enough, hesse ok')
             fit_lon = self.lon + obj_minuit.values['ctr1_lon_shift']
-            fit_lat = self.lon + obj_minuit.values['ctr1_lat_shift']
+            fit_lat = self.lat + obj_minuit.values['ctr1_lat_shift']
 
             return chi2dof, obj_minuit.values['norm_beam1'], obj_minuit.errors['norm_beam1'], fit_lon, fit_lat
 
@@ -525,6 +593,12 @@ class FitPointSource:
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","norm_beam7","ctr7_lon_shift","ctr7_lat_shift","const"), *params)
 
             # obj_minuit.limits = [(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5), (-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
+
+            if self.flag_too_near is True:
+                obj_minuit.fixed['ctr1_lon_shift'] = True
+                obj_minuit.fixed['ctr1_lat_shift'] = True
+                obj_minuit.fixed['ctr2_lon_shift'] = True
+                obj_minuit.fixed['ctr2_lat_shift'] = True
 
             obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
@@ -541,7 +615,7 @@ class FitPointSource:
 
             print(f'22 parameter fitting is enough, hesse ok')
             fit_lon = self.lon + obj_minuit.values['ctr1_lon_shift']
-            fit_lat = self.lon + obj_minuit.values['ctr1_lat_shift']
+            fit_lat = self.lat + obj_minuit.values['ctr1_lat_shift']
 
             return chi2dof, obj_minuit.values['norm_beam1'], obj_minuit.errors['norm_beam1'], fit_lon, fit_lat
 
@@ -554,6 +628,12 @@ class FitPointSource:
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","norm_beam7","ctr7_lon_shift","ctr7_lat_shift","norm_beam8","ctr8_lon_shift","ctr8_lat_shift","const"), *params)
 
             # obj_minuit.limits = [(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5), (-1,1),(-0.3,0.3),(-0.3,0.3),(-1,1),(-0.5,0.5),(-0.5,0.5),(-100,100)]
+
+            if self.flag_too_near is True:
+                obj_minuit.fixed['ctr1_lon_shift'] = True
+                obj_minuit.fixed['ctr1_lat_shift'] = True
+                obj_minuit.fixed['ctr2_lon_shift'] = True
+                obj_minuit.fixed['ctr2_lat_shift'] = True
 
             obj_minuit.limits = [(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit),(-1,1),(-shift_limit,shift_limit),(-shift_limit,shift_limit), (-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit),(-1,1),(-shift_limit, shift_limit),(-shift_limit, shift_limit), (-100,100)]
             print(obj_minuit.migrad())
@@ -570,10 +650,9 @@ class FitPointSource:
 
             print(f'25 parameter fitting is enough, hesse ok')
             fit_lon = self.lon + obj_minuit.values['ctr1_lon_shift']
-            fit_lat = self.lon + obj_minuit.values['ctr1_lat_shift']
+            fit_lat = self.lat + obj_minuit.values['ctr1_lat_shift']
 
             return chi2dof, obj_minuit.values['norm_beam1'], obj_minuit.errors['norm_beam1'], fit_lon, fit_lat
-
 
 
         print(f'begin point source fitting, first do 2 parameter fit...')
@@ -603,8 +682,9 @@ class FitPointSource:
 
         if mode == 'pipeline':
             shift_limit = 0.03
-            if self.flag_too_near == True:
-                shift_limit = 0.02
+
+            # if self.flag_too_near == True:
+            #     shift_limit = 0.02
 
             if num_ps == 0:
                 chi2dof, fit_norm, norm_error, fit_lon, fit_lat = fit_4_params()
@@ -623,7 +703,6 @@ class FitPointSource:
             elif num_ps == 7:
                 chi2dof, fit_norm, norm_error, fit_lon, fit_lat = fit_25_params()
 
-
             fit_error = np.abs(fit_norm - true_norm_beam) / true_norm_beam
 
             print(f'{num_ps=}, {chi2dof=}, {fit_norm=}, {norm_error=}, {fit_lon=}, {fit_lat=}')
@@ -631,23 +710,50 @@ class FitPointSource:
             return num_ps, chi2dof, fit_norm, norm_error, fit_lon, fit_lat, fit_error
 
         if mode == 'get_num_ps':
-            return num_ps
+            return num_ps, self.num_near_ps, self.ang_near
 
+    def calc_residual(self):
+        def beam_model(norm_beam, theta):
+            return norm_beam / (2 * np.pi * self.sigma**2) * np.exp(- (theta)**2 / (2 * self.sigma**2))
+
+        m_cn = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/40/1.npy')[0]
+        ps_norm_beam = self.flux2norm_beam(self.iflux)
+        pcn_norm_beam = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{self.flux_idx}/norm_beam.npy')
+        pcn_fit_lon = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{self.flux_idx}/fit_lon.npy')
+        pcn_fit_lat = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{self.flux_idx}/fit_lat.npy')
+
+        pcn_vec = np.asarray(hp.ang2vec(theta=pcn_fit_lon, phi=pcn_fit_lat, lonlat=True))
+        cos_theta = pcn_vec @ self.vec_around
+        print(f'{cos_theta.shape=}')
+        theta = np.arccos(cos_theta)
+        print(f'{pcn_norm_beam[0]=}, {ps_norm_beam=}')
+
+        mean = np.mean(pcn_norm_beam, axis=0)
+        print(f'{mean=}')
+
+        # fit_map = beam_model(pcn_norm_beam, theta)
+
+        # de_ps_map = np.copy(self.m)
+        # de_ps_map[self.ipix_fit] = self.m[self.ipix_fit] - fit_map
+        
+        # res_map = np.copy(de_ps_map)
+        # res_map = res_map - m_cn
+
+
+        # hp.gnomview(self.m, rot=[self.lon, self.lat, 0], xsize=300, ysize=300, title='ps_cmb_noise map')
+        # hp.gnomview(de_ps_map, rot=[self.lon, self.lat, 0], xsize=300, ysize=300, title='de_ps')
+        # hp.gnomview(res_map, rot=[self.lon, self.lat, 0], xsize=60, ysize=60, title='residual map:de_ps - cmb noise map')
+        # plt.show()
 
 
 def main():
-    # m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/40/1.npy')[0]
-    m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/40/0.npy')[0]
+    m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/40/1.npy')[0]
+    # m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/40/1.npy')[0]
+    # m = np.load('../../fitdata/synthesis_data/2048/CMBNOISE/40/1.npy')[0]
     print(f'{sys.getrefcount(m)-1=}')
     nstd = np.load('../../FGSim/NSTDNORTH/2048/40.npy')[0]
     df_mask = pd.read_csv('../partial_sky_ps/ps_in_mask/2048/40mask.csv')
-    flux_idx = 0
-    lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
-    lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
-    iflux = df_mask.at[flux_idx, 'iflux']
-
     df_ps = pd.read_csv('../partial_sky_ps/ps_in_mask/2048/40ps.csv')
-    
     lmax = 350
     nside = 2048
     beam = 63
@@ -663,6 +769,11 @@ def main():
     # plt.plot(l*(l+1)*cl_cmb/(2*np.pi))
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
+
+    flux_idx = 60
+    lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
+    lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
+    iflux = df_mask.at[flux_idx, 'iflux']
 
     print(f'{sys.getrefcount(m)-1=}')
     obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=1e-5)
@@ -680,9 +791,11 @@ def main():
     # obj.calc_covariance_matrix(mode='cmb+noise')
 
     # time0 = time.perf_counter()
-    obj.fit_all(cov_mode='cmb+noise')
+    # obj.fit_all(cov_mode='cmb+noise')
+    obj.fit_all(cov_mode='noise')
     # print(f'{time.perf_counter()-time0}')
 
+    # obj.calc_residual()
 
 
 if __name__ == '__main__':
