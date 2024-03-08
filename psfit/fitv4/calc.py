@@ -39,12 +39,12 @@ def fit_PSNS_rlz_2048():
     rlz_fit_lat_arr = np.zeros(100)
     rlz_num_ps_arr = np.zeros(100)
     radius_factor = 1.5
-    save_path = Path(f'fit_res/2048/PSNOISE/{radius_factor}/idx_{flux_idx}')
+    save_path = Path(f'fit_res/2048/CMBFGNOISE/{radius_factor}/idx_{flux_idx}')
     save_path.mkdir(parents=True, exist_ok=True)
 
     for rlz_idx in range(100):
         print(f'{rlz_idx=}')
-        m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/40/{rlz_idx}.npy')[0]
+        m = np.load(f'../../fitdata/synthesis_data/2048/CMBFGNOISE/40/{rlz_idx}.npy')[0]
         print(f'before new object{sys.getrefcount(m)-1=}')
 
         obj = FitPointSource(m=m, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=radius_factor, beam=beam, epsilon=1e-5)
@@ -56,7 +56,7 @@ def fit_PSNS_rlz_2048():
         # obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cov_r_1.5_2048/cov')
         # obj.calc_covariance_matrix(mode='cmb+noise', cmb_cov_fold='../cov_r_1.5_2048/cov')
 
-        num_ps, chi2dof, norm_beam, norm_error, fit_lon, fit_lat, fit_error = obj.fit_all(cov_mode='noise')
+        num_ps, chi2dof, norm_beam, norm_error, fit_lon, fit_lat, fit_error = obj.fit_all(cov_mode='cmb+noise')
 
         print(f'after fit_all{sys.getrefcount(m)-1=}')
         print(f'after fit_all{sys.getrefcount(obj)-1=}')
