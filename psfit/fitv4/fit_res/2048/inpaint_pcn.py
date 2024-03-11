@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 def gen_mask(ori_mask, nside, radius_factor, beam):
     for rlz_idx in range(100):
         print(f'{rlz_idx=}')
-        mask_list = np.load(f'./ps_cmb_noise_residual/mask{rlz_idx}.npy')
+        mask_list = np.load(f'./ps_cmb_noise_residual/2sigma/mask{rlz_idx}.npy')
         print(f'{mask_list=}')
 
         # m = np.load('./ps_cmb_noise_residual/map0.npy')
@@ -30,7 +30,7 @@ def gen_mask(ori_mask, nside, radius_factor, beam):
         # hp.orthview(m*mask, rot=[100,50,0], half_sky=True)
         # plt.show()
 
-        hp.write_map(f'./for_inpainting/mask/{rlz_idx}.fits', mask, overwrite=True)
+        hp.write_map(f'./for_inpainting/mask/pcn/2sigma/{rlz_idx}.fits', mask, overwrite=True)
 
 
 if __name__ == "__main__":

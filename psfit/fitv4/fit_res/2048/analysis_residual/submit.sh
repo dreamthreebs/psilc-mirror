@@ -25,9 +25,9 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=32
-#SBATCH --mem=100GB
-#SBATCH --exclude=aliws[028-048],aliws[005-020]
+#SBATCH --cpus-per-task=36
+#SBATCH --mem=220GB
+#SBATCH --exclude=aliws[021-040],aliws005
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 
@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/psfit/fitv4/residual.py
+mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/psfit/fitv4/fit_res/2048/analysis_residual/cal_var_pcfn.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

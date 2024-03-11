@@ -141,7 +141,7 @@ class GetResidual:
                 pcn_norm_error = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/norm_error.npy')
                 print(f'{pcn_norm_beam[idx_rlz]=}, {pcn_norm_error[idx_rlz]=}')
 
-                if pcn_norm_beam[idx_rlz] < 5 * pcn_norm_error[idx_rlz]:
+                if pcn_norm_beam[idx_rlz] < 2 * pcn_norm_error[idx_rlz]:
                     print(f'smaller than threshold, break')
                     continue
                 mask_list.append(flux_idx)
@@ -179,7 +179,7 @@ class GetResidual:
             # hp.orthview(res_map*mask, rot=[100,50,0], half_sky=True, title='residual map:de_ps - cmb noise map', min=-10, max=10)
             # plt.show()
 
-            path_for_res_map = Path('./fit_res/2048/ps_cmb_noise_residual')
+            path_for_res_map = Path('./fit_res/2048/ps_cmb_noise_residual/2sigma')
             path_for_res_map.mkdir(parents=True, exist_ok=True)
             np.save(path_for_res_map / Path(f'map{idx_rlz}.npy'), res_map)
             np.save(path_for_res_map / Path(f'mask{idx_rlz}.npy'), np.array(mask_list))
@@ -201,7 +201,7 @@ class GetResidual:
                 pcn_norm_error = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/norm_error.npy')
                 print(f'{pcn_norm_beam[idx_rlz]=}, {pcn_norm_error[idx_rlz]=}')
 
-                if pcn_norm_beam[idx_rlz] < 5 * pcn_norm_error[idx_rlz]:
+                if pcn_norm_beam[idx_rlz] < 2 * pcn_norm_error[idx_rlz]:
                     print(f'smaller than threshold, break')
                     continue
                 mask_list.append(flux_idx)
@@ -238,15 +238,15 @@ class GetResidual:
             res_map = res_map - m_no_ps
 
 
-            hp.orthview(m_ps_cmb_fg_noise*mask, rot=[100,50,0], half_sky=True, title='ps_cmb_noise map')
-            hp.orthview(de_ps_map*mask, rot=[100,50,0], half_sky=True, title='de_ps map')
-            hp.orthview(res_map*mask, rot=[100,50,0], half_sky=True, title='residual map:de_ps - cmb noise map', min=-20, max=20)
-            plt.show()
+            # hp.orthview(m_ps_cmb_fg_noise*mask, rot=[100,50,0], half_sky=True, title='ps_cmb_noise map')
+            # hp.orthview(de_ps_map*mask, rot=[100,50,0], half_sky=True, title='de_ps map')
+            # hp.orthview(res_map*mask, rot=[100,50,0], half_sky=True, title='residual map:de_ps - cmb noise map', min=-20, max=20)
+            # plt.show()
 
-            # path_for_res_map = Path('./fit_res/2048/ps_cmb_fg_noise_residual')
-            # path_for_res_map.mkdir(parents=True, exist_ok=True)
-            # np.save(path_for_res_map / Path(f'{idx_rlz}.npy'), res_map)
-            # np.save(path_for_res_map / Path(f'mask{idx_rlz}.npy'), np.array(mask_list))
+            path_for_res_map = Path('./fit_res/2048/ps_cmb_fg_noise_residual/2sigma')
+            path_for_res_map.mkdir(parents=True, exist_ok=True)
+            np.save(path_for_res_map / Path(f'map{idx_rlz}.npy'), res_map)
+            np.save(path_for_res_map / Path(f'mask{idx_rlz}.npy'), np.array(mask_list))
 
 
 
