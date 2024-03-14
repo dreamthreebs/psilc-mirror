@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from scipy.io import readsav
 
-freq = 40
+freq = 85
 data = readsav(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{freq}GHz/strongirps_cat_{freq}GHz.sav', python_dict=True, verbose=True)
 
 lon = data['comp']['lon'][0][0][0]

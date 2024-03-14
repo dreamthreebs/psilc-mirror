@@ -1,0 +1,13 @@
+
+# partial_sky_ps
+./ps_in_mask for useful catelogue
+
+# fitv4
+1. gen_inv_cov
+get CMB and noise covariance matrix
+2. fit_2048.py
+fit point source
+3. fit_res
+data storage
+4. residual
+get PS cleaned map
