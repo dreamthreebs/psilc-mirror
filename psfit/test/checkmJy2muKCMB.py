@@ -29,10 +29,11 @@ def mJy_to_uKCMB(intensity_mJy, frequency_GHz):
     # Convert to uK_CMB, taking the inverse of dB/dT
     uK_CMB = intensity_W_m2_sr_Hz / dBdT * 1e6
 
-    return uK_CMB / hp.nside2pixarea(nside=2048)
+    # return uK_CMB / hp.nside2pixarea(nside=2048)
+    return uK_CMB
 
-intensity_mJy = 11649  # Replace with your value
-frequency_GHz = 40  # Replace with your value
+intensity_mJy = 1  # Replace with your value 11649
+frequency_GHz = 30  # Replace with your value
 
 uK_CMB = mJy_to_uKCMB(intensity_mJy, frequency_GHz)
 print(f"{intensity_mJy} mJy at {frequency_GHz} GHz is approximately {uK_CMB} µK_CMB")

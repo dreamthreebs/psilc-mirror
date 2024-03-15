@@ -3,8 +3,8 @@ import healpy as hp
 import matplotlib.pyplot as plt
 import os
 
-nside = 256
-freq = 40
+nside = 2048
+freq = 270
 
 for n_rlz in range(100):
     print(f'{n_rlz=}')
