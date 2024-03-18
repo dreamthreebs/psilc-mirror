@@ -15,7 +15,7 @@ from numpy.polynomial.legendre import Legendre
 from scipy.interpolate import CubicSpline
 from memory_profiler import profile
 
-from fit_2048 import FitPointSource
+from fit_1 import FitPointSource
 
 def calc_cov():
     m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/155/0.npy')[0]
@@ -56,5 +56,42 @@ def calc_cov():
         # obj.calc_covariance_matrix(mode='cmb+noise')
         obj.calc_covariance_matrix(mode='noise')
 
-calc_cov()
+def save_fit_res_to_csv():
+
+    for rlz_idx in range(100):
+        print(f'{rlz_idx=}')
+        df= pd.read_csv('../mask/mask_csv/155.csv', index_col=0)
+        # print(f'{df=}')
+        print(f'{df["iflux"]}')
+        norm_true = FitPointSource.mJy_to_uKCMB(1, 155) * df["iflux"].to_numpy()
+
+        fit_norm_arr = np.zeros(700)
+        norm_error_arr = np.zeros(700)
+        fit_error_arr = np.zeros(700)
+        chi2dof_arr = np.zeros(700)
+        num_ps_arr = np.zeros(700)
+
+
+        for flux_idx in range(700):
+            print(f'{flux_idx=}')
+            fit_norm_arr[flux_idx] = np.load(f'./fit_res/2048/CMBFGNOISE/1.5/idx_{flux_idx}/norm_beam.npy')[rlz_idx]
+            norm_error_arr[flux_idx] = np.load(f'./fit_res/2048/CMBFGNOISE/1.5/idx_{flux_idx}/norm_error.npy')[rlz_idx]
+            fit_error_arr[flux_idx] = np.load(f'./fit_res/2048/CMBFGNOISE/1.5/idx_{flux_idx}/fit_error.npy')[rlz_idx]
+            chi2dof_arr[flux_idx] = np.load(f'./fit_res/2048/CMBFGNOISE/1.5/idx_{flux_idx}/chi2dof.npy')[rlz_idx]
+            num_ps_arr[flux_idx] = np.load(f'./fit_res/2048/CMBFGNOISE/1.5/idx_{flux_idx}/num_ps.npy')[rlz_idx]
+
+
+        df['norm_true'] = norm_true
+        df['fit_norm'] = fit_norm_arr
+        df['norm_error'] = norm_error_arr
+        df['fit_error'] = fit_error_arr
+        df['chi2dof'] = chi2dof_arr
+        df['num_ps'] = num_ps_arr
+
+        path_csv = Path('./fit_res/2048/CMBFGNOISE/1.5/csv')
+        path_csv.mkdir(parents=True, exist_ok=True)
+        df.to_csv(path_csv / Path(f"{rlz_idx}.csv"), index=False)
+
+# calc_cov()
+save_fit_res_to_csv()
 

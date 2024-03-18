@@ -191,8 +191,8 @@ class FitPointSource:
         return lat
 
     def see_true_map(self, m, lon, lat, nside, beam):
-        radiops = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/40GHz/strongradiops_map_40GHz.fits', field=0)
-        irps = hp.read_map('/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/40GHz/strongirps_map_40GHz.fits', field=0)
+        radiops = hp.read_map(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{self.freq}GHz/strongradiops_map_{self.freq}GHz.fits', field=0)
+        irps = hp.read_map(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{self.freq}GHz/strongirps_map_{self.freq}GHz.fits', field=0)
 
         hp.gnomview(irps, rot=[lon, lat, 0], xsize=300, ysize=300, reso=1, title='irps')
         hp.gnomview(radiops, rot=[lon, lat, 0], xsize=300, ysize=300, reso=1, title='radiops')
@@ -762,8 +762,8 @@ class FitPointSource:
 
 def main():
     # m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/155/0.npy')[0]
-    # m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/155/0.npy')[0]
-    m = np.load('../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0]
+    m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/155/0.npy')[0]
+    # m = np.load('../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0]
     print(f'{sys.getrefcount(m)-1=}')
     nstd = np.load('../../FGSim/NSTDNORTH/2048/155.npy')[0]
     # df_mask = pd.read_csv('../../psfit/partial_sky_ps/ps_in_mask/2048/40mask.csv')
@@ -787,7 +787,7 @@ def main():
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    flux_idx = 170
+    flux_idx = 4
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
