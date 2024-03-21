@@ -6,7 +6,8 @@ lmax = 2000
 l = np.arange(lmax+1)
 
 m = np.load('./0.npy')
-m1 = np.load('./1.npy')
+m1 = np.load('./55.npy')
+print(f'{m.shape}')
 
 # cl = hp.anafast(m, lmax=lmax)
 # cl1 = hp.anafast(m1, lmax=lmax)

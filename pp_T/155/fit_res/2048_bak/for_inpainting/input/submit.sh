@@ -25,9 +25,9 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=32
-#SBATCH --mem=120GB
-#SBATCH --exclude=aliws[029-048]
+#SBATCH --cpus-per-task=10
+#SBATCH --mem=100GB
+#SBATCH --exclude=aliws[021-040],aliws005
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 
@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/fitdata/gen_data.py
+mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/pp_T/155/fit_res/2048/for_inpainting/input/invert_np_to_fits.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

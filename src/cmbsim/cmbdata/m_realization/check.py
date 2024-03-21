@@ -8,7 +8,7 @@ l = np.arange(lmax+1)
 
 cl = hp.anafast(m, lmax=lmax)
 
-m1 = np.load('./1.npy')
+m1 = np.load('./999.npy')
 cl1 = hp.anafast(m1, lmax=lmax)
 
 

@@ -4,9 +4,12 @@ import matplotlib.pyplot as plt
 import os
 
 nside = 2048
-freq = 270
+freq = 155
 
-for n_rlz in range(100):
+n_rlz_begin = 0
+n_rlz_end = 20
+
+for n_rlz in range(n_rlz_begin, n_rlz_end):
     print(f'{n_rlz=}')
 
     cmb = np.load(f'../{nside}/CMB/{freq}/{n_rlz}.npy')

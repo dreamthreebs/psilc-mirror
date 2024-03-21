@@ -50,7 +50,6 @@ class FitPointSource:
 
         self.ipix_fit = hp.query_disc(nside=self.nside, vec=self.ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
         self.vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=self.ipix_fit.astype(int))).astype(np.float64)
-        # print(f'{ipix_fit.shape=}')
         self.ndof = len(self.ipix_fit)
 
         self.num_near_ps = 0
@@ -178,7 +177,7 @@ class FitPointSource:
     def flux2norm_beam(self, flux):
         # from mJy to muK_CMB to norm_beam
         coeffmJy2norm = FitPointSource.mJy_to_uKCMB(1, self.freq)
-        print(f'{coeffmJy2norm=}')
+        logger.debug(f'{coeffmJy2norm=}')
         return coeffmJy2norm * flux
 
     def input_lonlat2pix_lonlat(self, input_lon, input_lat):
@@ -244,7 +243,6 @@ class FitPointSource:
         logger.debug(f'{index_near[0].shape=}')
         logger.debug(f'{ang_near.shape=}')
 
-
         logger.debug(f'number of ir, radio ps = {index_near[0].size}')
 
         lon_list = []
@@ -260,7 +258,6 @@ class FitPointSource:
                 lon = np.rad2deg(self.df_ps.at[index + 1, 'lon'])
                 lat = np.rad2deg(self.df_ps.at[index + 1, 'lat'])
                 iflux = self.flux2norm_beam(self.df_ps.at[index + 1, 'iflux'])
-            # lon, lat = self.input_lonlat2pix_lonlat(lon, lat)
             lon_list.append(lon)
             lat_list.append(lat)
             iflux_list.append(iflux)
@@ -620,10 +617,14 @@ class FitPointSource:
 
 
 def main():
-    # m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/155/0.npy')[0]
-    m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/155/0.npy')[0]
+
+    time0 = time.perf_counter()
+    m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/155/800.npy')[0]
+    # m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/155/980.npy')[0]
     # m = np.load('../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0]
     logger.debug(f'{sys.getrefcount(m)-1=}')
+
+    logger.info(f'time for fitting = {time.perf_counter()-time0}')
     nstd = np.load('../../FGSim/NSTDNORTH/2048/155.npy')[0]
     df_mask = pd.read_csv('../mask/mask_csv/155.csv')
     df_ps = pd.read_csv('../mask/ps_csv/155.csv')
@@ -664,10 +665,8 @@ def main():
     # obj.calc_C_theta()
     # obj.calc_covariance_matrix(mode='cmb+noise')
 
-    time0 = time.perf_counter()
-    obj.fit_all(cov_mode='cmb+noise')
-    # obj.fit_all(cov_mode='noise')
-    logger.info(f'time for fitting = {time.perf_counter()-time0}')
+    # obj.fit_all(cov_mode='cmb+noise')
+    obj.fit_all(cov_mode='noise')
 
 
 if __name__ == '__main__':

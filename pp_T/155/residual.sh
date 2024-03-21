@@ -25,9 +25,9 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=20GB
-#SBATCH --exclude=aliws[005-020]
+#SBATCH --cpus-per-task=30
+#SBATCH --mem=120GB
+#SBATCH --exclude=aliws[021-036]
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 
@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/pp_T/155/calc.py
+mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/pp_T/155/residual.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

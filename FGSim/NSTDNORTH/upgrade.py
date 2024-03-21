@@ -3,7 +3,7 @@ import healpy as hp
 import matplotlib.pyplot as plt
 
 freqlist = [30, 40, 85, 95, 145, 155, 215, 270 ]
-nside_out = 1024
+nside_out = 2048
 
 for freq in freqlist:
 

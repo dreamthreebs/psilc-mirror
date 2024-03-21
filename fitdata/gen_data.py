@@ -5,8 +5,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 class GenerateData:
-    def __init__(self, n_rlz):
+    def __init__(self, n_rlz_begin, n_rlz_end, n_rlz=100):
+        self.n_rlz_begin = n_rlz_begin
+        self.n_rlz_end = n_rlz_end
         self.n_rlz = n_rlz
+
 
     def gen_CMB(self, freq:'GHz', beam:'arcmin'):
         print(f'begin gen CMB ...')
@@ -17,10 +20,10 @@ class GenerateData:
         if not os.path.exists(f'./2048/CMB/{freq}'):
             os.mkdir(f'./2048/CMB/{freq}')
 
-        for i in range(self.n_rlz):
+        for i in range(self.n_rlz_begin, self.n_rlz_end):
             print(f'{i=}')
             m = np.load(f'../src/cmbsim/cmbdata/m_realization/{i}.npy')
-            sm = hp.smoothing(m, fwhm=np.deg2rad(beam) / 60, lmax=1500)
+            sm = hp.smoothing(m, fwhm=np.deg2rad(beam) / 60, lmax=2000)
             np.save(f'./2048/CMB/{freq}/{i}.npy', sm)
 
     def gen_PS(self, freq:'GHz'):
@@ -58,7 +61,7 @@ class GenerateData:
 
         nstd = np.load(f'../FGSim/NSTDNORTH/2048/{freq}.npy')
 
-        for i in range(self.n_rlz):
+        for i in range(self.n_rlz_begin, self.n_rlz_end):
             print(f'{i=}')
             noise = nstd * np.random.normal(0, 1, size=(nstd.shape[0],nstd.shape[1]))
             np.save(f'./2048/NOISE/{freq}/{i}.npy', noise)
@@ -101,17 +104,19 @@ class GenerateData:
         plt.show()
 
 if __name__ == "__main__":
-    n_rlz = 100
+    n_rlz = 50
     df = pd.read_csv('../FGSim/FreqBand')
 
-    freq = df.at[7, "freq"]
-    beam = df.at[7, "beam"]
+    freq = df.at[5, "freq"]
+    beam = df.at[5, "beam"]
     print(f'{freq=}, {beam=}')
-    obj = GenerateData(n_rlz=n_rlz)
-    obj.gen_PS(freq=freq)
-    obj.gen_FG(freq=freq)
+    n_rlz_begin = 0
+    n_rlz_end = 25
+    obj = GenerateData(n_rlz_begin=n_rlz_begin, n_rlz_end=n_rlz_end)
+    # obj.gen_PS(freq=freq)
+    # obj.gen_FG(freq=freq)
     obj.gen_CMB(freq=freq, beam=beam)
-    obj.gen_NOISE(freq=freq)
+    # obj.gen_NOISE(freq=freq)
 
     # obj.downgrade_inside(directory='NOISE', nside_out=256, freq=freq)
     # obj.downgrade_one_map(directory='PS', nside_out=1024, freq=freq)

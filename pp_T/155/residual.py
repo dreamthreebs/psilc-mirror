@@ -132,12 +132,12 @@ class GetResidual:
         for idx_rlz in range(100):
             print(f'{idx_rlz=}')
 
-            m_ps_cmb_noise = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/40/{idx_rlz}.npy')[0].copy()
-            m_no_ps = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/40/{idx_rlz}.npy')[0].copy()
+            m_ps_cmb_noise = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/155/{idx_rlz}.npy')[0].copy()
+            m_no_ps = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/155/{idx_rlz}.npy')[0].copy()
             de_ps_map = m_ps_cmb_noise.copy()
             mask_list = []
 
-            for flux_idx in range(500):
+            for flux_idx in range(166):
 
                 print(f'{flux_idx=}')
                 pcn_norm_beam = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/norm_beam.npy')
@@ -149,11 +149,11 @@ class GetResidual:
                     continue
                 mask_list.append(flux_idx)
 
-                pcn_fit_lon = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/fit_lon.npy')[idx_rlz]
-                pcn_fit_lat = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/fit_lat.npy')[idx_rlz]
+                # pcn_fit_lon = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/fit_lon.npy')[idx_rlz]
+                # pcn_fit_lat = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/fit_lat.npy')[idx_rlz]
 
-                # pcn_fit_lon = np.rad2deg(self.df_mask.at[flux_idx, 'lon'])
-                # pcn_fit_lat = np.rad2deg(self.df_mask.at[flux_idx, 'lat'])
+                pcn_fit_lon = np.rad2deg(self.df_mask.at[flux_idx, 'lon'])
+                pcn_fit_lat = np.rad2deg(self.df_mask.at[flux_idx, 'lat'])
 
                 num_ps = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/num_ps.npy')[0].copy()
                 print(f'{pcn_fit_lon=}, {pcn_fit_lat=}')
@@ -192,12 +192,12 @@ class GetResidual:
         for idx_rlz in range(100):
             print(f'{idx_rlz=}')
 
-            m_ps_cmb_fg_noise = np.load(f'../../fitdata/synthesis_data/2048/PSCMBFGNOISE/40/{idx_rlz}.npy')[0].copy()
-            m_no_ps = np.load(f'../../fitdata/synthesis_data/2048/CMBFGNOISE/40/{idx_rlz}.npy')[0].copy()
+            m_ps_cmb_fg_noise = np.load(f'../../fitdata/synthesis_data/2048/PSCMBFGNOISE/155/{idx_rlz}.npy')[0].copy()
+            m_no_ps = np.load(f'../../fitdata/synthesis_data/2048/CMBFGNOISE/155/{idx_rlz}.npy')[0].copy()
             de_ps_map = m_ps_cmb_fg_noise.copy()
             mask_list = []
 
-            for flux_idx in range(136):
+            for flux_idx in range(166):
 
                 print(f'{flux_idx=}')
                 pcn_norm_beam = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/norm_beam.npy')
@@ -209,13 +209,11 @@ class GetResidual:
                     continue
                 mask_list.append(flux_idx)
 
+                # pcn_fit_lon = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/fit_lon.npy')[idx_rlz]
+                # pcn_fit_lat = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/fit_lat.npy')[idx_rlz]
 
-
-                pcn_fit_lon = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/fit_lon.npy')[idx_rlz]
-                pcn_fit_lat = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/fit_lat.npy')[idx_rlz]
-
-                # pcn_fit_lon = np.rad2deg(self.df_mask.at[flux_idx, 'lon'])
-                # pcn_fit_lat = np.rad2deg(self.df_mask.at[flux_idx, 'lat'])
+                pcn_fit_lon = np.rad2deg(self.df_mask.at[flux_idx, 'lon'])
+                pcn_fit_lat = np.rad2deg(self.df_mask.at[flux_idx, 'lat'])
 
                 num_ps = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/num_ps.npy')[0].copy()
                 print(f'{pcn_fit_lon=}, {pcn_fit_lat=}')
@@ -273,9 +271,9 @@ def main():
     obj = GetResidual(flux_idx=flux_idx, m_has_ps=m_has_ps, m_no_ps=m_no_ps, nstd=nstd, lon=lon, lat=lat, df_mask=df_mask, nside=nside, beam=beam, radius_factor=2.0)
 
     # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
-    obj.psnoise(mask=mask)
+    # obj.psnoise(mask=mask)
     # obj.ps_cmbnoise(mask=mask)
-    # obj.ps_fg_cmbnoise(mask=mask)
+    obj.ps_fg_cmbnoise(mask=mask)
 
 main()
 

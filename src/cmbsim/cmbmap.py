@@ -12,9 +12,9 @@ nside = 2048
 
 if not os.path.exists('./cmbdata/m_realization'):
     os.mkdir('./cmbdata/m_realization')
-for i in range(50,100):
+for i in range(900,1000):
     print(f'{i=}')
-    m = hp.synfast(cmbcl.T[0], nside=nside, lmax=lmax, new=True)
+    m = hp.synfast(cmbcl.T, nside=nside, lmax=lmax, new=True)
 
 # for index, cmb_type in enumerate('TQU'):
 #     hp.mollview(m[index], norm='hist')

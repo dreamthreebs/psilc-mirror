@@ -31,18 +31,18 @@ def fit_PSNS_rlz_2048():
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
 
-    rlz_norm_beam_arr = np.zeros(100)
-    rlz_norm_error_arr = np.zeros(100)
-    rlz_chi2dof_arr = np.zeros(100)
-    rlz_fit_error_arr = np.zeros(100)
-    rlz_num_ps_arr = np.zeros(100)
+    rlz_norm_beam_arr = np.zeros(1000)
+    rlz_norm_error_arr = np.zeros(1000)
+    rlz_chi2dof_arr = np.zeros(1000)
+    rlz_fit_error_arr = np.zeros(1000)
+    rlz_num_ps_arr = np.zeros(1000)
     radius_factor = 1.5
-    save_path = Path(f'fit_res/2048/CMBFGNOISE/{radius_factor}/idx_{flux_idx}')
+    save_path = Path(f'fit_res/2048/PSCMBNOISE/{radius_factor}/idx_{flux_idx}')
     save_path.mkdir(parents=True, exist_ok=True)
 
-    for rlz_idx in range(100):
+    for rlz_idx in range(1000):
         print(f'{rlz_idx=}')
-        m = np.load(f'../../fitdata/synthesis_data/2048/CMBFGNOISE/155/{rlz_idx}.npy')[0]
+        m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/155/{rlz_idx}.npy')[0]
         print(f'before new object{sys.getrefcount(m)-1=}')
 
         obj = FitPointSource(m=m, nstd=nstd, freq=freq, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=radius_factor, beam=beam, epsilon=1e-5)

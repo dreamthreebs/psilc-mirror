@@ -53,8 +53,8 @@ def calc_cov():
         obj = FitPointSource(m=m, freq=freq, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=1e-5)
 
         # obj.calc_C_theta()
-        # obj.calc_covariance_matrix(mode='cmb+noise')
-        obj.calc_covariance_matrix(mode='noise')
+        obj.calc_covariance_matrix(mode='cmb+noise')
+        # obj.calc_covariance_matrix(mode='noise')
 
 def save_fit_res_to_csv():
 
@@ -92,6 +92,6 @@ def save_fit_res_to_csv():
         path_csv.mkdir(parents=True, exist_ok=True)
         df.to_csv(path_csv / Path(f"{rlz_idx}.csv"), index=False)
 
-# calc_cov()
-save_fit_res_to_csv()
+calc_cov()
+# save_fit_res_to_csv()
 
