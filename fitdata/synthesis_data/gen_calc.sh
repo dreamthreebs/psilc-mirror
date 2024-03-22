@@ -6,8 +6,8 @@ base_file="coadd.py"
 # 循环从0到49，生成50个文件
 for i in {0..49}; do
   # 计算起始和结束的值
-  let start=$i*20
-  let end=$start+20
+  let start=$i*2
+  let end=$start+2
 
   # 生成新的文件名
   new_file="calc_${i}.py"
@@ -17,7 +17,7 @@ for i in {0..49}; do
 
   # 修改新文件的指定行
   # 注意：-i'' 对于GNU sed是直接修改文件，但在macOS下需要提供一个扩展名或者传递空字符串
-  sed -i'' "9s/.*/n_rlz_begin = $start/" $new_file
-  sed -i'' "10s/.*/n_rlz_end = $end/" $new_file
+  sed -i'' "10s/.*/n_rlz_begin = $start/" $new_file
+  sed -i'' "11s/.*/n_rlz_end = $end/" $new_file
 done
 

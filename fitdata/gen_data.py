@@ -3,6 +3,7 @@ import healpy as hp
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 class GenerateData:
     def __init__(self, n_rlz_begin, n_rlz_end, n_rlz=100):
@@ -14,11 +15,8 @@ class GenerateData:
     def gen_CMB(self, freq:'GHz', beam:'arcmin'):
         print(f'begin gen CMB ...')
 
-        if not os.path.exists('./2048/CMB'):
-            os.mkdir('./2048/CMB')
-
-        if not os.path.exists(f'./2048/CMB/{freq}'):
-            os.mkdir(f'./2048/CMB/{freq}')
+        path_cmb = Path(f'./2048/CMB/{freq}')
+        path_cmb.mkdir(parents=True, exist_ok=True)
 
         for i in range(self.n_rlz_begin, self.n_rlz_end):
             print(f'{i=}')
@@ -53,11 +51,8 @@ class GenerateData:
     def gen_NOISE(self, freq:'GHz'):
         print(f'begin gen noise ...')
 
-        if not os.path.exists('./2048/NOISE'):
-            os.mkdir('./2048/NOISE')
-
-        if not os.path.exists(f'./2048/NOISE/{freq}'):
-            os.mkdir(f'./2048/NOISE/{freq}')
+        path_noise = Path(f'./2048/NOISE/{freq}')
+        path_noise.mkdir(parents=True, exist_ok=True)
 
         nstd = np.load(f'../FGSim/NSTDNORTH/2048/{freq}.npy')
 
@@ -107,16 +102,16 @@ if __name__ == "__main__":
     n_rlz = 50
     df = pd.read_csv('../FGSim/FreqBand')
 
-    freq = df.at[5, "freq"]
-    beam = df.at[5, "beam"]
+    freq = df.at[0, "freq"]
+    beam = df.at[0, "beam"]
     print(f'{freq=}, {beam=}')
     n_rlz_begin = 0
-    n_rlz_end = 25
+    n_rlz_end = 2
     obj = GenerateData(n_rlz_begin=n_rlz_begin, n_rlz_end=n_rlz_end)
     # obj.gen_PS(freq=freq)
     # obj.gen_FG(freq=freq)
-    obj.gen_CMB(freq=freq, beam=beam)
-    # obj.gen_NOISE(freq=freq)
+    # obj.gen_CMB(freq=freq, beam=beam)
+    obj.gen_NOISE(freq=freq)
 
     # obj.downgrade_inside(directory='NOISE', nside_out=256, freq=freq)
     # obj.downgrade_one_map(directory='PS', nside_out=1024, freq=freq)

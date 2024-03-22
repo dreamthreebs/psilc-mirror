@@ -129,7 +129,7 @@ class FitPointSource:
             np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
 
-        cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+        cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.freq}/{self.flux_idx}.npy')
         logger.info(f'{cmb_cov_path=}')
 
         cov = np.load(cmb_cov_path)
@@ -620,11 +620,11 @@ class FitPointSource:
 
 
 def main():
-    freq = 155
+    freq = 30
     time0 = time.perf_counter()
-    # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
-    # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/0.npy')[0]
-    m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/800.npy')[0]
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/0.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0]
     logger.debug(f'{sys.getrefcount(m)-1=}')
 
 
@@ -634,7 +634,7 @@ def main():
     df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
-    beam = 17
+    beam = 67
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
     # cl1 = hp.anafast(m, lmax=lmax)
@@ -669,10 +669,11 @@ def main():
     # obj.calc_covariance_matrix(mode='cmb+noise')
 
     obj.fit_all(cov_mode='cmb+noise')
-    # obj.fit_all(cov_mode='noise')
+    # obj.fit_all(cov_mode='noise', mode='check_sigma')
 
 
 if __name__ == '__main__':
     main()
+
 
 
