@@ -694,8 +694,8 @@ class FitPointSource:
 
 
 def main():
-    m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/155/0.npy')[0]
-    # m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/155/0.npy')[0]
+    # m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/155/0.npy')[0]
+    m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/155/0.npy')[0]
     # m = np.load('../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0]
     print(f'{sys.getrefcount(m)-1=}')
     nstd = np.load('../../FGSim/NSTDNORTH/2048/155.npy')[0]
@@ -720,7 +720,7 @@ def main():
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    flux_idx = 679
+    flux_idx = 79
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
@@ -741,8 +741,8 @@ def main():
     # obj.calc_covariance_matrix(mode='cmb+noise')
 
     time0 = time.perf_counter()
-    # obj.fit_all(cov_mode='cmb+noise')
-    obj.fit_all(cov_mode='noise')
+    obj.fit_all(cov_mode='cmb+noise')
+    # obj.fit_all(cov_mode='noise')
     print(f'{time.perf_counter()-time0}')
 
     # obj.calc_residual()

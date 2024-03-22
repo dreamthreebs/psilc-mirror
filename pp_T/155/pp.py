@@ -15,19 +15,19 @@ from numpy.polynomial.legendre import Legendre
 from scipy.interpolate import CubicSpline
 from memory_profiler import profile
 
-from fit_1 import FitPointSource
+from fit_2 import FitPointSource
 
 def calc_cov():
-    m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/155/0.npy')[0]
-    # m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/40/1.npy')[0]
-    # m = np.load('../../fitdata/synthesis_data/2048/CMBNOISE/40/1.npy')[0]
+    freq = {freq}
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/1.npy')[0]
     print(f'{sys.getrefcount(m)-1=}')
-    nstd = np.load('../../FGSim/NSTDNORTH/2048/155.npy')[0]
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0]
     # df_mask = pd.read_csv('../../psfit/partial_sky_ps/ps_in_mask/2048/40mask.csv')
-    df_mask = pd.read_csv('../mask/mask_csv/155.csv')
-    # df_ps = pd.read_csv('../../psfit/partial_sky_ps/ps_in_mask/2048/40ps.csv')
-    df_ps = pd.read_csv('../mask/ps_csv/155.csv')
-    freq = 155
+    df_mask = pd.read_csv(f'../mask/mask_csv/{freq}.csv')
+    # df_ps = pd.read_csv(f'../../psfit/partial_sky_ps/ps_in_mask/2048/40ps.csv')
+    df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
     beam = 17
@@ -56,14 +56,14 @@ def calc_cov():
         obj.calc_covariance_matrix(mode='cmb+noise')
         # obj.calc_covariance_matrix(mode='noise')
 
-def save_fit_res_to_csv():
+def save_fit_res_to_csv(freq):
 
     for rlz_idx in range(100):
         print(f'{rlz_idx=}')
-        df= pd.read_csv('../mask/mask_csv/155.csv', index_col=0)
+        df= pd.read_csv(f'../mask/mask_csv/{freq}.csv', index_col=0)
         # print(f'{df=}')
         print(f'{df["iflux"]}')
-        norm_true = FitPointSource.mJy_to_uKCMB(1, 155) * df["iflux"].to_numpy()
+        norm_true = FitPointSource.mJy_to_uKCMB(1, freq) * df["iflux"].to_numpy()
 
         fit_norm_arr = np.zeros(700)
         norm_error_arr = np.zeros(700)
@@ -74,11 +74,11 @@ def save_fit_res_to_csv():
 
         for flux_idx in range(700):
             print(f'{flux_idx=}')
-            fit_norm_arr[flux_idx] = np.load(f'./fit_res/2048/CMBFGNOISE/1.5/idx_{flux_idx}/norm_beam.npy')[rlz_idx]
-            norm_error_arr[flux_idx] = np.load(f'./fit_res/2048/CMBFGNOISE/1.5/idx_{flux_idx}/norm_error.npy')[rlz_idx]
-            fit_error_arr[flux_idx] = np.load(f'./fit_res/2048/CMBFGNOISE/1.5/idx_{flux_idx}/fit_error.npy')[rlz_idx]
-            chi2dof_arr[flux_idx] = np.load(f'./fit_res/2048/CMBFGNOISE/1.5/idx_{flux_idx}/chi2dof.npy')[rlz_idx]
-            num_ps_arr[flux_idx] = np.load(f'./fit_res/2048/CMBFGNOISE/1.5/idx_{flux_idx}/num_ps.npy')[rlz_idx]
+            fit_norm_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/norm_beam.npy')[rlz_idx]
+            norm_error_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/norm_error.npy')[rlz_idx]
+            fit_error_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/fit_error.npy')[rlz_idx]
+            chi2dof_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/chi2dof.npy')[rlz_idx]
+            num_ps_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/num_ps.npy')[rlz_idx]
 
 
         df['norm_true'] = norm_true
@@ -88,10 +88,11 @@ def save_fit_res_to_csv():
         df['chi2dof'] = chi2dof_arr
         df['num_ps'] = num_ps_arr
 
-        path_csv = Path('./fit_res/2048/CMBFGNOISE/1.5/csv')
+        path_csv = Path('./fit_res/2048/PSCMBNOISE/1.5/csv')
         path_csv.mkdir(parents=True, exist_ok=True)
         df.to_csv(path_csv / Path(f"{rlz_idx}.csv"), index=False)
 
-calc_cov()
-# save_fit_res_to_csv()
+freq = 155
+# calc_cov()
+save_fit_res_to_csv(freq=freq)
 

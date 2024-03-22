@@ -19,8 +19,8 @@ from memory_profiler import profile
 logging.basicConfig(level=logging.WARNING)
 # logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.INFO)
 
 class FitPointSource:
     def __init__(self, m, freq, nstd, flux_idx, df_mask, df_ps, cl_cmb, lon, lat, iflux, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False):
@@ -329,7 +329,7 @@ class FitPointSource:
             y_model = model()
             Fish_mat = y_model @ self.inv_cov @ y_model
             sigma = 1 / np.sqrt(Fish_mat)
-            print(f'{sigma=}')
+            logger.info(f'{sigma=}')
 
         def lsq_2_params(norm_beam, const):
 
@@ -615,20 +615,23 @@ class FitPointSource:
         if mode == 'get_num_ps':
             return num_ps, self.num_near_ps, self.ang_near
 
+        if mode == 'check_sigma':
+            calc_error()
+
 
 def main():
-
+    freq = 155
     time0 = time.perf_counter()
-    m = np.load('../../fitdata/synthesis_data/2048/PSNOISE/155/800.npy')[0]
-    # m = np.load('../../fitdata/synthesis_data/2048/PSCMBNOISE/155/980.npy')[0]
-    # m = np.load('../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/800.npy')[0]
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/900.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0]
     logger.debug(f'{sys.getrefcount(m)-1=}')
 
+
     logger.info(f'time for fitting = {time.perf_counter()-time0}')
-    nstd = np.load('../../FGSim/NSTDNORTH/2048/155.npy')[0]
-    df_mask = pd.read_csv('../mask/mask_csv/155.csv')
-    df_ps = pd.read_csv('../mask/ps_csv/155.csv')
-    freq = 155
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0]
+    df_mask = pd.read_csv(f'../mask/mask_csv/{freq}.csv')
+    df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
     beam = 17
@@ -645,7 +648,7 @@ def main():
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    flux_idx = 1
+    flux_idx = 79
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
@@ -654,7 +657,7 @@ def main():
     obj = FitPointSource(m=m, freq=freq, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=1e-5)
 
     logger.debug(f'{sys.getrefcount(m)-1=}')
-    # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
+    obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
     # obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
 
@@ -665,8 +668,8 @@ def main():
     # obj.calc_C_theta()
     # obj.calc_covariance_matrix(mode='cmb+noise')
 
-    # obj.fit_all(cov_mode='cmb+noise')
-    obj.fit_all(cov_mode='noise')
+    obj.fit_all(cov_mode='cmb+noise')
+    # obj.fit_all(cov_mode='noise', mode='check_sigma')
 
 
 if __name__ == '__main__':
