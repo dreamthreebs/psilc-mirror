@@ -18,8 +18,8 @@ from memory_profiler import profile
 from fit_2 import FitPointSource
 
 def calc_cov(freq):
-    m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
-    # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/0.npy')[0]
     # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/1.npy')[0]
     print(f'{sys.getrefcount(m)-1=}')
     nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0]
@@ -49,9 +49,9 @@ def calc_cov(freq):
 
         obj = FitPointSource(m=m, freq=freq, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=1e-5)
 
-        obj.calc_C_theta()
+        # obj.calc_C_theta()
         # obj.calc_covariance_matrix(mode='cmb+noise')
-        # obj.calc_covariance_matrix(mode='noise')
+        obj.calc_covariance_matrix(mode='noise')
 
 def save_fit_res_to_csv(freq):
 

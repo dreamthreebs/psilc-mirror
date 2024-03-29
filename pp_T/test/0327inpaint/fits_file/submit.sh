@@ -25,9 +25,9 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=30
-#SBATCH --mem=50GB
-#SBATCH --exclude=aliws[021-048]
+#SBATCH --cpus-per-task=64
+#SBATCH --mem=200GB
+# SBATCH --exclude=aliws[021-040],aliws005
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 
@@ -40,13 +40,12 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/pp_T/155/pp.py
+# mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/pol_ILC/src/ILC/PIPELINE_ILC.py
+# mrs_alm_inpainting -v -i 40 -l 5000 ./ps_cmb_noise.fits ./mask1dot8.fits ./inpaint_m_1dot8.fits
+mrs_alm_inpainting -g 0.675 -v ./ps_cmb_noise.fits ./mask.fits ./inpaint_denoise.fits
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)
-
-# mv /afs/ihep.ac.cn/users/w/wangyiming25/tmp/slurmlogs/output*.log /afs/ihep.ac.cn/users/w/wangyiming25/tmp/slurmlogs/out@${DATE}.txt
-# mv /afs/ihep.ac.cn/users/w/wangyiming25/tmp/slurmlogs/error*.log /afs/ihep.ac.cn/users/w/wangyiming25/tmp/slurmlogs/err@${DATE}.txt
 
 
 

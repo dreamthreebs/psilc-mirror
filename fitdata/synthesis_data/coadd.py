@@ -5,10 +5,10 @@ import os, time
 from pathlib import Path
 
 nside = 2048
-freq = 270
+freq = 40
 
-n_rlz_begin = 0
-n_rlz_end = 1
+n_rlz_begin = 1
+n_rlz_end = 100
 
 for n_rlz in range(n_rlz_begin, n_rlz_end):
     print(f'{n_rlz=}')

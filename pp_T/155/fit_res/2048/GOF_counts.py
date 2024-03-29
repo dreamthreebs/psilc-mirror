@@ -4,10 +4,11 @@ from scipy.stats import norm, chi2
 
 # Assuming data is loaded or generated here
 # data = np.random.normal(loc=0, scale=1, size=10000)  # Example data
-data = np.load('./PSCMBNOISE/1.5/idx_79/norm_beam.npy')
+data = np.load('./PSCMBNOISE/normalize_noise_1000/idx_1/norm_beam.npy')
+print(f'{data=}')
 
 # Define the number of bins
-bin_count = 25
+bin_count = 40
 
 # Calculate the histogram as counts
 hist_counts, bin_edges = np.histogram(data, bins=bin_count)
@@ -32,10 +33,10 @@ x = np.linspace(xmin, xmax, 100)
 scaled_pdf = norm.pdf(x, mu, std) * len(data) * np.diff(bin_edges)[0]
 plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:7f}, std={std:7f})')
 
-mu_ref = 0.004156
-std_ref = 0.000183
-scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0]
-plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref}, std={std_ref})')
+# mu_ref = 0.00561885
+# std_ref = 0.000144
+# scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0]
+# plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref}, std={std_ref})')
 
 plt.title(f"Fit results: mu = {mu:.7f}, std = {std:.7f}\nChi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}, flux_idx=2")
 plt.xlabel('Point source amplitude')

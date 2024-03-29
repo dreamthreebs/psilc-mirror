@@ -22,14 +22,12 @@ def calc_cov(freq):
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')[0]
     # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/1.npy')[0]
     print(f'{sys.getrefcount(m)-1=}')
-    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0] * 63
-    # df_mask = pd.read_csv('../../psfit/partial_sky_ps/ps_in_mask/2048/40mask.csv')
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0]
     df_mask = pd.read_csv(f'../mask/mask_csv/{freq}.csv')
-    # df_ps = pd.read_csv(f'../../psfit/partial_sky_ps/ps_in_mask/2048/40ps.csv')
     df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
-    beam = 17
+    beam = 11
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
     # cl1 = hp.anafast(m, lmax=lmax)
@@ -91,7 +89,9 @@ def save_fit_res_to_csv(freq):
         path_csv.mkdir(parents=True, exist_ok=True)
         df.to_csv(path_csv / Path(f"{rlz_idx}.csv"), index=False)
 
-freq = 155
+freq = 215
 calc_cov(freq=freq)
 # save_fit_res_to_csv(freq=freq)
+
+
 

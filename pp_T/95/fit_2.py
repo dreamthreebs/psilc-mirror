@@ -129,7 +129,7 @@ class FitPointSource:
             np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
 
-        cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+        cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.freq}/{self.flux_idx}.npy')
         logger.info(f'{cmb_cov_path=}')
 
         cov = np.load(cmb_cov_path)
@@ -145,6 +145,8 @@ class FitPointSource:
 
         if mode == 'cmb+noise':
             nstd2 = (self.nstd**2)[self.ipix_fit]
+            logger.debug(f'{nstd2=}')
+            logger.debug(f'{cov=}')
             for i in range(self.ndof):
                 cov[i,i] = cov[i,i] + nstd2[i]
             # self.inv_cov = np.linalg.inv(cov)
@@ -200,9 +202,9 @@ class FitPointSource:
         radiops = hp.read_map(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{self.freq}GHz/strongradiops_map_{self.freq}GHz.fits', field=0)
         irps = hp.read_map(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{self.freq}GHz/strongirps_map_{self.freq}GHz.fits', field=0)
 
-        hp.gnomview(irps, rot=[lon, lat, 0], xsize=60, ysize=60, reso=1, title='irps')
-        hp.gnomview(radiops, rot=[lon, lat, 0], xsize=60, ysize=60, reso=1, title='radiops')
-        hp.gnomview(m, rot=[lon, lat, 0], xsize=60, ysize=60, title='point source map')
+        hp.gnomview(irps, rot=[lon, lat, 0], xsize=300, ysize=300, reso=1, title='irps')
+        hp.gnomview(radiops, rot=[lon, lat, 0], xsize=300, ysize=300, reso=1, title='radiops')
+        hp.gnomview(m, rot=[lon, lat, 0], xsize=300, ysize=300)
         plt.show()
 
         vec = hp.ang2vec(theta=lon, phi=lat, lonlat=True)
@@ -406,7 +408,7 @@ class FitPointSource:
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","const"), *params)
-            obj_minuit.limits = [(-1,1), (-1000,1000)]
+            obj_minuit.limits = [(-1,1), (-100,100)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -428,7 +430,7 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","norm_beam2","const"), *params)
 
-            obj_minuit.limits = [(-1,1),(-1,1), (-1000,1000)]
+            obj_minuit.limits = [(-1,1),(-1,1), (-100,100)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -451,7 +453,7 @@ class FitPointSource:
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","norm_beam2","norm_beam3","const"), *params)
 
 
-            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1000,1000)]
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-100,100)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -474,7 +476,7 @@ class FitPointSource:
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","norm_beam2","norm_beam3","norm_beam4","const"), *params)
 
 
-            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1), (-1000,1000)]
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1), (-100,100)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -497,7 +499,7 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","norm_beam2","norm_beam3","norm_beam4","norm_beam5","const"), *params)
 
-            obj_minuit.limits = [(-1,1),(-1,1),(-1,1), (-1,1),(-1,1), (-1000,1000)]
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1), (-1,1),(-1,1), (-100,100)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -520,7 +522,7 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","const"), *params)
 
-            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1000,1000)]
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-100,100)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -543,7 +545,7 @@ class FitPointSource:
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat)
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","norm_beam2","norm_beam3","norm_beam4","norm_beam5","norm_beam6","norm_beam7","const"), *params)
 
-            obj_minuit.limits = [(-1,1),(-1,1),(-1,1), (-1,1),(-1,1),(-1,1),(-1,1), (-1000,1000)]
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1), (-1,1),(-1,1),(-1,1),(-1,1), (-100,100)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -567,7 +569,7 @@ class FitPointSource:
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","norm_beam2","norm_beam3","norm_beam4","norm_beam5","norm_beam6","norm_beam7","norm_beam8","const"), *params)
 
 
-            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1), (-1000,1000)]
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1), (-100,100)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -620,24 +622,24 @@ class FitPointSource:
 
 
 def main():
-    freq = 155
+    freq = 95
     time0 = time.perf_counter()
-    # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
-    # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')[0]
-    m = np.load(f'../../fitdata/synthesis_data/2048_bak/PSCMBNOISE/155/0.npy')[0]
-    # m = np.load(f'../../fitdata/synthesis_data/2048_bak/CMBNOISE/155/0.npy')[0]
-    # m = np.load(f'../../fitdata/synthesis_data/2048_bak/CMBNOISE/155_test/1.npy')[0]
-    # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/1.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/800.npy')[0]
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/0.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/155_to_95/0.npy')
     logger.debug(f'{sys.getrefcount(m)-1=}')
 
 
     logger.info(f'time for fitting = {time.perf_counter()-time0}')
-    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0] * 63
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0] * 65
+    # nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0]
+    # print(f'{nstd[0]=}')
     df_mask = pd.read_csv(f'../mask/mask_csv/{freq}.csv')
     df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
-    beam = 17
+    beam = 30
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
     # cl1 = hp.anafast(m, lmax=lmax)
@@ -660,7 +662,7 @@ def main():
     obj = FitPointSource(m=m, freq=freq, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=1e-5)
 
     logger.debug(f'{sys.getrefcount(m)-1=}')
-    obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
+    # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
     # obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
 
@@ -669,8 +671,8 @@ def main():
     # obj.calc_precise_C_theta()
 
     # obj.calc_C_theta()
-    # obj.calc_covariance_matrix(mode='cmb+noise')
     obj.calc_covariance_matrix(mode='noise')
+    # obj.calc_covariance_matrix(mode='cmb+noise')
 
     # obj.fit_all(cov_mode='cmb+noise')
     obj.fit_all(cov_mode='noise')
@@ -678,5 +680,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
 
 

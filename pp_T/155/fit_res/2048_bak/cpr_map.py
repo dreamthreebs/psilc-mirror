@@ -11,7 +11,8 @@ def cpr_ps_cmb_noise(df):
     m_noise = np.load('../../../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0].copy()
     m_removal = m_res + m_noise
 
-    m_inpaint = hp.read_map('./for_inpainting/output/pcn/2sigma/0.fits', field=0)
+    # m_inpaint = hp.read_map('./for_inpainting/output/pcn/2sigma/0.fits', field=0)
+    m_inpaint = hp.read_map('./for_inpainting/test_inpaint/2000.fits', field=0)
 
     m_origin = np.load('../../../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0].copy()
 
@@ -19,7 +20,7 @@ def cpr_ps_cmb_noise(df):
     # hp.orthview(m_inpaint, rot=[100,50,0], title='inpaint', half_sky=True, min=-300, max=300)
     # plt.show()
 
-    flux_idx = 15
+    flux_idx = 1
     lon = np.rad2deg(df.at[flux_idx, 'lon'])
     lat = np.rad2deg(df.at[flux_idx, 'lat'])
 
