@@ -25,9 +25,9 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=30
+#SBATCH --cpus-per-task=12
 #SBATCH --mem=50GB
-#SBATCH --exclude=aliws[021-048]
+#SBATCH --exclude=aliws[021-048],aliws005
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 
@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/pp_T/270/pp.py
+mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/pp_T/85/fit_base.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

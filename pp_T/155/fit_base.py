@@ -77,10 +77,11 @@ class FitPointSource:
             sum_val = 1 / (4 * np.pi) * np.sum((2 * ell + 1) * cl * Pl)
             return sum_val
 
-        cos_theta_list = np.linspace(0.99, 1, 5000)
+        cos_theta_list = np.linspace(0.99, 1, 10000)
         C_theta_list = []
         time0 = time.time()
         for cos_theta in cos_theta_list:
+            logger.debug(f'{cos_theta=}')
             C_theta = calc_C_theta_itp(x=cos_theta, lmax=self.lmax, cl=self.cl_cmb[0:self.lmax+1])
             C_theta_list.append(C_theta)
         logger.debug(f'{C_theta_list=}')
@@ -635,7 +636,7 @@ class FitPointSource:
 
 
 def main():
-    freq = 270
+    freq = 155
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
     m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/0.npy')[0]
@@ -649,7 +650,7 @@ def main():
     df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
-    beam = 9
+    beam = 17
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
     # cl1 = hp.anafast(m, lmax=lmax)
@@ -677,18 +678,19 @@ def main():
     # obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
 
     # obj.calc_C_theta_itp_func()
-    # obj.calc_C_theta(save_path='./cov_r_2.0/2048')
+    obj.calc_C_theta(save_path='./cov_r_2.0/2048')
     # obj.calc_precise_C_theta()
 
     # obj.calc_C_theta()
-    obj.calc_covariance_matrix(mode='cmb+noise')
+    # obj.calc_covariance_matrix(mode='cmb+noise')
 
-    obj.fit_all(cov_mode='cmb+noise')
+    # obj.fit_all(cov_mode='cmb+noise')
     # obj.fit_all(cov_mode='noise', mode='check_sigma')
 
 
 if __name__ == '__main__':
     main()
+
 
 
 

@@ -7,7 +7,6 @@ import pickle
 import os
 import sys
 import ipdb
-import logging
 
 from pathlib import Path
 from iminuit import Minuit
@@ -16,12 +15,7 @@ from numpy.polynomial.legendre import Legendre
 from scipy.interpolate import CubicSpline
 from memory_profiler import profile
 
-from fit_base import FitPointSource
-
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# logger.setLevel(logging.INFO)
+from fit_2 import FitPointSource
 
 def calc_cov(freq):
     m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
@@ -35,9 +29,17 @@ def calc_cov(freq):
     nside = 2048
     beam = 9
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
+    # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
+    # cl1 = hp.anafast(m, lmax=lmax)
     cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
+    # l = np.arange(lmax+1)
 
+    # plt.plot(l*(l+1)*cl_cmb/(2*np.pi))
     cl_cmb = cl_cmb * bl**2
+
+    # plt.plot(l*(l+1)*cl_cmb/(2*np.pi))
+    # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
+    # plt.show()
 
     for flux_idx in range(700):
         print(f'{flux_idx=}')
@@ -47,24 +49,9 @@ def calc_cov(freq):
 
         obj = FitPointSource(m=m, freq=freq, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=1e-5)
 
-        obj.calc_cmb_cov()
-        obj.calc_definite_fixed_cmb_cov()
-        # obj.calc_covariance_matrix(mode='cmb+noise')
-
-        obj.calc_covariance_matrix(mode='noise')
-
-def check_all_def_fixed_cmb_cov():
-    import glob
-    file_list = glob.glob('./semi_def_cmb_cov_2048/r_1.5/*.npy')
-    for idx, file in enumerate(file_list):
-        logger.debug(f'{file=}')
-        cov = np.load(file)
-        cov  = cov + 0.00004 * np.eye(cov.shape[0])
-        inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
-        I = cov @ inv_cov
-        logger.debug(f'{I=}')
-        is_correct = np.allclose(I, np.eye(cov.shape[0]), atol=1e-3)
-        logger.debug(f'{idx=}, {is_correct=}')
+        # obj.calc_C_theta()
+        obj.calc_covariance_matrix(mode='cmb+noise')
+        # obj.calc_covariance_matrix(mode='noise')
 
 def save_fit_res_to_csv(freq):
 
@@ -104,7 +91,7 @@ def save_fit_res_to_csv(freq):
 
 freq = 270
 calc_cov(freq=freq)
-check_all_def_fixed_cmb_cov()
 # save_fit_res_to_csv(freq=freq)
+
 
 
