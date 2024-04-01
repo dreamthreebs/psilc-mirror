@@ -115,6 +115,11 @@ def plot_dl():
     removal_avg = np.load(f'./pcn_avg_var/removal_avg.npy')
     removal_var = np.load(f'./pcn_avg_var/removal_var.npy')
 
+    delta_ps = pcn_avg - cn_avg
+    delta_inpaint = inpaint_avg - cn_avg
+    delta_removal = removal_avg - cn_avg
+
+    plt.figure(1)
     plt.plot(l, pcn_avg, label='pcn_avg')
     plt.plot(l, cn_avg, label='cn_avg')
     plt.plot(l, inpaint_avg, label='inpaint_avg')
@@ -124,11 +129,21 @@ def plot_dl():
     plt.plot(l, cn_var, label='cn_var')
     plt.plot(l, inpaint_var, label='inpaint_var')
     plt.plot(l, removal_var, label='removal_var')
+    plt.legend()
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
+
+    plt.figure(2)
+    plt.plot(l, delta_ps, label='delta_ps')
+    plt.plot(l, delta_removal, label='delta_removal')
+    plt.plot(l, delta_inpaint, label='delta_inpaint')
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
 
     plt.legend()
     plt.show()
 
-main()
-# plot_dl()
+# main()
+plot_dl()
 
 
