@@ -23,11 +23,30 @@ logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.INFO)
 
 class FitPointSource:
+    @staticmethod
+    def mJy_to_uKCMB(intensity_mJy, frequency_GHz):
+        # Constants
+        c = 2.99792458e8  # Speed of light in m/s
+        h = 6.62607015e-34  # Planck constant in J*s
+        k = 1.380649e-23  # Boltzmann constant in J/K
+        T_CMB = 2.725  # CMB temperature in Kelvin
+
+        frequency_Hz = frequency_GHz * 1e9 # Convert frequency to Hz from GHz
+
+        x = (h * frequency_Hz) / (k * T_CMB) # Calculate x = h*nu/(k*T)
+
+        # Calculate the derivative of the Planck function with respect to temperature, dB/dT
+        dBdT = (2.0 * h * frequency_Hz**3 / c**2 / T_CMB) * (x * np.exp(x) / (np.exp(x) - 1)**2)
+        intensity_Jy = intensity_mJy * 1e-3 # Convert intensity from mJy to Jy
+        intensity_W_m2_sr_Hz = intensity_Jy * 1e-26 # Convert Jy/sr to W/m^2/sr/Hz
+        uK_CMB = intensity_W_m2_sr_Hz / dBdT * 1e6 # Convert to uK_CMB, taking the inverse of dB/dT
+        return uK_CMB
+
     def __init__(self, m, freq, nstd, flux_idx, df_mask, df_ps, cl_cmb, lon, lat, iflux, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False):
         self.m = m # sky maps (npix,)
-        self.freq = freq
-        self.lon = lon
-        self.lat = lat
+        self.freq = freq # frequency
+        self.lon = lon # longitude
+        self.lat = lat # latitude
         self.iflux = iflux # temperature flux in muK_CMB
         self.df_mask = df_mask # pandas data frame of point sources in mask
         self.flux_idx = flux_idx # index in df_mask
@@ -50,6 +69,7 @@ class FitPointSource:
 
         self.ipix_fit = hp.query_disc(nside=self.nside, vec=self.ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
 
+        ## if you want the ipix_fit to range from near point to far point, add the following code
         # self.vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=self.ipix_fit.astype(int))).astype(np.float64)
         # angle = np.rad2deg(hp.rotator.angdist(dir1=self.ctr0_vec, dir2=self.vec_around))
         # logger.debug(f'{angle=}')
@@ -63,6 +83,7 @@ class FitPointSource:
 
         self.num_near_ps = 0
         self.flag_too_near = False
+        self.flag_overlap = False
 
         logger.info(f'{lmax=}, {nside=}')
         logger.info(f'{freq=}, {beam=}, {flux_idx=}, {radius_factor=}, {lon=}, {lat=}, ndof={self.ndof}')
@@ -95,7 +116,7 @@ class FitPointSource:
             pickle.dump(self.cs, f)
         return self.cs
 
-    def calc_C_theta(self):
+    def calc_cmb_cov(self):
         if not hasattr(self, "cs"):
             with open('./cs/cs.pkl', 'rb') as f:
                 self.cs = pickle.load(f)
@@ -120,9 +141,26 @@ class FitPointSource:
         timecov = time.time()-time0
         logger.debug(f'{timecov=}')
         logger.debug(f'{cov=}')
-        save_path = f'./cmb_cov_{self.nside}/r_{self.radius_factor}/{self.freq}'
+        save_path = f'./cmb_cov_{self.nside}/r_{self.radius_factor}'
         Path(save_path).mkdir(parents=True, exist_ok=True)
         np.save(Path(save_path) / Path(f'{self.flux_idx}.npy'), cov)
+
+    def calc_definite_fixed_cmb_cov(self):
+
+        cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+        cov = np.load(cmb_cov_path)
+        logger.debug(f'{cov=}')
+        eigenval, eigenvec = np.linalg.eigh(cov)
+        logger.debug(f'{eigenval=}')
+        eigenval[eigenval < 0] = 1e-6
+
+        reconstructed_cov = np.dot(eigenvec * eigenval, eigenvec.T)
+        reconstructed_eigenval,_ = np.linalg.eigh(reconstructed_cov)
+        logger.debug(f'{reconstructed_eigenval=}')
+        logger.debug(f'{np.max(np.abs(reconstructed_cov-cov))=}')
+        semi_def_cmb_cov = Path(f'semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}')
+        semi_def_cmb_cov.mkdir(parents=True, exist_ok=True)
+        np.save(semi_def_cmb_cov / Path(f'{self.flux_idx}.npy'), reconstructed_cov)
 
     def calc_covariance_matrix(self, mode='cmb+noise'):
 
@@ -139,7 +177,7 @@ class FitPointSource:
             np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
 
-        cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.freq}/{self.flux_idx}.npy')
+        cmb_cov_path = Path(f'./semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
         logger.info(f'{cmb_cov_path=}')
 
         cov = np.load(cmb_cov_path)
@@ -168,25 +206,6 @@ class FitPointSource:
             path_inv_cov.mkdir(parents=True, exist_ok=True)
             np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
-
-    @staticmethod
-    def mJy_to_uKCMB(intensity_mJy, frequency_GHz):
-        # Constants
-        c = 2.99792458e8  # Speed of light in m/s
-        h = 6.62607015e-34  # Planck constant in J*s
-        k = 1.380649e-23  # Boltzmann constant in J/K
-        T_CMB = 2.725  # CMB temperature in Kelvin
-
-        frequency_Hz = frequency_GHz * 1e9 # Convert frequency to Hz from GHz
-
-        x = (h * frequency_Hz) / (k * T_CMB) # Calculate x = h*nu/(k*T)
-
-        # Calculate the derivative of the Planck function with respect to temperature, dB/dT
-        dBdT = (2.0 * h * frequency_Hz**3 / c**2 / T_CMB) * (x * np.exp(x) / (np.exp(x) - 1)**2)
-        intensity_Jy = intensity_mJy * 1e-3 # Convert intensity from mJy to Jy
-        intensity_W_m2_sr_Hz = intensity_Jy * 1e-26 # Convert Jy/sr to W/m^2/sr/Hz
-        uK_CMB = intensity_W_m2_sr_Hz / dBdT * 1e6 # Convert to uK_CMB, taking the inverse of dB/dT
-        return uK_CMB
 
 
     def flux2norm_beam(self, flux):
@@ -247,6 +266,7 @@ class FitPointSource:
 
         if len(ang) - np.count_nonzero(ang) > 0:
             logger.debug(f'there are some point sources overlap')
+            self.flag_overlap = True
             index_near = np.nonzero(np.where(ang==0, 1, 0))
         else:
             index_near = np.nonzero(np.where((ang < threshold), ang, 0))
@@ -634,6 +654,9 @@ class FitPointSource:
         if mode == 'check_sigma':
             calc_error()
 
+        if mode == 'get_overlap':
+            return self.flag_overlap
+
 
 def main():
     freq = 215
@@ -664,7 +687,7 @@ def main():
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    flux_idx = 0
+    flux_idx = 596
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
@@ -677,19 +700,23 @@ def main():
 
     # obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
 
-    obj.calc_C_theta_itp_func()
+    # obj.calc_C_theta_itp_func()
     # obj.calc_C_theta(save_path='./cov_r_2.0/2048')
     # obj.calc_precise_C_theta()
 
-    # obj.calc_C_theta()
+    # obj.calc_cmb_cov()
+    # obj.calc_definite_fixed_cmb_cov()
     # obj.calc_covariance_matrix(mode='cmb+noise')
+    # obj.calc_covariance_matrix(mode='noise')
 
-    # obj.fit_all(cov_mode='cmb+noise')
+    obj.fit_all(cov_mode='cmb+noise')
     # obj.fit_all(cov_mode='noise', mode='check_sigma')
+    # obj.fit_all(cov_mode='noise')
 
 
 if __name__ == '__main__':
     main()
+
 
 
 

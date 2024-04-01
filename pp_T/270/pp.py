@@ -103,8 +103,9 @@ def save_fit_res_to_csv(freq):
         df.to_csv(path_csv / Path(f"{rlz_idx}.csv"), index=False)
 
 freq = 270
-calc_cov(freq=freq)
-check_all_def_fixed_cmb_cov()
-# save_fit_res_to_csv(freq=freq)
+
+# calc_cov(freq=freq)
+# check_all_def_fixed_cmb_cov()
+save_fit_res_to_csv(freq=freq)
 
 
