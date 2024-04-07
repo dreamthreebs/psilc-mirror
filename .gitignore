@@ -7,8 +7,8 @@
 /**/*.pyc
 /**/calc_*.py
 /**/submit_*.sh
-/**/run_pcn_*.sh
-/**/run_pcfn_*.sh
+/**/run_pcn_*.py
+/**/run_pcfn_*.py
 /**/submit_pcn_*.sh
 /**/submit_pcfn_*.sh
 tags
