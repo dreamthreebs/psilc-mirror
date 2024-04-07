@@ -4,37 +4,34 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pymaster as nmt
 
-def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
-    bins_edges = []
-    l_min = l_min_start  # starting l_min
-
-    while l_min < l_max:
-        delta_l = max(delta_l_min, int(fold * l_min))
-        l_next = l_min + delta_l
-        bins_edges.append(l_min)
-        l_min = l_next
-
-    # Adding l_max to ensure the last bin goes up to l_max
-    bins_edges.append(l_max)
-    return bins_edges[:-1], bins_edges[1:]
-
 def calc_dl_from_scalar_map(scalar_map, bl, apo_mask, bin_dl):
     scalar_field = nmt.NmtField(apo_mask, [scalar_map], beam=bl, masked_on_input=False)
     dl = nmt.compute_full_master(scalar_field, scalar_field, bin_dl)
     return dl[0]
 
-def gen_ps_remove_map_pcn(rlz_idx, mask, m_cmb_noise):
+def gen_ps_remove_map_pcn(rlz_idx, mask):
 
-    m_res = np.load(f'./ps_cmb_noise_residual/2sigma/map{rlz_idx}.npy')
+    m_res = np.load('./ps_cmb_noise_residual/2sigma/map0.npy')
+    m_cmb_noise = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0].copy()
     m_all = m_res + m_cmb_noise
     
-    # hp.orthview(m_res * mask, rot=[100,50,0], half_sky=True)
+    # hp.orthview(m_all * mask, rot=[100,50,0], half_sky=True)
     # plt.show()
     return m_all * mask
+def gen_inpaint_res_map_pcn(rlz_idx, mask):
+
+    m_inpaint = hp.read_map('./for_inpainting/output/pcn/2sigma/0.fits', field=0)
+    m_cmb_noise = np.load('../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0].copy()
+    m_res = m_inpaint - m_cmb_noise
+    
+    # hp.orthview(m_all * mask, rot=[100,50,0], half_sky=True)
+    # plt.show()
+    return m_res * mask
+
 
 def gen_ps_remove_map_pcfn(rlz_idx, mask):
 
-    m_res = np.load('./ps_cmb_noise_residual/2sigma/map0.npy') # TODO
+    m_res = np.load('./ps_cmb_noise_residual/2sigma/map0.npy')
     m_cmb_noise = np.load('../../../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0].copy()
     m_all = m_res + m_cmb_noise
     
@@ -42,34 +39,9 @@ def gen_ps_remove_map_pcfn(rlz_idx, mask):
     # plt.show()
     return m_all * mask
 
-def gen_inpaint_res_map_pcn(rlz_idx, mask, m_cmb_noise):
-
-    m_inpaint = hp.read_map(f'./INPAINT/output/pcn/2sigma/{rlz_idx}.fits', field=0)
-    m_res = m_inpaint - m_cmb_noise
-    
-    # hp.orthview(m_res * mask, rot=[100,50,0], half_sky=True)
-    # plt.show()
-    return m_res * mask
-
-
 def cpr_spectrum_pcn(bin_mask, apo_mask, bl):
-    # bin_dl = nmt.NmtBin.from_edges([20,50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,1150,1200,1250,1300,1350,1400,1450],[50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,1150,1200,1250,1300,1350,1400,1450,1500], is_Dell=True)
-    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=2000,nlb=50, is_Dell=True)
-    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=2000, fold=0.2)
-    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_edges([20,50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,1150,1200,1250,1300,1350,1400,1450],[50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,1150,1200,1250,1300,1350,1400,1450,1500], is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
-
-    rlz_idx = 0
-
-    m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')[0].copy()
-    m_inpaint = hp.read_map(f'./INPAINT/output/pcn/2sigma/{rlz_idx}.fits', field=0) * bin_mask * apo_mask
-    m_removal = gen_ps_remove_map_pcn(rlz_idx=0, mask=bin_mask, m_cmb_noise=m_cn) * apo_mask
-
-    dl_cn = calc_dl_from_scalar_map(m_cn, bl, apo_mask, bin_dl)
-
-    plt.plot(ell_arr, dl_cn, label='cmb noise', marker='o')
-
-
 
     plt.xlabel('$\\ell$')
     plt.ylabel('$\\Delta D_\\ell^{TT} [\\mu K^2]$')
@@ -188,7 +160,8 @@ if __name__ == '__main__':
     apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
 
 
-    cpr_spectrum_pcn(bin_mask, apo_mask, bl)
+    # cpr_spectrum_pcn(bin_mask, apo_mask, bl)
+    cpr_pseudo_spectrum_pcn(bin_mask, apo_mask, bl)
     # cpr_spectrum_pcfn(bin_mask, apo_mask, bl)
 
 
