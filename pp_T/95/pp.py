@@ -82,7 +82,7 @@ def save_fit_res_to_csv(freq):
         num_ps_arr = np.zeros(700)
 
 
-        for flux_idx in range(700):
+        for flux_idx in range(200):
             print(f'{flux_idx=}')
             fit_norm_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/norm_beam.npy')[rlz_idx]
             norm_error_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/norm_error.npy')[rlz_idx]
@@ -103,9 +103,9 @@ def save_fit_res_to_csv(freq):
         df.to_csv(path_csv / Path(f"{rlz_idx}.csv"), index=False)
 
 freq = 95
-calc_cov(freq=freq)
-check_all_def_fixed_cmb_cov()
-# save_fit_res_to_csv(freq=freq)
+# calc_cov(freq=freq)
+# check_all_def_fixed_cmb_cov()
+save_fit_res_to_csv(freq=freq)
 
 
 

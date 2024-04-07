@@ -4,9 +4,9 @@
 original_file="run_pcfn.py"
 
 # 复制文件的数量
-copies=699
+copies=443
 
-for i in $(seq 444 $copies); do
+for i in $(seq 0 $copies); do
     # 创建新文件的名称
     new_file="run_pcfn_$i.py"
 

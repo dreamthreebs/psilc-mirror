@@ -66,6 +66,41 @@ def check_all_def_fixed_cmb_cov():
         is_correct = np.allclose(I, np.eye(cov.shape[0]), atol=1e-3)
         logger.debug(f'{idx=}, {is_correct=}')
 
+def check_overlap():
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')[0]
+    # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/1.npy')[0]
+    print(f'{sys.getrefcount(m)-1=}')
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0]
+    df_mask = pd.read_csv(f'../mask/mask_csv/{freq}.csv')
+    df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
+    lmax = 1999
+    nside = 2048
+    beam = 9
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
+    cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
+
+    cl_cmb = cl_cmb * bl**2
+    overlap_list = []
+
+    for flux_idx in range(700):
+        print(f'{flux_idx=}')
+        lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
+        lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
+        iflux = df_mask.at[flux_idx, 'iflux']
+
+        obj = FitPointSource(m=m, freq=freq, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=1e-5)
+
+        flag = obj.fit_all(cov_mode='cmb+noise', mode='get_overlap')
+        print(f'{flag=}')
+        if flag == True:
+            overlap_list.append(flux_idx)
+    np.save('./overlap_arr.npy', np.array(overlap_list))
+
+def see_overlap():
+    overlap_arr = np.load('./overlap_arr.npy')
+    print(f'{overlap_arr=}')
+
 def save_fit_res_to_csv(freq):
 
     for rlz_idx in range(100):
@@ -106,6 +141,8 @@ freq = 270
 
 # calc_cov(freq=freq)
 # check_all_def_fixed_cmb_cov()
-save_fit_res_to_csv(freq=freq)
+check_overlap()
+see_overlap()
+# save_fit_res_to_csv(freq=freq)
 
 

@@ -308,14 +308,14 @@ class FitPointSource:
         ang_near_arr = np.array(ang_near)[0:num_ps]
         lon_arr = np.array(lon_list)
         lat_arr = np.array(lat_list)
-        num_ps = np.count_nonzero(np.where(iflux_arr > self.flux2norm_beam(flux=1), iflux_arr, 0))
-        logger.debug(f'there are {num_ps} ps > 1 mJy')
+        num_ps = np.count_nonzero(np.where(iflux_arr > self.flux2norm_beam(flux=10), iflux_arr, 0))
+        logger.debug(f'there are {num_ps} ps > 10 mJy')
         logger.debug(f'ang_near_arr before mask very faint: {ang_near_arr}')
         logger.debug(f'lon_arr before mask very faint: {lon_arr}')
         logger.debug(f'lat_arr before mask very faint: {lat_arr}')
         logger.debug(f'iflux_arr before mask very faint: {iflux_arr}')
 
-        mask_very_faint = iflux_arr > self.flux2norm_beam(flux=1)
+        mask_very_faint = iflux_arr > self.flux2norm_beam(flux=10)
 
         ang_near_arr = ang_near_arr[mask_very_faint].copy()
         iflux_arr = iflux_arr[mask_very_faint].copy()
@@ -552,7 +552,7 @@ class FitPointSource:
             params = (self.ini_norm_beam, self.ctr2_iflux, self.ctr3_iflux, self.ctr4_iflux, self.ctr5_iflux, self.ctr6_iflux, 0)
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon)
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat)
-            obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","const"), *params)
+            obj_minuit = Minuit(lsq_params, name=("norm_beam1","norm_beam2","norm_beam3","norm_beam4","norm_beam5","norm_beam6","const"), *params)
 
             obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1000,1000)]
             logger.debug(f'\n{obj_minuit.migrad()}')
@@ -682,7 +682,7 @@ def main():
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    flux_idx = 1
+    flux_idx = 28
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']

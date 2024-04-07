@@ -83,6 +83,7 @@ class FitPointSource:
 
         self.num_near_ps = 0
         self.flag_too_near = False
+        self.flag_overlap = False
 
         logger.info(f'{lmax=}, {nside=}')
         logger.info(f'{freq=}, {beam=}, {flux_idx=}, {radius_factor=}, {lon=}, {lat=}, ndof={self.ndof}')
@@ -265,6 +266,7 @@ class FitPointSource:
 
         if len(ang) - np.count_nonzero(ang) > 0:
             logger.debug(f'there are some point sources overlap')
+            self.flag_overlap = True
             index_near = np.nonzero(np.where(ang==0, 1, 0))
         else:
             index_near = np.nonzero(np.where((ang < threshold), ang, 0))
@@ -652,6 +654,9 @@ class FitPointSource:
         if mode == 'check_sigma':
             calc_error()
 
+        if mode == 'get_overlap':
+            return self.flag_overlap
+
 
 def main():
     freq = 270
@@ -682,7 +687,7 @@ def main():
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    flux_idx = 0
+    flux_idx = 596
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
@@ -711,6 +716,8 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
 
 
 

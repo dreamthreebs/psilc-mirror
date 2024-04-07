@@ -7,6 +7,10 @@
 /**/*.pyc
 /**/calc_*.py
 /**/submit_*.sh
+/**/run_pcn_*.sh
+/**/run_pcfn_*.sh
+/**/submit_pcn_*.sh
+/**/submit_pcfn_*.sh
 tags
 
 

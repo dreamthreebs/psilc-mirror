@@ -4,7 +4,7 @@
 original_file="./submit_pcfn.sh"
 
 # 复制文件的数量
-copies=699
+copies=443
 
 for i in $(seq 0 $copies); do
     # 创建新文件的名称

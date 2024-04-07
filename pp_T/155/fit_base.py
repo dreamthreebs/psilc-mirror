@@ -83,6 +83,7 @@ class FitPointSource:
 
         self.num_near_ps = 0
         self.flag_too_near = False
+        self.flag_overlap = False
 
         logger.info(f'{lmax=}, {nside=}')
         logger.info(f'{freq=}, {beam=}, {flux_idx=}, {radius_factor=}, {lon=}, {lat=}, ndof={self.ndof}')
@@ -265,6 +266,7 @@ class FitPointSource:
 
         if len(ang) - np.count_nonzero(ang) > 0:
             logger.debug(f'there are some point sources overlap')
+            self.flag_overlap = True
             index_near = np.nonzero(np.where(ang==0, 1, 0))
         else:
             index_near = np.nonzero(np.where((ang < threshold), ang, 0))
@@ -552,7 +554,7 @@ class FitPointSource:
             params = (self.ini_norm_beam, self.ctr2_iflux, self.ctr3_iflux, self.ctr4_iflux, self.ctr5_iflux, self.ctr6_iflux, 0)
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon)
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat)
-            obj_minuit = Minuit(lsq_params, name=("norm_beam1","ctr1_lon_shift","ctr1_lat_shift","norm_beam2","ctr2_lon_shift","ctr2_lat_shift","norm_beam3","ctr3_lon_shift","ctr3_lat_shift","norm_beam4","ctr4_lon_shift","ctr4_lat_shift","norm_beam5","ctr5_lon_shift","ctr5_lat_shift","norm_beam6","ctr6_lon_shift","ctr6_lat_shift","const"), *params)
+            obj_minuit = Minuit(lsq_params, name=("norm_beam1","norm_beam2","norm_beam3","norm_beam4","norm_beam5","norm_beam6","const"), *params)
 
             obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1000,1000)]
             logger.debug(f'\n{obj_minuit.migrad()}')
@@ -652,9 +654,12 @@ class FitPointSource:
         if mode == 'check_sigma':
             calc_error()
 
+        if mode == 'get_overlap':
+            return self.flag_overlap
+
 
 def main():
-    freq = 155
+    freq = 215
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
     m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/0.npy')[0]
@@ -668,7 +673,7 @@ def main():
     df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
-    beam = 17
+    beam = 11
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
     # cl1 = hp.anafast(m, lmax=lmax)
@@ -682,7 +687,7 @@ def main():
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    flux_idx = 1
+    flux_idx = 596
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
@@ -699,9 +704,9 @@ def main():
     # obj.calc_C_theta(save_path='./cov_r_2.0/2048')
     # obj.calc_precise_C_theta()
 
-    obj.calc_cmb_cov()
-    obj.calc_definite_fixed_cmb_cov()
-    obj.calc_covariance_matrix(mode='cmb+noise')
+    # obj.calc_cmb_cov()
+    # obj.calc_definite_fixed_cmb_cov()
+    # obj.calc_covariance_matrix(mode='cmb+noise')
     # obj.calc_covariance_matrix(mode='noise')
 
     obj.fit_all(cov_mode='cmb+noise')
@@ -711,6 +716,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
