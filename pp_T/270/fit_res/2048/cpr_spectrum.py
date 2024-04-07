@@ -18,8 +18,8 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     bins_edges.append(l_max)
     return bins_edges[:-1], bins_edges[1:]
 
-def calc_dl_from_scalar_map(scalar_map, bl, apo_mask, bin_dl):
-    scalar_field = nmt.NmtField(apo_mask, [scalar_map], beam=bl, masked_on_input=False)
+def calc_dl_from_scalar_map(scalar_map, bl, apo_mask, bin_dl, masked_on_input):
+    scalar_field = nmt.NmtField(apo_mask, [scalar_map], beam=bl, masked_on_input=masked_on_input)
     dl = nmt.compute_full_master(scalar_field, scalar_field, bin_dl)
     return dl[0]
 
@@ -62,17 +62,24 @@ def cpr_spectrum_pcn(bin_mask, apo_mask, bl):
     rlz_idx = 0
 
     m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')[0].copy()
+    m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')[0].copy()
     m_inpaint = hp.read_map(f'./INPAINT/output/pcn/2sigma/{rlz_idx}.fits', field=0) * bin_mask * apo_mask
-    m_removal = gen_ps_remove_map_pcn(rlz_idx=0, mask=bin_mask, m_cmb_noise=m_cn) * apo_mask
+    m_removal = gen_ps_remove_map_pcn(rlz_idx=rlz_idx, mask=bin_mask, m_cmb_noise=m_cn) * apo_mask
 
-    dl_cn = calc_dl_from_scalar_map(m_cn, bl, apo_mask, bin_dl)
+    dl_cn = calc_dl_from_scalar_map(m_cn, bl, apo_mask, bin_dl, masked_on_input=False)
+    dl_pcn = calc_dl_from_scalar_map(m_pcn, bl, apo_mask, bin_dl, masked_on_input=False)
+    dl_inpaint = calc_dl_from_scalar_map(m_inpaint, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
+    dl_removal = calc_dl_from_scalar_map(m_removal, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
 
+    plt.plot(ell_arr, dl_pcn, label='ps cmb noise', marker='o')
     plt.plot(ell_arr, dl_cn, label='cmb noise', marker='o')
-
+    plt.plot(ell_arr, dl_inpaint, label='inpaint', marker='o')
+    plt.plot(ell_arr, dl_removal, label='removal', marker='o')
 
 
     plt.xlabel('$\\ell$')
-    plt.ylabel('$\\Delta D_\\ell^{TT} [\\mu K^2]$')
+    # plt.ylabel('$\\Delta D_\\ell^{TT} [\\mu K^2]$')
+    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
 
     plt.legend()
     # plt.savefig('./fig/pcn/cpr_ps.png', dpi=300)

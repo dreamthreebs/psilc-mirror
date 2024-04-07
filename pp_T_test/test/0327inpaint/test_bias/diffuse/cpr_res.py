@@ -98,15 +98,16 @@ def see_avg_var():
     # plt.plot(inp_res_isap/bl**2, label='isap inp res')
 
     # plt.plot(ps_res/cn_mean, label='ps res ratio')
-    plt.plot(inp_res/cn_mean, label='diffuse inp res ratio')
-    plt.plot(inp_res_isap/cn_mean, label='isap inp res ratio')
+    plt.plot(np.abs(inp_res/cn_mean), label='diffuse inp res ratio')
+    plt.plot(np.abs(inp_res_isap/cn_mean), label='isap inp res ratio')
 
     # plt.plot(ps_res/bl**2, label='ps res')
 
+    plt.semilogy()
     plt.xlim(2,1000)
     # plt.ylim(-50,50)
     # plt.ylim(-50,7000)
-    plt.ylim(-0.025,0.025)
+    # plt.ylim(-0.025,0.025)
     plt.xlabel('$\\ell$')
     # plt.ylabel('$D_\\ell^{TT}$')
     plt.ylabel('$\\Delta D_\\ell^{TT} / D_\\ell^{TT}$')

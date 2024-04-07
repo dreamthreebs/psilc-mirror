@@ -96,11 +96,14 @@ def see_avg_var():
     # plt.plot(inp_res_1/bl**2, label='diffuse 2000 inp res',linestyle=':')
     # plt.plot(inp_res_2/bl**2, label='diffuse 1000 inp res')
     plt.plot(inp_res_isap/bl**2, label='isap inp res')
+    plt.plot(np.sqrt(cn_var)/bl**2, label='cv')
 
     # plt.plot(ps_res/bl**2, label='ps res')
 
+
+    plt.semilogy()
     plt.xlim(2,1000)
-    plt.ylim(-20,20)
+    plt.ylim(-30,300)
     # plt.ylim(-50,7000)
     plt.xlabel('$\\ell$')
     plt.ylabel('$D_\\ell^{TT}$')

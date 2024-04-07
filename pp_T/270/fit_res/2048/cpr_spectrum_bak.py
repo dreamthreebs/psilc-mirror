@@ -11,8 +11,8 @@ def calc_dl_from_scalar_map(scalar_map, bl, apo_mask, bin_dl):
 
 def gen_ps_remove_map_pcn(rlz_idx, mask):
 
-    m_res = np.load('./ps_cmb_noise_residual/2sigma/map0.npy')
-    m_cmb_noise = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0].copy()
+    m_res = np.load(f'./ps_cmb_noise_residual/2sigma/map{rlz_idx}.npy')
+    m_cmb_noise = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')[0].copy()
     m_all = m_res + m_cmb_noise
     
     # hp.orthview(m_all * mask, rot=[100,50,0], half_sky=True)
@@ -31,7 +31,7 @@ def gen_inpaint_res_map_pcn(rlz_idx, mask):
 
 def gen_ps_remove_map_pcfn(rlz_idx, mask):
 
-    m_res = np.load('./ps_cmb_noise_residual/2sigma/map0.npy')
+    m_res = np.load('./ps_cmb_noise_residual/2sigma/map{rlz_idx}.npy')
     m_cmb_noise = np.load('../../../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0].copy()
     m_all = m_res + m_cmb_noise
     
@@ -56,11 +56,12 @@ def cpr_pseudo_spectrum_pcn(bin_mask, apo_mask, bl):
     l = np.arange(lmax+1)
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
 
-    m_inpaint = hp.read_map('./INPAINT/output/pcn/2sigma/0.fits', field=0) * bin_mask * apo_mask
-    m_removal = gen_ps_remove_map_pcn(rlz_idx=0, mask=bin_mask) * apo_mask
+    rlz_idx = 1
+    m_inpaint = hp.read_map(f'./INPAINT/output/pcn/2sigma/{rlz_idx}.fits', field=0) * bin_mask * apo_mask
+    m_removal = gen_ps_remove_map_pcn(rlz_idx=rlz_idx, mask=bin_mask) * apo_mask
 
-    m_ps_cmb_noise = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/0.npy')[0] * apo_mask
-    m_cmb_noise = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0] * apo_mask
+    m_ps_cmb_noise = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')[0] * apo_mask
+    m_cmb_noise = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')[0] * apo_mask
 
     dl_inpaint = l * (l+1) * hp.anafast(m_inpaint, lmax=lmax) / (2 * np.pi) / bl**2
     dl_removal = l * (l+1) * hp.anafast(m_removal, lmax=lmax) / (2 * np.pi) / bl**2

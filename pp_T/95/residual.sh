@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u /afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/pp_T/215/residual.py
+mpiexec python -u ./residual.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)
