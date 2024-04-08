@@ -43,8 +43,8 @@ def gen_mask_pcfn(ori_mask, nside, radius_factor, beam, df):
         mask_list = np.load(f'./ps_cmb_fg_noise_residual/2sigma/mask{rlz_idx}.npy')
         print(f'{mask_list=}')
 
-        m = np.load('./ps_cmb_fg_noise_residual/2sigma/map0.npy')
-        m = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBFGNOISE/{freq}/0.npy')[0]
+        # m = np.load('./ps_cmb_fg_noise_residual/2sigma/map0.npy')
+        # m = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBFGNOISE/{freq}/0.npy')[0]
 
         # hp.orthview(m*mask, rot=[100,50,0], half_sky=True)
         # plt.show()
@@ -61,9 +61,9 @@ def gen_mask_pcfn(ori_mask, nside, radius_factor, beam, df):
             ipix_mask = hp.query_disc(nside=nside, vec=ctr0_vec, radius=radius_factor * np.deg2rad(beam) / 60)
             mask[ipix_mask] = 0
 
-        hp.orthview(m*ori_mask, rot=[100,50,0], half_sky=True, title='origin', xsize=2000)
-        hp.orthview(m*mask, rot=[100,50,0], half_sky=True,title='masked', xsize=2000)
-        plt.show()
+        # hp.orthview(m*ori_mask, rot=[100,50,0], half_sky=True, title='origin', xsize=2000)
+        # hp.orthview(m*mask, rot=[100,50,0], half_sky=True,title='masked', xsize=2000)
+        # plt.show()
 
         mask_path = Path(f'./INPAINT/mask/pcfn/2sigma')
         mask_path.mkdir(parents=True, exist_ok=True)
