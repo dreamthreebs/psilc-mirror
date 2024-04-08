@@ -75,7 +75,7 @@ def main():
     dl_removal_list = []
     dl_pcn_list = []
     dl_cn_list = []
-    for rlz_idx in range(2):
+    for rlz_idx in range(100):
         print(f'{rlz_idx=}')
 
         m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')[0].copy()
@@ -170,11 +170,15 @@ def plot_dl():
     delta_inpaint = inpaint_avg - cn_avg
     delta_removal = removal_avg - cn_avg
 
+    ratio_ps = delta_ps / cn_avg
+    ratio_inpaint = delta_inpaint / cn_avg
+    ratio_removal = delta_removal / cn_avg
+
     plt.figure(1)
-    plt.plot(ell_arr, pcn_avg/2, label='pcn_avg')
-    plt.plot(ell_arr, cn_avg/2, label='cn_avg')
-    plt.plot(ell_arr, inpaint_avg/2, label='inpaint_avg')
-    plt.plot(ell_arr, removal_avg/2, label='removal_avg')
+    plt.plot(ell_arr, pcn_avg, label='pcn_avg')
+    plt.plot(ell_arr, cn_avg, label='cn_avg')
+    plt.plot(ell_arr, inpaint_avg, label='inpaint_avg')
+    plt.plot(ell_arr, removal_avg, label='removal_avg')
     plt.legend()
     plt.xlabel('$\\ell$')
     plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
@@ -191,17 +195,28 @@ def plot_dl():
     plt.title('standard deviation power spectrum')
 
     plt.figure(3)
-    plt.plot(ell_arr, delta_ps/2, label='delta_ps')
-    plt.plot(ell_arr, delta_removal/2, label='delta_removal')
-    plt.plot(ell_arr, delta_inpaint/2, label='delta_inpaint')
+    plt.plot(ell_arr, delta_ps, label='delta_ps')
+    plt.plot(ell_arr, delta_removal, label='delta_removal')
+    plt.plot(ell_arr, delta_inpaint, label='delta_inpaint')
     plt.xlabel('$\\ell$')
-    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
+    plt.ylabel('$\Delta D_\\ell^{TT} [\\mu K^2]$')
     plt.title('difference power spectrum')
-
     plt.legend()
+
+    plt.figure(4)
+    plt.plot(ell_arr, np.abs(ratio_ps), label='ratio_ps')
+    plt.plot(ell_arr, np.abs(ratio_removal), label='ratio_removal')
+    plt.plot(ell_arr, np.abs(ratio_inpaint), label='ratio_inpaint')
+    plt.plot(ell_arr, np.abs(np.sqrt(cn_var)/np.abs(cn_avg)), label='ratio_cv')
+    plt.semilogy()
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$\Delta D_\\ell^{TT} /D_\\ell^{TT}$')
+    plt.title('power spectrum ratio')
+    plt.legend()
+
     plt.show()
 
-main()
-# plot_dl()
+# main()
+plot_dl()
 
 
