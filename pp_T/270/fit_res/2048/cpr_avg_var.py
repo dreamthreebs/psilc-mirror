@@ -82,8 +82,6 @@ def main_pcn():
         m_inpaint = hp.read_map(f'./INPAINT/output/pcn/2sigma/{rlz_idx}.fits', field=0) * bin_mask * apo_mask
         m_removal = gen_ps_remove_map_pcn(rlz_idx=rlz_idx, mask=bin_mask, m_cmb_noise=m_cn) * apo_mask
 
-        dl_c = calc_dl_from_scalar_map(m_c, bl, apo_mask, bin_dl, masked_on_input=False)
-
         dl_cn = calc_dl_from_scalar_map(m_cn, bl, apo_mask, bin_dl, masked_on_input=False)
         dl_pcn = calc_dl_from_scalar_map(m_pcn, bl, apo_mask, bin_dl, masked_on_input=False)
         dl_inpaint = calc_dl_from_scalar_map(m_inpaint, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
