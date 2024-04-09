@@ -159,7 +159,7 @@ def main_pcfn():
 
     dl_inpaint_list = []
     dl_removal_list = []
-    dl_pfcn_list = []
+    dl_pcfn_list = []
     dl_cfn_list = []
     dl_c_list = []
 
