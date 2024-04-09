@@ -33,11 +33,10 @@ def gen_ps_remove_map_pcn(rlz_idx, mask, m_cmb_noise):
     # plt.show()
     return m_all * mask
 
-def gen_ps_remove_map_pcfn(rlz_idx, mask):
+def gen_ps_remove_map_pcfn(rlz_idx, mask, m_cmb_fg_noise):
 
-    m_res = np.load('./ps_cmb_noise_residual/2sigma/map0.npy') # TODO
-    m_cmb_noise = np.load('../../../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0].copy()
-    m_all = m_res + m_cmb_noise
+    m_res = np.load(f'./ps_cmb_noise_residual/2sigma/map{rlz_idx}.npy')
+    m_all = m_res + m_cmb_fg_noise
     
     # hp.orthview(m_all * mask, rot=[100,50,0], half_sky=True)
     # plt.show()
@@ -53,7 +52,7 @@ def gen_inpaint_res_map_pcn(rlz_idx, mask, m_cmb_noise):
     return m_res * mask
 
 
-def main():
+def main_pcn():
     lmax = 2000
     l = np.arange(lmax+1)
     nside = 2048
@@ -83,17 +82,20 @@ def main():
         m_inpaint = hp.read_map(f'./INPAINT/output/pcn/2sigma/{rlz_idx}.fits', field=0) * bin_mask * apo_mask
         m_removal = gen_ps_remove_map_pcn(rlz_idx=rlz_idx, mask=bin_mask, m_cmb_noise=m_cn) * apo_mask
 
+        dl_c = calc_dl_from_scalar_map(m_c, bl, apo_mask, bin_dl, masked_on_input=False)
+
         dl_cn = calc_dl_from_scalar_map(m_cn, bl, apo_mask, bin_dl, masked_on_input=False)
         dl_pcn = calc_dl_from_scalar_map(m_pcn, bl, apo_mask, bin_dl, masked_on_input=False)
         dl_inpaint = calc_dl_from_scalar_map(m_inpaint, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
         dl_removal = calc_dl_from_scalar_map(m_removal, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
 
+        # plt.plot(ell_arr, dl_c, label='cmb', marker='o')
         # plt.plot(ell_arr, dl_pcn, label='ps cmb noise', marker='o')
         # plt.plot(ell_arr, dl_cn, label='cmb noise', marker='o')
         # plt.plot(ell_arr, dl_inpaint, label='inpaint', marker='o')
         # plt.plot(ell_arr, dl_removal, label='removal', marker='o')
         # plt.xlabel('$\\ell$')
-        # # plt.ylabel('$\\Delta D_\\ell^{TT} [\\mu K^2]$')
+        # plt.ylabel('$\\Delta D_\\ell^{TT} [\\mu K^2]$')
         # plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
         # plt.legend()
         # # plt.savefig('./fig/pcn/cpr_ps.png', dpi=300)
@@ -121,7 +123,7 @@ def main():
     dl_cn_avg = np.mean(dl_cn_arr, axis=0)
     dl_cn_var = np.var(dl_cn_arr, axis=0)
 
-    path_avg_var = Path(f'./pcn_avg_var')
+    path_avg_var = Path(f'./avg_var')
     path_avg_var.mkdir(exist_ok=True, parents=True)
 
     np.save(path_avg_var / Path(f'inpaint_avg.npy'), dl_inpaint_avg)
@@ -135,6 +137,109 @@ def main():
 
     np.save(path_avg_var / Path(f'cn_avg.npy'), dl_cn_avg)
     np.save(path_avg_var / Path(f'cn_var.npy'), dl_cn_var)
+
+
+def main_pcfn():
+    lmax = 2000
+    l = np.arange(lmax+1)
+    nside = 2048
+    df = pd.read_csv('../../../../FGSim/FreqBand')
+
+    freq = df.at[7, 'freq']
+    beam = df.at[7, 'beam']
+    print(f'{freq=}, {beam=}')
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,0]
+
+    bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
+    apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
+
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=2000, fold=0.2)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    dl_inpaint_list = []
+    dl_removal_list = []
+    dl_pfcn_list = []
+    dl_cfn_list = []
+    dl_c_list = []
+
+    m_f = np.load(f'../../../../fitdata/2048/FG/{freq}/fg.npy')[0].copy()
+    dl_f = calc_dl_from_scalar_map(m_f, bl, apo_mask, bin_dl, masked_on_input=False)
+    for rlz_idx in range(100):
+        print(f'{rlz_idx=}')
+
+        m_cfn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBFGNOISE/{freq}/{rlz_idx}.npy')[0].copy()
+        m_pcfn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBFGNOISE/{freq}/{rlz_idx}.npy')[0].copy()
+        m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')[0].copy()
+        m_inpaint = hp.read_map(f'./INPAINT/output/pcfn/2sigma/{rlz_idx}.fits', field=0) * bin_mask * apo_mask
+        m_removal = gen_ps_remove_map_pcfn(rlz_idx=rlz_idx, mask=bin_mask, m_cmb_fg_noise=m_cfn) * apo_mask
+
+        dl_c = calc_dl_from_scalar_map(m_c, bl, apo_mask, bin_dl, masked_on_input=False)
+        dl_cfn = calc_dl_from_scalar_map(m_cfn, bl, apo_mask, bin_dl, masked_on_input=False)
+        dl_pcfn = calc_dl_from_scalar_map(m_pcfn, bl, apo_mask, bin_dl, masked_on_input=False)
+        dl_inpaint = calc_dl_from_scalar_map(m_inpaint, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
+        dl_removal = calc_dl_from_scalar_map(m_removal, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
+
+        # plt.plot(ell_arr, dl_c, label='cmb', marker='o')
+        # plt.plot(ell_arr, dl_pcfn, label='ps cmb fg noise', marker='o')
+        # plt.plot(ell_arr, dl_cfn, label='cmb fg noise', marker='o')
+        # plt.plot(ell_arr, dl_inpaint, label='inpaint', marker='o')
+        # plt.plot(ell_arr, dl_removal, label='removal', marker='o')
+        # plt.plot(ell_arr, dl_f, label='diffuse fg', marker='o')
+        # plt.xlabel('$\\ell$')
+        # plt.ylabel('$\\Delta D_\\ell^{TT} [\\mu K^2]$')
+        # plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
+        # plt.legend()
+        # # plt.savefig('./fig/pcn/cpr_ps.png', dpi=300)
+        # plt.show()
+
+        dl_inpaint_list.append(dl_inpaint)
+        dl_removal_list.append(dl_removal)
+        dl_pcfn_list.append(dl_pcfn)
+        dl_cfn_list.append(dl_cfn)
+        dl_c_list.append(dl_c)
+
+    dl_inpaint_arr = np.asarray(dl_inpaint_list)
+    dl_removal_arr = np.asarray(dl_removal_list)
+    dl_pcfn_arr = np.asarray(dl_pcfn_list)
+    dl_cfn_arr = np.asarray(dl_cfn_list)
+    dl_c_arr = np.asarray(dl_c_list)
+
+    dl_inpaint_avg = np.mean(dl_inpaint_arr, axis=0)
+    dl_inpaint_var = np.var(dl_inpaint_arr, axis=0)
+
+    dl_removal_avg = np.mean(dl_removal_arr, axis=0)
+    dl_removal_var = np.var(dl_removal_arr, axis=0)
+
+    dl_pcfn_avg = np.mean(dl_pcfn_arr, axis=0)
+    dl_pcfn_var = np.var(dl_pcfn_arr, axis=0)
+
+    dl_cn_avg = np.mean(dl_cfn_arr, axis=0)
+    dl_cn_var = np.var(dl_cfn_arr, axis=0)
+
+    dl_c_avg = np.mean(dl_c_arr, axis=0)
+    dl_c_var = np.var(dl_c_arr, axis=0)
+
+    path_avg_var = Path(f'./avg_var')
+    path_avg_var.mkdir(exist_ok=True, parents=True)
+
+    np.save(path_avg_var / Path(f'pcfn_inpaint_avg.npy'), dl_inpaint_avg)
+    np.save(path_avg_var / Path(f'pcfn_inpaint_var.npy'), dl_inpaint_var)
+
+    np.save(path_avg_var / Path(f'pcfn_removal_avg.npy'), dl_removal_avg)
+    np.save(path_avg_var / Path(f'pcfn_removal_var.npy'), dl_removal_var)
+
+    np.save(path_avg_var / Path(f'pcfn_avg.npy'), dl_pcfn_avg)
+    np.save(path_avg_var / Path(f'pcfn_var.npy'), dl_pcfn_var)
+
+    np.save(path_avg_var / Path(f'cfn_avg.npy'), dl_cfn_avg)
+    np.save(path_avg_var / Path(f'cfn_var.npy'), dl_cfn_var)
+
+    np.save(path_avg_var / Path(f'c_avg.npy'), dl_c_avg)
+    np.save(path_avg_var / Path(f'c_var.npy'), dl_c_var)
+
+    np.save(path_avg_var / Path(f'diffuse_fg.npy'), dl_f)
+
 
 def plot_dl():
     lmax = 2000
@@ -216,7 +321,8 @@ def plot_dl():
 
     plt.show()
 
-# main()
-plot_dl()
+# main_pcn()
+main_pcfn()
+# plot_dl()
 
 
