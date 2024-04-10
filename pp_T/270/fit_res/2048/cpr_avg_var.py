@@ -151,6 +151,7 @@ def main_pcfn():
     dl_pcfn_list = []
     dl_cfn_list = []
     dl_c_list = []
+    dl_cf_list = []
 
     m_f = np.load(f'../../../../fitdata/2048/FG/{freq}/fg.npy')[0].copy()
     dl_f = calc_dl_from_scalar_map(m_f, bl, apo_mask, bin_dl, masked_on_input=False)
@@ -160,11 +161,13 @@ def main_pcfn():
         m_cfn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBFGNOISE/{freq}/{rlz_idx}.npy')[0].copy()
         # m_pcfn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBFGNOISE/{freq}/{rlz_idx}.npy')[0].copy()
         m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')[0].copy()
+        m_cf = np.load(f'../../../../fitdata/synthesis_data/2048/CMBFG/{freq}/{rlz_idx}.npy')[0].copy()
         # m_inpaint = hp.read_map(f'./INPAINT/output/pcfn/2sigma/{rlz_idx}.fits', field=0) * bin_mask * apo_mask
         # m_removal = gen_ps_remove_map_pcfn(rlz_idx=rlz_idx, mask=bin_mask, m_cmb_fg_noise=m_cfn) * apo_mask
 
-        dl_c = calc_dl_from_scalar_map(m_c, bl, apo_mask, bin_dl, masked_on_input=False)
-        dl_cfn = calc_dl_from_scalar_map(m_cfn, bl, apo_mask, bin_dl, masked_on_input=False)
+        # dl_c = calc_dl_from_scalar_map(m_c, bl, apo_mask, bin_dl, masked_on_input=False)
+        # dl_cfn = calc_dl_from_scalar_map(m_cfn, bl, apo_mask, bin_dl, masked_on_input=False)
+        dl_cf = calc_dl_from_scalar_map(m_cf, bl, apo_mask, bin_dl, masked_on_input=False)
         # dl_pcfn = calc_dl_from_scalar_map(m_pcfn, bl, apo_mask, bin_dl, masked_on_input=False)
         # dl_inpaint = calc_dl_from_scalar_map(m_inpaint, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
         # dl_removal = calc_dl_from_scalar_map(m_removal, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
@@ -185,14 +188,16 @@ def main_pcfn():
         # dl_inpaint_list.append(dl_inpaint)
         # dl_removal_list.append(dl_removal)
         # dl_pcfn_list.append(dl_pcfn)
-        dl_cfn_list.append(dl_cfn)
-        dl_c_list.append(dl_c)
+        # dl_cfn_list.append(dl_cfn)
+        # dl_c_list.append(dl_c)
+        dl_cf_list.append(dl_cf)
 
     # dl_inpaint_arr = np.asarray(dl_inpaint_list)
     # dl_removal_arr = np.asarray(dl_removal_list)
     # dl_pcfn_arr = np.asarray(dl_pcfn_list)
-    dl_cfn_arr = np.asarray(dl_cfn_list)
-    dl_c_arr = np.asarray(dl_c_list)
+    # dl_cfn_arr = np.asarray(dl_cfn_list)
+    # dl_c_arr = np.asarray(dl_c_list)
+    dl_cf_arr = np.asarray(dl_cf_list)
 
     # dl_inpaint_avg = np.mean(dl_inpaint_arr, axis=0)
     # dl_inpaint_var = np.var(dl_inpaint_arr, axis=0)
@@ -203,11 +208,14 @@ def main_pcfn():
     # dl_pcfn_avg = np.mean(dl_pcfn_arr, axis=0)
     # dl_pcfn_var = np.var(dl_pcfn_arr, axis=0)
 
-    dl_cfn_avg = np.mean(dl_cfn_arr, axis=0)
-    dl_cfn_var = np.var(dl_cfn_arr, axis=0)
+    # dl_cfn_avg = np.mean(dl_cfn_arr, axis=0)
+    # dl_cfn_var = np.var(dl_cfn_arr, axis=0)
 
-    dl_c_avg = np.mean(dl_c_arr, axis=0)
-    dl_c_var = np.var(dl_c_arr, axis=0)
+    # dl_c_avg = np.mean(dl_c_arr, axis=0)
+    # dl_c_var = np.var(dl_c_arr, axis=0)
+
+    dl_cf_avg = np.mean(dl_cf_arr, axis=0)
+    dl_cf_var = np.var(dl_cf_arr, axis=0)
 
     path_avg_var = Path(f'./avg_var')
     path_avg_var.mkdir(exist_ok=True, parents=True)
@@ -221,13 +229,16 @@ def main_pcfn():
     # np.save(path_avg_var / Path(f'pcfn_avg.npy'), dl_pcfn_avg)
     # np.save(path_avg_var / Path(f'pcfn_var.npy'), dl_pcfn_var)
 
-    np.save(path_avg_var / Path(f'cfn_avg.npy'), dl_cfn_avg)
-    np.save(path_avg_var / Path(f'cfn_var.npy'), dl_cfn_var)
+    # np.save(path_avg_var / Path(f'cfn_avg.npy'), dl_cfn_avg)
+    # np.save(path_avg_var / Path(f'cfn_var.npy'), dl_cfn_var)
 
-    np.save(path_avg_var / Path(f'c_avg.npy'), dl_c_avg)
-    np.save(path_avg_var / Path(f'c_var.npy'), dl_c_var)
+    # np.save(path_avg_var / Path(f'c_avg.npy'), dl_c_avg)
+    # np.save(path_avg_var / Path(f'c_var.npy'), dl_c_var)
 
-    np.save(path_avg_var / Path(f'diffuse_fg.npy'), dl_f)
+    np.save(path_avg_var / Path(f'cf_avg.npy'), dl_cf_avg)
+    np.save(path_avg_var / Path(f'cf_var.npy'), dl_cf_var)
+
+    # np.save(path_avg_var / Path(f'diffuse_fg.npy'), dl_f)
 
 
 def plot_dl_pcn():
@@ -311,8 +322,16 @@ def plot_dl_pcfn():
     pcfn_avg = np.load('./avg_var/pcfn_avg.npy')
     pcfn_var = np.load('./avg_var/pcfn_var.npy')
 
+    cfn_avg = np.load('./avg_var/cfn_avg.npy')
+    cfn_var = np.load('./avg_var/cfn_var.npy')
+
     cn_avg = np.load(f'./pcn_avg_var/cn_avg.npy')
     cn_var = np.load(f'./pcn_avg_var/cn_var.npy')
+
+    c_avg = np.load(f'./avg_var/c_avg.npy')
+    c_var = np.load(f'./avg_var/c_var.npy')
+
+    diffuse_fg = np.load(f'./avg_var/diffuse_fg.npy')
 
     inpaint_avg = np.load(f'./avg_var/pcfn_inpaint_avg.npy')
     inpaint_var = np.load(f'./avg_var/pcfn_inpaint_var.npy')
@@ -320,16 +339,18 @@ def plot_dl_pcfn():
     removal_avg = np.load(f'./avg_var/pcfn_removal_avg.npy')
     removal_var = np.load(f'./avg_var/pcfn_removal_var.npy')
 
-    delta_ps = pcfn_avg - cn_avg
-    delta_inpaint = inpaint_avg - cn_avg
-    delta_removal = removal_avg - cn_avg
+    delta_ps = pcfn_avg - cfn_avg
+    delta_inpaint = inpaint_avg - cfn_avg
+    delta_removal = removal_avg - cfn_avg
 
-    ratio_ps = delta_ps / cn_avg
-    ratio_inpaint = delta_inpaint / cn_avg
-    ratio_removal = delta_removal / cn_avg
+    ratio_ps = delta_ps / cfn_avg
+    ratio_inpaint = delta_inpaint / cfn_avg
+    ratio_removal = delta_removal / cfn_avg
 
     plt.figure(1)
     plt.plot(ell_arr, pcfn_avg, label='pcfn_avg')
+    plt.plot(ell_arr, cfn_avg, label='cfn_avg')
+    plt.plot(ell_arr, c_avg, label='c_avg')
     plt.plot(ell_arr, cn_avg, label='cn_avg')
     plt.plot(ell_arr, inpaint_avg, label='inpaint_avg')
     plt.plot(ell_arr, removal_avg, label='removal_avg')
@@ -340,7 +361,7 @@ def plot_dl_pcfn():
 
     plt.figure(2)
     plt.plot(ell_arr, np.sqrt(pcfn_var), label='pcfn_std')
-    plt.plot(ell_arr, np.sqrt(cn_var), label='cn_std')
+    plt.plot(ell_arr, np.sqrt(c_var), label='c_std')
     plt.plot(ell_arr, np.sqrt(inpaint_var), label='inpaint_std')
     plt.plot(ell_arr, np.sqrt(removal_var), label='removal_std')
     plt.legend()
@@ -361,7 +382,8 @@ def plot_dl_pcfn():
     plt.plot(ell_arr, np.abs(ratio_ps), label='ratio_ps')
     plt.plot(ell_arr, np.abs(ratio_removal), label='ratio_removal')
     plt.plot(ell_arr, np.abs(ratio_inpaint), label='ratio_inpaint')
-    plt.plot(ell_arr, np.abs(np.sqrt(cn_var)/np.abs(cn_avg)), label='ratio_cv')
+    plt.plot(ell_arr, np.abs(np.sqrt(c_var)/np.abs(c_avg)), label='ratio_cv')
+    plt.plot(ell_arr, np.abs(np.sqrt(cn_var)/np.abs(cn_avg)), label='ratio_cnv')
     plt.semilogy()
     plt.xlabel('$\\ell$')
     plt.ylabel('$\Delta D_\\ell^{TT} /D_\\ell^{TT}$')
