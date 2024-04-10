@@ -5,6 +5,17 @@ import pandas as pd
 import pymaster as nmt
 from pathlib import Path
 
+lmax = 2000
+l = np.arange(lmax+1)
+nside = 2048
+df = pd.read_csv('../../../../FGSim/FreqBand')
+
+freq = df.at[7, 'freq']
+beam = df.at[7, 'beam']
+print(f'{freq=}, {beam=}')
+bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,0]
+
+
 def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     bins_edges = []
     l_min = l_min_start  # starting l_min
@@ -53,20 +64,10 @@ def gen_inpaint_res_map_pcn(rlz_idx, mask, m_cmb_noise):
 
 
 def main_pcn():
-    lmax = 2000
-    l = np.arange(lmax+1)
-    nside = 2048
-    df = pd.read_csv('../../../../FGSim/FreqBand')
-
-    freq = df.at[7, 'freq']
-    beam = df.at[7, 'beam']
-    print(f'{freq=}, {beam=}')
-    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,0]
-
     bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
     apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
 
-    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=2000, fold=0.2)
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
@@ -138,20 +139,10 @@ def main_pcn():
 
 
 def main_pcfn():
-    lmax = 2000
-    l = np.arange(lmax+1)
-    nside = 2048
-    df = pd.read_csv('../../../../FGSim/FreqBand')
-
-    freq = df.at[7, 'freq']
-    beam = df.at[7, 'beam']
-    print(f'{freq=}, {beam=}')
-    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,0]
-
     bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
     apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
 
-    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=2000, fold=0.2)
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
@@ -167,16 +158,16 @@ def main_pcfn():
         print(f'{rlz_idx=}')
 
         m_cfn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBFGNOISE/{freq}/{rlz_idx}.npy')[0].copy()
-        m_pcfn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBFGNOISE/{freq}/{rlz_idx}.npy')[0].copy()
+        # m_pcfn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBFGNOISE/{freq}/{rlz_idx}.npy')[0].copy()
         m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')[0].copy()
-        m_inpaint = hp.read_map(f'./INPAINT/output/pcfn/2sigma/{rlz_idx}.fits', field=0) * bin_mask * apo_mask
-        m_removal = gen_ps_remove_map_pcfn(rlz_idx=rlz_idx, mask=bin_mask, m_cmb_fg_noise=m_cfn) * apo_mask
+        # m_inpaint = hp.read_map(f'./INPAINT/output/pcfn/2sigma/{rlz_idx}.fits', field=0) * bin_mask * apo_mask
+        # m_removal = gen_ps_remove_map_pcfn(rlz_idx=rlz_idx, mask=bin_mask, m_cmb_fg_noise=m_cfn) * apo_mask
 
         dl_c = calc_dl_from_scalar_map(m_c, bl, apo_mask, bin_dl, masked_on_input=False)
         dl_cfn = calc_dl_from_scalar_map(m_cfn, bl, apo_mask, bin_dl, masked_on_input=False)
-        dl_pcfn = calc_dl_from_scalar_map(m_pcfn, bl, apo_mask, bin_dl, masked_on_input=False)
-        dl_inpaint = calc_dl_from_scalar_map(m_inpaint, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
-        dl_removal = calc_dl_from_scalar_map(m_removal, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
+        # dl_pcfn = calc_dl_from_scalar_map(m_pcfn, bl, apo_mask, bin_dl, masked_on_input=False)
+        # dl_inpaint = calc_dl_from_scalar_map(m_inpaint, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
+        # dl_removal = calc_dl_from_scalar_map(m_removal, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
 
         # plt.plot(ell_arr, dl_c, label='cmb', marker='o')
         # plt.plot(ell_arr, dl_pcfn, label='ps cmb fg noise', marker='o')
@@ -191,29 +182,29 @@ def main_pcfn():
         # # plt.savefig('./fig/pcn/cpr_ps.png', dpi=300)
         # plt.show()
 
-        dl_inpaint_list.append(dl_inpaint)
-        dl_removal_list.append(dl_removal)
-        dl_pcfn_list.append(dl_pcfn)
+        # dl_inpaint_list.append(dl_inpaint)
+        # dl_removal_list.append(dl_removal)
+        # dl_pcfn_list.append(dl_pcfn)
         dl_cfn_list.append(dl_cfn)
         dl_c_list.append(dl_c)
 
-    dl_inpaint_arr = np.asarray(dl_inpaint_list)
-    dl_removal_arr = np.asarray(dl_removal_list)
-    dl_pcfn_arr = np.asarray(dl_pcfn_list)
+    # dl_inpaint_arr = np.asarray(dl_inpaint_list)
+    # dl_removal_arr = np.asarray(dl_removal_list)
+    # dl_pcfn_arr = np.asarray(dl_pcfn_list)
     dl_cfn_arr = np.asarray(dl_cfn_list)
     dl_c_arr = np.asarray(dl_c_list)
 
-    dl_inpaint_avg = np.mean(dl_inpaint_arr, axis=0)
-    dl_inpaint_var = np.var(dl_inpaint_arr, axis=0)
+    # dl_inpaint_avg = np.mean(dl_inpaint_arr, axis=0)
+    # dl_inpaint_var = np.var(dl_inpaint_arr, axis=0)
 
-    dl_removal_avg = np.mean(dl_removal_arr, axis=0)
-    dl_removal_var = np.var(dl_removal_arr, axis=0)
+    # dl_removal_avg = np.mean(dl_removal_arr, axis=0)
+    # dl_removal_var = np.var(dl_removal_arr, axis=0)
 
-    dl_pcfn_avg = np.mean(dl_pcfn_arr, axis=0)
-    dl_pcfn_var = np.var(dl_pcfn_arr, axis=0)
+    # dl_pcfn_avg = np.mean(dl_pcfn_arr, axis=0)
+    # dl_pcfn_var = np.var(dl_pcfn_arr, axis=0)
 
-    dl_cn_avg = np.mean(dl_cfn_arr, axis=0)
-    dl_cn_var = np.var(dl_cfn_arr, axis=0)
+    dl_cfn_avg = np.mean(dl_cfn_arr, axis=0)
+    dl_cfn_var = np.var(dl_cfn_arr, axis=0)
 
     dl_c_avg = np.mean(dl_c_arr, axis=0)
     dl_c_var = np.var(dl_c_arr, axis=0)
@@ -221,14 +212,14 @@ def main_pcfn():
     path_avg_var = Path(f'./avg_var')
     path_avg_var.mkdir(exist_ok=True, parents=True)
 
-    np.save(path_avg_var / Path(f'pcfn_inpaint_avg.npy'), dl_inpaint_avg)
-    np.save(path_avg_var / Path(f'pcfn_inpaint_var.npy'), dl_inpaint_var)
+    # np.save(path_avg_var / Path(f'pcfn_inpaint_avg.npy'), dl_inpaint_avg)
+    # np.save(path_avg_var / Path(f'pcfn_inpaint_var.npy'), dl_inpaint_var)
 
-    np.save(path_avg_var / Path(f'pcfn_removal_avg.npy'), dl_removal_avg)
-    np.save(path_avg_var / Path(f'pcfn_removal_var.npy'), dl_removal_var)
+    # np.save(path_avg_var / Path(f'pcfn_removal_avg.npy'), dl_removal_avg)
+    # np.save(path_avg_var / Path(f'pcfn_removal_var.npy'), dl_removal_var)
 
-    np.save(path_avg_var / Path(f'pcfn_avg.npy'), dl_pcfn_avg)
-    np.save(path_avg_var / Path(f'pcfn_var.npy'), dl_pcfn_var)
+    # np.save(path_avg_var / Path(f'pcfn_avg.npy'), dl_pcfn_avg)
+    # np.save(path_avg_var / Path(f'pcfn_var.npy'), dl_pcfn_var)
 
     np.save(path_avg_var / Path(f'cfn_avg.npy'), dl_cfn_avg)
     np.save(path_avg_var / Path(f'cfn_var.npy'), dl_cfn_var)
@@ -239,18 +230,8 @@ def main_pcfn():
     np.save(path_avg_var / Path(f'diffuse_fg.npy'), dl_f)
 
 
-def plot_dl():
-    lmax = 2000
-    l = np.arange(lmax+1)
-    nside = 2048
-    df = pd.read_csv('../../../../FGSim/FreqBand')
-
-    freq = df.at[7, 'freq']
-    beam = df.at[7, 'beam']
-    print(f'{freq=}, {beam=}')
-    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,0]
-
-    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=2000, fold=0.2)
+def plot_dl_pcn():
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
@@ -319,8 +300,80 @@ def plot_dl():
 
     plt.show()
 
+def plot_dl_pcfn():
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
+    apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
+
+    pcfn_avg = np.load('./avg_var/pcfn_avg.npy')
+    pcfn_var = np.load('./avg_var/pcfn_var.npy')
+
+    cn_avg = np.load(f'./pcn_avg_var/cn_avg.npy')
+    cn_var = np.load(f'./pcn_avg_var/cn_var.npy')
+
+    inpaint_avg = np.load(f'./avg_var/pcfn_inpaint_avg.npy')
+    inpaint_var = np.load(f'./avg_var/pcfn_inpaint_var.npy')
+
+    removal_avg = np.load(f'./avg_var/pcfn_removal_avg.npy')
+    removal_var = np.load(f'./avg_var/pcfn_removal_var.npy')
+
+    delta_ps = pcfn_avg - cn_avg
+    delta_inpaint = inpaint_avg - cn_avg
+    delta_removal = removal_avg - cn_avg
+
+    ratio_ps = delta_ps / cn_avg
+    ratio_inpaint = delta_inpaint / cn_avg
+    ratio_removal = delta_removal / cn_avg
+
+    plt.figure(1)
+    plt.plot(ell_arr, pcfn_avg, label='pcfn_avg')
+    plt.plot(ell_arr, cn_avg, label='cn_avg')
+    plt.plot(ell_arr, inpaint_avg, label='inpaint_avg')
+    plt.plot(ell_arr, removal_avg, label='removal_avg')
+    plt.legend()
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
+    plt.title('average power spectrum')
+
+    plt.figure(2)
+    plt.plot(ell_arr, np.sqrt(pcfn_var), label='pcfn_std')
+    plt.plot(ell_arr, np.sqrt(cn_var), label='cn_std')
+    plt.plot(ell_arr, np.sqrt(inpaint_var), label='inpaint_std')
+    plt.plot(ell_arr, np.sqrt(removal_var), label='removal_std')
+    plt.legend()
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
+    plt.title('standard deviation power spectrum')
+
+    plt.figure(3)
+    plt.plot(ell_arr, delta_ps, label='delta_ps')
+    plt.plot(ell_arr, delta_removal, label='delta_removal')
+    plt.plot(ell_arr, delta_inpaint, label='delta_inpaint')
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$\Delta D_\\ell^{TT} [\\mu K^2]$')
+    plt.title('difference power spectrum')
+    plt.legend()
+
+    plt.figure(4)
+    plt.plot(ell_arr, np.abs(ratio_ps), label='ratio_ps')
+    plt.plot(ell_arr, np.abs(ratio_removal), label='ratio_removal')
+    plt.plot(ell_arr, np.abs(ratio_inpaint), label='ratio_inpaint')
+    plt.plot(ell_arr, np.abs(np.sqrt(cn_var)/np.abs(cn_avg)), label='ratio_cv')
+    plt.semilogy()
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$\Delta D_\\ell^{TT} /D_\\ell^{TT}$')
+    plt.title('power spectrum ratio')
+    plt.legend()
+
+    plt.show()
+
+
 # main_pcn()
 main_pcfn()
-# plot_dl()
+# plot_dl_pcn()
+# plot_dl_pcfn()
 
 
