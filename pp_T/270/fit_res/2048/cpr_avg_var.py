@@ -240,6 +240,35 @@ def main_pcfn():
 
     # np.save(path_avg_var / Path(f'diffuse_fg.npy'), dl_f)
 
+def main_noise_bias():
+    bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
+    apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
+
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    dl_n_list = []
+
+    nstd = np.load(f'../../../../FGSim/NSTDNORTH/2048/{freq}.npy')[0].copy()
+    npix_nstd = np.size(nstd)
+    for rlz_idx in range(1000):
+        print(f'{rlz_idx=}')
+
+        m_noise = nstd * np.random.normal(0, 1, size=(npix_nstd))
+        dl_n = calc_dl_from_scalar_map(m_noise, bl, apo_mask, bin_dl, masked_on_input=False)
+        dl_n_list.append(dl_n)
+
+    dl_n_arr = np.asarray(dl_n_list)
+
+    dl_n_avg = np.mean(dl_n_arr, axis=0)
+    dl_n_var = np.var(dl_n_arr, axis=0)
+
+    path_avg_var = Path(f'./avg_var')
+    path_avg_var.mkdir(exist_ok=True, parents=True)
+
+    np.save(path_avg_var / Path(f'n_avg.npy'), dl_n_avg)
+    np.save(path_avg_var / Path(f'n_var.npy'), dl_n_var)
 
 def plot_dl_pcn():
     l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
@@ -322,6 +351,12 @@ def plot_dl_pcfn():
     pcfn_avg = np.load('./avg_var/pcfn_avg.npy')
     pcfn_var = np.load('./avg_var/pcfn_var.npy')
 
+    n_avg = np.load('./avg_var/n_avg.npy')
+    n_var = np.load('./avg_var/n_var.npy')
+
+    cf_avg = np.load('./avg_var/cf_avg.npy')
+    cf_var = np.load('./avg_var/cf_var.npy')
+
     cfn_avg = np.load('./avg_var/cfn_avg.npy')
     cfn_var = np.load('./avg_var/cfn_var.npy')
 
@@ -349,9 +384,12 @@ def plot_dl_pcfn():
 
     plt.figure(1)
     plt.plot(ell_arr, pcfn_avg, label='pcfn_avg')
+    plt.plot(ell_arr, cf_avg, label='cf_avg')
     plt.plot(ell_arr, cfn_avg, label='cfn_avg')
     plt.plot(ell_arr, c_avg, label='c_avg')
     plt.plot(ell_arr, cn_avg, label='cn_avg')
+    plt.plot(ell_arr, cn_avg-n_avg, label='denoise cn')
+    plt.plot(ell_arr, n_avg, label='n_avg')
     plt.plot(ell_arr, inpaint_avg, label='inpaint_avg')
     plt.plot(ell_arr, removal_avg, label='removal_avg')
     plt.legend()
@@ -394,7 +432,8 @@ def plot_dl_pcfn():
 
 
 # main_pcn()
-main_pcfn()
+# main_pcfn()
+main_noise_bias()
 # plot_dl_pcn()
 # plot_dl_pcfn()
 
