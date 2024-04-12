@@ -281,8 +281,11 @@ def plot_dl_pcn():
     pcn_avg = np.load('./pcn_avg_var/pcn_avg.npy')
     pcn_var = np.load('./pcn_avg_var/pcn_var.npy')
 
-    cn_avg = np.load(f'./pcn_avg_var/cn_avg.npy')
-    cn_var = np.load(f'./pcn_avg_var/cn_var.npy')
+    # cn_avg = np.load(f'./pcn_avg_var/cn_avg.npy')
+    # cn_var = np.load(f'./pcn_avg_var/cn_var.npy')
+
+    c_avg = np.load(f'./avg_var/c_avg.npy')
+    c_var = np.load(f'./avg_var/c_var.npy')
 
     inpaint_avg = np.load(f'./pcn_avg_var/inpaint_avg.npy')
     inpaint_var = np.load(f'./pcn_avg_var/inpaint_var.npy')
@@ -290,19 +293,25 @@ def plot_dl_pcn():
     removal_avg = np.load(f'./pcn_avg_var/removal_avg.npy')
     removal_var = np.load(f'./pcn_avg_var/removal_var.npy')
 
-    delta_ps = pcn_avg - cn_avg
-    delta_inpaint = inpaint_avg - cn_avg
-    delta_removal = removal_avg - cn_avg
+    n_bias_avg = np.load(f'./avg_var/n_avg.npy')
 
-    ratio_ps = delta_ps / cn_avg
-    ratio_inpaint = delta_inpaint / cn_avg
-    ratio_removal = delta_removal / cn_avg
+    denoise_ps = pcn_avg - n_bias_avg
+    denoise_inpaint = inpaint_avg - n_bias_avg
+    denoise_removal = removal_avg - n_bias_avg
+
+    delta_ps = denoise_ps - c_avg
+    delta_inpaint = denoise_inpaint - c_avg
+    delta_removal = denoise_removal - c_avg
+
+    ratio_ps = delta_ps / c_avg
+    ratio_inpaint = delta_inpaint / c_avg
+    ratio_removal = delta_removal / c_avg
 
     plt.figure(1)
-    plt.plot(ell_arr, pcn_avg, label='pcn_avg')
-    plt.plot(ell_arr, cn_avg, label='cn_avg')
-    plt.plot(ell_arr, inpaint_avg, label='inpaint_avg')
-    plt.plot(ell_arr, removal_avg, label='removal_avg')
+    plt.plot(ell_arr, denoise_ps, label='denoise pcn_avg')
+    plt.plot(ell_arr, c_avg, label='c_avg')
+    plt.plot(ell_arr, denoise_inpaint, label='denoise inpaint_avg')
+    plt.plot(ell_arr, denoise_removal, label='denoise removal_avg')
     plt.legend()
     plt.xlabel('$\\ell$')
     plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
@@ -310,95 +319,6 @@ def plot_dl_pcn():
 
     plt.figure(2)
     plt.plot(ell_arr, np.sqrt(pcn_var), label='pcn_std')
-    plt.plot(ell_arr, np.sqrt(cn_var), label='cn_std')
-    plt.plot(ell_arr, np.sqrt(inpaint_var), label='inpaint_std')
-    plt.plot(ell_arr, np.sqrt(removal_var), label='removal_std')
-    plt.legend()
-    plt.xlabel('$\\ell$')
-    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
-    plt.title('standard deviation power spectrum')
-
-    plt.figure(3)
-    plt.plot(ell_arr, delta_ps, label='delta_ps')
-    plt.plot(ell_arr, delta_removal, label='delta_removal')
-    plt.plot(ell_arr, delta_inpaint, label='delta_inpaint')
-    plt.xlabel('$\\ell$')
-    plt.ylabel('$\Delta D_\\ell^{TT} [\\mu K^2]$')
-    plt.title('difference power spectrum')
-    plt.legend()
-
-    plt.figure(4)
-    plt.plot(ell_arr, np.abs(ratio_ps), label='ratio_ps')
-    plt.plot(ell_arr, np.abs(ratio_removal), label='ratio_removal')
-    plt.plot(ell_arr, np.abs(ratio_inpaint), label='ratio_inpaint')
-    plt.plot(ell_arr, np.abs(np.sqrt(cn_var)/np.abs(cn_avg)), label='ratio_cv')
-    plt.semilogy()
-    plt.xlabel('$\\ell$')
-    plt.ylabel('$\Delta D_\\ell^{TT} /D_\\ell^{TT}$')
-    plt.title('power spectrum ratio')
-    plt.legend()
-
-    plt.show()
-
-def plot_dl_pcfn():
-    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
-    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
-    ell_arr = bin_dl.get_effective_ells()
-
-    bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
-    apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
-
-    pcfn_avg = np.load('./avg_var/pcfn_avg.npy')
-    pcfn_var = np.load('./avg_var/pcfn_var.npy')
-
-    n_avg = np.load('./avg_var/n_avg.npy')
-    n_var = np.load('./avg_var/n_var.npy')
-
-    cf_avg = np.load('./avg_var/cf_avg.npy')
-    cf_var = np.load('./avg_var/cf_var.npy')
-
-    cfn_avg = np.load('./avg_var/cfn_avg.npy')
-    cfn_var = np.load('./avg_var/cfn_var.npy')
-
-    cn_avg = np.load(f'./pcn_avg_var/cn_avg.npy')
-    cn_var = np.load(f'./pcn_avg_var/cn_var.npy')
-
-    c_avg = np.load(f'./avg_var/c_avg.npy')
-    c_var = np.load(f'./avg_var/c_var.npy')
-
-    diffuse_fg = np.load(f'./avg_var/diffuse_fg.npy')
-
-    inpaint_avg = np.load(f'./avg_var/pcfn_inpaint_avg.npy')
-    inpaint_var = np.load(f'./avg_var/pcfn_inpaint_var.npy')
-
-    removal_avg = np.load(f'./avg_var/pcfn_removal_avg.npy')
-    removal_var = np.load(f'./avg_var/pcfn_removal_var.npy')
-
-    delta_ps = pcfn_avg - cfn_avg
-    delta_inpaint = inpaint_avg - cfn_avg
-    delta_removal = removal_avg - cfn_avg
-
-    ratio_ps = delta_ps / cfn_avg
-    ratio_inpaint = delta_inpaint / cfn_avg
-    ratio_removal = delta_removal / cfn_avg
-
-    plt.figure(1)
-    plt.plot(ell_arr, pcfn_avg, label='pcfn_avg')
-    plt.plot(ell_arr, cf_avg, label='cf_avg')
-    plt.plot(ell_arr, cfn_avg, label='cfn_avg')
-    plt.plot(ell_arr, c_avg, label='c_avg')
-    plt.plot(ell_arr, cn_avg, label='cn_avg')
-    plt.plot(ell_arr, cn_avg-n_avg, label='denoise cn')
-    plt.plot(ell_arr, n_avg, label='n_avg')
-    plt.plot(ell_arr, inpaint_avg, label='inpaint_avg')
-    plt.plot(ell_arr, removal_avg, label='removal_avg')
-    plt.legend()
-    plt.xlabel('$\\ell$')
-    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
-    plt.title('average power spectrum')
-
-    plt.figure(2)
-    plt.plot(ell_arr, np.sqrt(pcfn_var), label='pcfn_std')
     plt.plot(ell_arr, np.sqrt(c_var), label='c_std')
     plt.plot(ell_arr, np.sqrt(inpaint_var), label='inpaint_std')
     plt.plot(ell_arr, np.sqrt(removal_var), label='removal_std')
@@ -421,7 +341,91 @@ def plot_dl_pcfn():
     plt.plot(ell_arr, np.abs(ratio_removal), label='ratio_removal')
     plt.plot(ell_arr, np.abs(ratio_inpaint), label='ratio_inpaint')
     plt.plot(ell_arr, np.abs(np.sqrt(c_var)/np.abs(c_avg)), label='ratio_cv')
-    plt.plot(ell_arr, np.abs(np.sqrt(cn_var)/np.abs(cn_avg)), label='ratio_cnv')
+    plt.semilogy()
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$\Delta D_\\ell^{TT} /D_\\ell^{TT}$')
+    plt.title('power spectrum ratio')
+    plt.legend()
+
+    plt.show()
+
+def plot_dl_pcfn():
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
+    apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
+
+    pcfn_avg = np.load('./avg_var/pcfn_avg.npy')
+    pcfn_var = np.load('./avg_var/pcfn_var.npy')
+
+    n_bias_avg = np.load('./avg_var/n_avg.npy')
+    n_bias_var = np.load('./avg_var/n_var.npy')
+
+    cf_avg = np.load('./avg_var/cf_avg.npy')
+    cf_var = np.load('./avg_var/cf_var.npy')
+
+    c_avg = np.load(f'./avg_var/c_avg.npy')
+    c_var = np.load(f'./avg_var/c_var.npy')
+
+    diffuse_fg = np.load(f'./avg_var/diffuse_fg.npy')
+
+    inpaint_avg = np.load(f'./avg_var/pcfn_inpaint_avg.npy')
+    inpaint_var = np.load(f'./avg_var/pcfn_inpaint_var.npy')
+
+    removal_avg = np.load(f'./avg_var/pcfn_removal_avg.npy')
+    removal_var = np.load(f'./avg_var/pcfn_removal_var.npy')
+
+    
+    denoise_ps = pcfn_avg - n_bias_avg
+    denoise_inpaint = inpaint_avg - n_bias_avg
+    denoise_removal = removal_avg - n_bias_avg
+
+    delta_ps = denoise_ps - cf_avg
+    delta_inpaint = denoise_inpaint - cf_avg
+    delta_removal = denoise_removal - cf_avg
+
+    ratio_ps = delta_ps / cf_avg
+    ratio_inpaint = delta_inpaint / cf_avg
+    ratio_removal = delta_removal / cf_avg
+
+    plt.figure(1)
+    plt.plot(ell_arr, denoise_ps, label='denoise pcfn_avg')
+    plt.plot(ell_arr, cf_avg, label='cf_avg')
+    plt.plot(ell_arr, c_avg, label='c_avg')
+    plt.plot(ell_arr, denoise_inpaint, label='denoise inpaint_avg')
+    plt.plot(ell_arr, denoise_removal, label='denoise removal_avg')
+    plt.legend()
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
+    plt.title('average power spectrum')
+
+    plt.figure(2)
+    plt.plot(ell_arr, np.sqrt(pcfn_var), label='pcfn_std')
+    plt.plot(ell_arr, np.sqrt(cf_var), label='cf_std')
+    plt.plot(ell_arr, np.sqrt(c_var), label='c_std')
+    plt.plot(ell_arr, np.sqrt(inpaint_var), label='inpaint_std')
+    plt.plot(ell_arr, np.sqrt(removal_var), label='removal_std')
+    plt.legend()
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
+    plt.title('standard deviation power spectrum')
+
+    plt.figure(3)
+    plt.plot(ell_arr, delta_ps, label='delta_ps')
+    plt.plot(ell_arr, delta_removal, label='delta_removal')
+    plt.plot(ell_arr, delta_inpaint, label='delta_inpaint')
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$\Delta D_\\ell^{TT} [\\mu K^2]$')
+    plt.title('difference power spectrum')
+    plt.legend()
+
+    plt.figure(4)
+    plt.plot(ell_arr, np.abs(ratio_ps), label='ratio_ps')
+    plt.plot(ell_arr, np.abs(ratio_removal), label='ratio_removal')
+    plt.plot(ell_arr, np.abs(ratio_inpaint), label='ratio_inpaint')
+    plt.plot(ell_arr, np.abs(np.sqrt(c_var)/np.abs(c_avg)), label='ratio_cv')
     plt.semilogy()
     plt.xlabel('$\\ell$')
     plt.ylabel('$\Delta D_\\ell^{TT} /D_\\ell^{TT}$')
@@ -433,8 +437,8 @@ def plot_dl_pcfn():
 
 # main_pcn()
 # main_pcfn()
-main_noise_bias()
-# plot_dl_pcn()
+# main_noise_bias()
+plot_dl_pcn()
 # plot_dl_pcfn()
 
 
