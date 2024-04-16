@@ -204,7 +204,7 @@ class GetResidual:
             de_ps_map = m_ps_cmb_fg_noise.copy()
             mask_list = []
 
-            for flux_idx in range(166):
+            for flux_idx in range(700):
 
                 print(f'{flux_idx=}')
                 pcn_norm_beam = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/norm_beam.npy')
@@ -284,8 +284,8 @@ def main():
 
     # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
     # obj.psnoise(mask=mask)
-    obj.ps_cmbnoise(mask=mask)
-    # obj.ps_fg_cmbnoise(mask=mask)
+    # obj.ps_cmbnoise(mask=mask)
+    obj.ps_fg_cmbnoise(mask=mask)
 
 main()
 

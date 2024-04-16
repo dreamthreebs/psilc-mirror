@@ -696,7 +696,7 @@ def main():
     obj = FitPointSource(m=m, freq=freq, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
 
     logger.debug(f'{sys.getrefcount(m)-1=}')
-    # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
+    obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
     # obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
 

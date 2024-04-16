@@ -11,12 +11,12 @@ from pathlib import Path
 # Function to be executed in parallel
 freq = 270
 
-path_fits = Path(f'./input/pcn/2sigma')
+path_fits = Path(f'./input/pcfn/2sigma')
 
 path_fits.mkdir(exist_ok=True, parents=True)
 def process_file(rlz_idx):
     print(f'{rlz_idx=}')
-    m = np.load(f'../../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')[0].copy()
+    m = np.load(f'../../../../../fitdata/synthesis_data/2048/PSCMBFGNOISE/{freq}/{rlz_idx}.npy')[0].copy()
     hp.write_map(path_fits / Path(f"{rlz_idx}.fits"), m, overwrite=True)
 
 # Number of processes to use, ideally not more than the number of cores in your machine

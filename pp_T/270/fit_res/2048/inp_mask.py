@@ -35,6 +35,9 @@ def gen_mask_pcn(ori_mask, nside, radius_factor, beam, df):
 
         mask_path = Path(f'./INPAINT/mask/pcn/2sigma')
         mask_path.mkdir(parents=True, exist_ok=True)
+        output_path = Path(f'./INPAINT/output/pcn/2sigma')
+        output_path.mkdir(parents=True, exist_ok=True)
+
         hp.write_map(mask_path / Path(f'{rlz_idx}.fits'), mask, overwrite=True)
 
 def gen_mask_pcfn(ori_mask, nside, radius_factor, beam, df):

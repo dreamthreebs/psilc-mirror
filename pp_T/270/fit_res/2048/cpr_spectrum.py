@@ -32,25 +32,14 @@ def gen_ps_remove_map_pcn(rlz_idx, mask, m_cmb_noise):
     # plt.show()
     return m_all * mask
 
-def gen_ps_remove_map_pcfn(rlz_idx, mask):
+def gen_ps_remove_map_pcfn(rlz_idx, mask, m_cmb_fg_noise):
 
-    m_res = np.load('./ps_cmb_noise_residual/2sigma/map0.npy') # TODO
-    m_cmb_noise = np.load('../../../../fitdata/synthesis_data/2048/CMBNOISE/155/0.npy')[0].copy()
-    m_all = m_res + m_cmb_noise
+    m_res = np.load(f'./ps_cmb_noise_residual/2sigma/map{rlz_idx}.npy')
+    m_all = m_res + m_cmb_fg_noise
     
     # hp.orthview(m_all * mask, rot=[100,50,0], half_sky=True)
     # plt.show()
     return m_all * mask
-
-def gen_inpaint_res_map_pcn(rlz_idx, mask, m_cmb_noise):
-
-    m_inpaint = hp.read_map(f'./INPAINT/output/pcn/2sigma/{rlz_idx}.fits', field=0)
-    m_res = m_inpaint - m_cmb_noise
-    
-    # hp.orthview(m_res * mask, rot=[100,50,0], half_sky=True)
-    # plt.show()
-    return m_res * mask
-
 
 def cpr_spectrum_pcn(bin_mask, apo_mask, bl):
     # bin_dl = nmt.NmtBin.from_edges([20,50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,1150,1200,1250,1300,1350,1400,1450],[50,100,150,200,250,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1050,1100,1150,1200,1250,1300,1350,1400,1450,1500], is_Dell=True)
@@ -63,18 +52,24 @@ def cpr_spectrum_pcn(bin_mask, apo_mask, bl):
 
     m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')[0].copy()
     m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')[0].copy()
+    m_mask = np.load(f'./INPAINT/mask/pcn/2sigma/apodize_mask/0_2.npy')
+    # m_mask1 = np.load(f'./INPAINT/mask/pcn/2sigma/apodize_mask/0.npy')
     m_inpaint = hp.read_map(f'./INPAINT/output/pcn/2sigma/{rlz_idx}.fits', field=0) * bin_mask * apo_mask
-    m_removal = gen_ps_remove_map_pcn(rlz_idx=rlz_idx, mask=bin_mask, m_cmb_noise=m_cn) * apo_mask
+    # m_removal = gen_ps_remove_map_pcn(rlz_idx=rlz_idx, mask=bin_mask, m_cmb_noise=m_cn) * apo_mask
 
     dl_cn = calc_dl_from_scalar_map(m_cn, bl, apo_mask, bin_dl, masked_on_input=False)
-    dl_pcn = calc_dl_from_scalar_map(m_pcn, bl, apo_mask, bin_dl, masked_on_input=False)
-    dl_inpaint = calc_dl_from_scalar_map(m_inpaint, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
-    dl_removal = calc_dl_from_scalar_map(m_removal, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
+    # dl_pcn = calc_dl_from_scalar_map(m_pcn, bl, apo_mask, bin_dl, masked_on_input=False)
+    # dl_inpaint = calc_dl_from_scalar_map(m_inpaint, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
+    # dl_removal = calc_dl_from_scalar_map(m_removal, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=True)
+    dl_apo_ps = calc_dl_from_scalar_map(m_cn, bl, apo_mask=m_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_apo_ps1 = calc_dl_from_scalar_map(m_pcn, bl, apo_mask=m_mask1, bin_dl=bin_dl, masked_on_input=False)
 
-    plt.plot(ell_arr, dl_pcn, label='ps cmb noise', marker='o')
+    # plt.plot(ell_arr, dl_pcn, label='ps cmb noise', marker='o')
     plt.plot(ell_arr, dl_cn, label='cmb noise', marker='o')
-    plt.plot(ell_arr, dl_inpaint, label='inpaint', marker='o')
-    plt.plot(ell_arr, dl_removal, label='removal', marker='o')
+    # plt.plot(ell_arr, dl_inpaint, label='inpaint', marker='o')
+    # plt.plot(ell_arr, dl_removal, label='removal', marker='o')
+    plt.plot(ell_arr, dl_apo_ps, label='apo mask ps', marker='o')
+    # plt.plot(ell_arr, dl_apo_ps1, label='apo mask ps 1', marker='o')
 
 
     plt.xlabel('$\\ell$')
@@ -124,6 +119,51 @@ def cpr_pseudo_spectrum_pcn(bin_mask, apo_mask, bl):
     plt.legend()
     # plt.savefig('./fig/pcn/cpr_ps.png', dpi=300)
     plt.show()
+
+def cpr_pseudo_spectrum_pcfn(bin_mask, apo_mask, bl):
+
+    lmax = 2000
+    l = np.arange(lmax+1)
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
+
+    m_ps_cmb_fg_noise = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBFGNOISE/{freq}/0.npy')[0]
+    m_cmb_fg_noise = np.load(f'../../../../fitdata/synthesis_data/2048/CMBFGNOISE/{freq}/0.npy')[0]
+    m_cmb_noise = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0]
+
+    m_inpaint = hp.read_map('./INPAINT/output/pcfn/2sigma/0.fits', field=0) * bin_mask * apo_mask
+    m_removal = gen_ps_remove_map_pcfn(rlz_idx=0, mask=bin_mask, m_cmb_fg_noise=m_cmb_fg_noise) * apo_mask
+
+    dl_inpaint = l * (l+1) * hp.anafast(m_inpaint, lmax=lmax) / (2 * np.pi) / bl**2
+    dl_removal = l * (l+1) * hp.anafast(m_removal, lmax=lmax) / (2 * np.pi) / bl**2
+    dl_pcfn =  l * (l+1) * hp.anafast(m_ps_cmb_fg_noise*apo_mask, lmax=lmax) / (2 * np.pi) / bl**2
+    dl_cfn =  l * (l+1) * hp.anafast(m_cmb_fg_noise*apo_mask, lmax=lmax) / (2 * np.pi) / bl**2
+    dl_cn =  l * (l+1) * hp.anafast(m_cmb_noise*apo_mask, lmax=lmax) / (2 * np.pi) / bl**2
+
+    delta_dl_ps = dl_pcfn - dl_cfn
+    delta_dl_inpaint = dl_inpaint - dl_cfn
+    delta_dl_removal = dl_removal - dl_cfn
+
+
+    plt.title(f'{freq}GHz')
+    plt.plot(l, dl_inpaint, label='inpaint')
+    plt.plot(l, dl_removal, label='removal')
+    plt.plot(l, dl_pcfn, label='pcfn')
+    plt.plot(l, dl_cfn, label='cfn')
+    plt.plot(l, dl_cn, label='cn')
+
+
+    plt.plot(l, delta_dl_ps, label='$\\Delta$ dl ps')
+    plt.plot(l, delta_dl_inpaint, label='$\\Delta$ dl inpaint')
+    plt.plot(l, delta_dl_removal, label='$\\Delta$ dl removal')
+    # plt.semilogy()
+
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$D_\\ell^{TT} [\\mu K^2]$')
+
+    plt.legend()
+    # plt.savefig('./fig/pcn/cpr_ps.png', dpi=300)
+    plt.show()
+
 
 
 
@@ -196,6 +236,7 @@ if __name__ == '__main__':
 
 
     cpr_spectrum_pcn(bin_mask, apo_mask, bl)
+    # cpr_pseudo_spectrum_pcfn(bin_mask, apo_mask, bl)
     # cpr_spectrum_pcfn(bin_mask, apo_mask, bl)
 
 

@@ -195,7 +195,6 @@ class GetResidual:
 
     def ps_fg_cmbnoise(self, mask):
 
-        overlap_arr = np.load('./overlap_arr.npy')
         for idx_rlz in range(100):
             print(f'{idx_rlz=}')
 
@@ -204,16 +203,13 @@ class GetResidual:
             de_ps_map = m_ps_cmb_fg_noise.copy()
             mask_list = []
 
-            for flux_idx in range(166):
+            for flux_idx in range(136):
 
                 print(f'{flux_idx=}')
                 pcn_norm_beam = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/norm_beam.npy')
                 pcn_norm_error = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/norm_error.npy')
                 print(f'{pcn_norm_beam[idx_rlz]=}, {pcn_norm_error[idx_rlz]=}')
 
-                if np.in1d(flux_idx, overlap_arr):
-                    print(f'this point overlap with other point')
-                    continue
 
                 if pcn_norm_beam[idx_rlz] < 2 * pcn_norm_error[idx_rlz]:
                     print(f'smaller than threshold, break')
@@ -284,8 +280,8 @@ def main():
 
     # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
     # obj.psnoise(mask=mask)
-    obj.ps_cmbnoise(mask=mask)
-    # obj.ps_fg_cmbnoise(mask=mask)
+    # obj.ps_cmbnoise(mask=mask)
+    obj.ps_fg_cmbnoise(mask=mask)
 
 main()
 

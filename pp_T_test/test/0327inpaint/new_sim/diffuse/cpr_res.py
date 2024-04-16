@@ -76,12 +76,12 @@ def see_avg_var():
     inp_var = np.load('./avg_var/inp_var.npy')
     pcn_var = np.load('./avg_var/pcn_var.npy')
 
-    inp_mean_isap = np.load('../../test_bias/avg_var/inp_mean.npy')
+    # inp_mean_isap = np.load('../../test_bias/avg_var/inp_mean.npy')
 
     inp_res = inp_mean - cn_mean
     # inp_res_1 = inp_mean_1 - cn_mean
     # inp_res_2 = inp_mean_2 - cn_mean
-    inp_res_isap = inp_mean_isap - cn_mean
+    # inp_res_isap = inp_mean_isap - cn_mean
     # ps_res = pcn_mean - cn_mean
 
     # plt.plot(dl_pcn_rlz, label='pcn')
@@ -95,13 +95,13 @@ def see_avg_var():
     plt.plot(inp_res/bl**2, label='diffuse inp res')
     # plt.plot(inp_res_1/bl**2, label='diffuse 2000 inp res',linestyle=':')
     # plt.plot(inp_res_2/bl**2, label='diffuse 1000 inp res')
-    plt.plot(inp_res_isap/bl**2, label='isap inp res')
+    # plt.plot(inp_res_isap/bl**2, label='isap inp res')
     plt.plot(np.sqrt(cn_var)/bl**2, label='cv')
 
     # plt.plot(ps_res/bl**2, label='ps res')
 
 
-    plt.semilogy()
+    # plt.semilogy()
     plt.xlim(2,1000)
     plt.ylim(-30,300)
     # plt.ylim(-50,7000)

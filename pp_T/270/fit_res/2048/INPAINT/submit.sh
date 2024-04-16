@@ -27,7 +27,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=18
 #SBATCH --mem=80GB
-#SBATCH --exclude=aliws[021-040],aliws005
+#SBATCH --exclude=aliws005
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 
@@ -41,8 +41,8 @@
 
 date +%m-%d_%H-%M
 number="0"
-mrs_alm_inpainting -v ./input/pcn/2sigma/${number}.fits ./mask/pcn/2sigma/${number}.fits ./output/pcn/2sigma/${number}.fits
-
+# mrs_alm_inpainting -v ./input/pcn/2sigma/${number}.fits ./mask/pcn/2sigma/${number}.fits ./output/pcn/2sigma/${number}.fits
+mrs_alm_inpainting -v ./input/pcfn/2sigma/${number}.fits ./mask/pcfn/2sigma/${number}.fits ./output/pcfn/2sigma/${number}.fits
 
 
 date +%m-%d_%H-%M
