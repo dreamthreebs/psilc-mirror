@@ -6,7 +6,7 @@ nside = 512
 npix  = hp.nside2npix(nside)
 m = np.zeros((3, npix))
 lon = 1
-colat = 50
+colat = 70
 idx = hp.ang2pix(nside, np.deg2rad(colat), np.deg2rad(lon))
 
 # m[:, idx] = np.random.uniform(-10, 10, 3)
