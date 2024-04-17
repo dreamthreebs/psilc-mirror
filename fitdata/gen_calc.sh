@@ -17,7 +17,7 @@ for i in {0..49}; do
 
   # 修改新文件的指定行
   # 注意：-i'' 对于GNU sed是直接修改文件，但在macOS下需要提供一个扩展名或者传递空字符串
-  sed -i'' "108s/.*/    n_rlz_begin = $start/" $new_file
-  sed -i'' "109s/.*/    n_rlz_end = $end/" $new_file
+  sed -i'' "120s/.*/    n_rlz_begin = $start/" $new_file
+  sed -i'' "121s/.*/    n_rlz_end = $end/" $new_file
 done
 

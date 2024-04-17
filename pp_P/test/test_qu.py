@@ -26,7 +26,8 @@ hp.gnomview(healpy_m[2], rot=(lon, 90-colat), sub=122)
 
 # smoothing by lugwid
 
-P = m[1, idx] + 1j * m[2, idx]
+# P = m[1, idx] + 1j * m[2, idx]
+P = m[1, idx]
 _, iphi = hp.pix2ang(nside, idx)
 P = P * np.exp(2j * iphi)
 

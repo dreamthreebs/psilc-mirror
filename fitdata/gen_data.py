@@ -61,6 +61,18 @@ class GenerateData:
             noise = nstd * np.random.normal(0, 1, size=(nstd.shape[0],nstd.shape[1]))
             np.save(f'./2048/NOISE/{freq}/{i}.npy', noise)
 
+    def gen_NOISE_LOW(self, freq:'GHz'):
+        print(f'begin gen noise ...')
+
+        path_noise = Path(f'./2048/NOISE_LOW/{freq}')
+        path_noise.mkdir(parents=True, exist_ok=True)
+
+        nstd = np.load(f'../FGSim/NSTDNORTH/2048/{freq}.npy')
+
+        for i in range(self.n_rlz_begin, self.n_rlz_end):
+            print(f'{i=}')
+            noise = nstd / 10 * np.random.normal(0, 1, size=(nstd.shape[0],nstd.shape[1]))
+            np.save(f'./2048/NOISE_LOW/{freq}/{i}.npy', noise)
 
     def downgrade_inside(self, directory:str, nside_out:int, freq:'GHz'):
         save_path = os.path.join(f'./{nside_out}', directory)
@@ -102,16 +114,17 @@ if __name__ == "__main__":
     n_rlz = 50
     df = pd.read_csv('../FGSim/FreqBand')
 
-    freq = df.at[0, "freq"]
-    beam = df.at[0, "beam"]
+    freq = df.at[7, "freq"]
+    beam = df.at[7, "beam"]
     print(f'{freq=}, {beam=}')
     n_rlz_begin = 0
-    n_rlz_end = 2
+    n_rlz_end = 100
     obj = GenerateData(n_rlz_begin=n_rlz_begin, n_rlz_end=n_rlz_end)
     # obj.gen_PS(freq=freq)
     # obj.gen_FG(freq=freq)
     # obj.gen_CMB(freq=freq, beam=beam)
-    obj.gen_NOISE(freq=freq)
+    # obj.gen_NOISE(freq=freq)
+    obj.gen_NOISE_LOW(freq=freq)
 
     # obj.downgrade_inside(directory='NOISE', nside_out=256, freq=freq)
     # obj.downgrade_one_map(directory='PS', nside_out=1024, freq=freq)
