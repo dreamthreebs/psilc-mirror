@@ -11,6 +11,7 @@
 /**/run_pcfn_*.py
 /**/submit_pcn_*.sh
 /**/submit_pcfn_*.sh
+/**/*.so
 tags
 
 

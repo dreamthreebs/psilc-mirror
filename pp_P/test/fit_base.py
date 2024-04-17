@@ -68,6 +68,7 @@ class FitPointSource:
         self.ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
 
         self.ipix_fit = hp.query_disc(nside=self.nside, vec=self.ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
+        np.save(f'ipix_fit.npy', self.ipix_fit)
 
         ## if you want the ipix_fit to range from near point to far point, add the following code
         # self.vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=self.ipix_fit.astype(int))).astype(np.float64)
@@ -147,7 +148,8 @@ class FitPointSource:
 
     def calc_definite_fixed_cmb_cov(self):
 
-        cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+        # cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+        cmb_cov_path = Path(f'./Cov_T.npy')
         cov = np.load(cmb_cov_path)
         logger.debug(f'{cov=}')
         eigenval, eigenvec = np.linalg.eigh(cov)
@@ -669,8 +671,8 @@ def main():
 
     logger.info(f'time for fitting = {time.perf_counter()-time0}')
     nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0]
-    df_mask = pd.read_csv(f'../mask/mask_csv/{freq}.csv')
-    df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
+    df_mask = pd.read_csv(f'../../pp_T/mask/mask_csv/{freq}.csv')
+    df_ps = pd.read_csv(f'../../pp_T/mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
     beam = 9
@@ -687,7 +689,7 @@ def main():
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    flux_idx = 596
+    flux_idx = 1
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
@@ -698,15 +700,15 @@ def main():
     logger.debug(f'{sys.getrefcount(m)-1=}')
     # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
-    # obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
+    # obj.calc_covariance_matrix(mode='cmb+noise', cmb_cov_fold='../cmb_cov_calc/cov')
 
     # obj.calc_C_theta_itp_func()
     # obj.calc_C_theta(save_path='./cov_r_2.0/2048')
     # obj.calc_precise_C_theta()
 
     # obj.calc_cmb_cov()
-    # obj.calc_definite_fixed_cmb_cov()
-    # obj.calc_covariance_matrix(mode='cmb+noise')
+    obj.calc_definite_fixed_cmb_cov()
+    obj.calc_covariance_matrix(mode='cmb+noise')
     # obj.calc_covariance_matrix(mode='noise')
 
     obj.fit_all(cov_mode='cmb+noise')
