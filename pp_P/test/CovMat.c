@@ -320,7 +320,9 @@ void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int 
 			z = DotProd(ri, rj);
 //			if(i==j) printf("z=%.9f\n", z);
 			Calc_M(l, Cls, M, PLZ, P2LZ, z, lmax, nl);
-			Calc_alpha(ri, rj, rij, rji, rsi, rsj, alpha, zvec);
+
+			/* Calc_alpha(ri, rj, rij, rji, rsi, rsj, alpha, zvec); */
+
 //			printf("alphaij=%f\n", alpha[0]);
 //			printf("alphaji=%f\n", alpha[1]);
 //			getchar();
@@ -331,13 +333,16 @@ void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int 
 //				printf("alphaji=%f\n", alpha[1]);
 //				getchar();
 //			}
-			RotMat(alpha[0], Rij);
-			RotMat(alpha[1], Rji);
+			/* RotMat(alpha[0], Rij); */
+			/* RotMat(alpha[1], Rji); */
+
 			//RotMat(0., Rij);
 			//RotMat(0., Rji);
-			MatT(Rji);
-			Mat_Mul(M, Rji, M1);
-			Mat_Mul(Rij, M1, covmatij);
+      //
+			/* MatT(Rji); */
+			/* Mat_Mul(M, Rji, M1); */
+			/* Mat_Mul(Rij, M1, covmatij); */
+
 //			if(i==j){
 //				printM(M, "M");
 //				getchar();
@@ -358,7 +363,8 @@ void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int 
 				for(kl=0;kl<3;kl++)
 				{
 					//*(covmat+(3*i+kr)*3*npix+(3*j+kl)) = *(covmatij+3*kr+kl);
-					*(covmat+(3*i+kr)*3*npix+(3*j+kl)) = covmatij[kr][kl];
+					/* *(covmat+(3*i+kr)*3*npix+(3*j+kl)) = covmatij[kr][kl]; */
+					*(covmat+(3*i+kr)*3*npix+(3*j+kl)) = M[kr][kl];
 				}
 			}
 		}

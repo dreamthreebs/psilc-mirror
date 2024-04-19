@@ -76,6 +76,7 @@ class FitPolPS:
         self.ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
 
         self.ipix_fit = hp.query_disc(nside=self.nside, vec=self.ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
+        np.save(f'ipix_fit_qu.npy', self.ipix_fit)
 
         ## if you want the ipix_fit to range from near point to far point, add the following code
         # self.vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=self.ipix_fit.astype(int))).astype(np.float64)
@@ -98,6 +99,78 @@ class FitPolPS:
         logger.info(f'{freq=}, {beam=}, {flux_idx=}, {radius_factor=}, lon={self.lon}, lat={self.lat}, ndof={self.ndof}')
         logger.info(f'iflux={self.iflux=}, {self.qflux=}, {self.uflux=}')
         logger.info(f'i_amp={self.i_amp}, q_amp={self.q_amp}, u_amp={self.u_amp}')
+
+    def calc_definite_fixed_cmb_cov(self):
+
+        # cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+        cmb_cov_path = Path(f'./Cov_QU.npy')
+        # cmb_cov_path = Path(f'./exp_cov_QU.npy')
+        cov = np.load(cmb_cov_path)
+        logger.debug(f'{cov=}')
+        eigenval, eigenvec = np.linalg.eigh(cov)
+        logger.debug(f'{eigenval=}')
+        eigenval[eigenval < 0] = 1e-6
+
+        reconstructed_cov = np.dot(eigenvec * eigenval, eigenvec.T)
+        reconstructed_eigenval,_ = np.linalg.eigh(reconstructed_cov)
+        logger.debug(f'{reconstructed_eigenval=}')
+        logger.debug(f'{np.max(np.abs(reconstructed_cov-cov))=}')
+        semi_def_cmb_cov = Path(f'semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}')
+        semi_def_cmb_cov.mkdir(parents=True, exist_ok=True)
+        np.save(semi_def_cmb_cov / Path(f'{self.flux_idx}.npy'), reconstructed_cov)
+
+    def calc_covariance_matrix(self, mode='cmb+noise'):
+
+        if mode == 'noise':
+            nstd_q2 = (self.nstd_q**2)[self.ipix_fit].copy()
+            nstd_u2 = (self.nstd_u**2)[self.ipix_fit].copy()
+            nstd2 = np.concatenate([nstd_q2, nstd_u2])
+            logger.debug(f'{nstd2.shape=}')
+
+            cov = np.zeros((self.ndof,self.ndof))
+
+            for i in range(self.ndof):
+                cov[i,i] = cov[i,i] + nstd2[i]
+            logger.debug(f'{cov=}')
+            self.inv_cov = np.linalg.inv(cov)
+            path_inv_cov = Path(f'inv_cov_{self.nside}/r_{self.radius_factor}') / Path(mode)
+            path_inv_cov.mkdir(parents=True, exist_ok=True)
+            np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
+            return None
+
+        cmb_cov_path = Path(f'./semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+        logger.info(f'{cmb_cov_path=}')
+
+        cov = np.load(cmb_cov_path)
+        logger.debug(f'{cov.shape=}')
+        cov  = cov + self.epsilon * np.eye(cov.shape[0])
+
+        if mode == 'cmb':
+            # self.inv_cov = np.linalg.inv(cov)
+            self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
+            path_inv_cov = Path(f'inv_cov_{self.nside}/r_{self.radius_factor}') / Path(mode)
+            path_inv_cov.mkdir(parents=True, exist_ok=True)
+            np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
+            return None
+
+        if mode == 'cmb+noise':
+            nstd_q2 = (self.nstd_q**2)[self.ipix_fit].copy()
+            nstd_u2 = (self.nstd_u**2)[self.ipix_fit].copy()
+            nstd2 = np.concatenate([nstd_q2, nstd_u2])
+            logger.debug(f'{nstd2.shape=}')
+            logger.debug(f'{cov=}')
+            for i in range(self.ndof):
+                cov[i,i] = cov[i,i] + nstd2[i]
+            logger.debug(f'{nstd2=}')
+            logger.debug(f'{cov=}')
+            # self.inv_cov = np.linalg.inv(cov)
+            self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
+            # self.inv_cov = np.linalg.pinv(cov)
+            path_inv_cov = Path(f'inv_cov_{self.nside}/r_{self.radius_factor}') / Path(mode)
+            path_inv_cov.mkdir(parents=True, exist_ok=True)
+            np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
+            return None
+
 
     def flux2norm_beam(self, flux):
         # from mJy to muK_CMB to norm_beam
@@ -276,10 +349,10 @@ class FitPolPS:
             # error_estimate = np.sum(y_model**2 / y_err**2)
             # print(f"{error_estimate=}")
 
-            # z = (y_diff) @ self.inv_cov @ (y_diff)
-            # return z
-            z = (y_diff) / y_err
-            return np.sum(z**2)
+            z = (y_diff) @ self.inv_cov @ (y_diff)
+            return z
+            # z = (y_diff) / y_err
+            # return np.sum(z**2)
 
         def lsq_params(*args):
             # args is expected to be in the format:
@@ -303,6 +376,7 @@ class FitPolPS:
                 ctr_vec = np.array(hp.ang2vec(theta=lon, phi=lat, lonlat=True))
         
                 theta = hp.rotator.angdist(dir1=ctr_vec, dir2=vec_around)
+
                 thetas.append(norm_beam / (2 * np.pi * self.sigma**2) * np.exp(- (theta)**2 / (2 * self.sigma**2)))
         
             def model():
@@ -318,7 +392,7 @@ class FitPolPS:
             logger.debug(f'{z=}')
             return z
 
-        # self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.flux_idx}.npy')
+        self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.flux_idx}.npy')
 
         ctr0_vec = self.ctr0_vec
         ipix_fit = self.ipix_fit
@@ -409,11 +483,13 @@ class FitPolPS:
 
 
 def main():
-    freq =270
+    freq = 270
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
-    m_q = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[1].copy()
-    m_u = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[2].copy()
+    # m_q = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[1].copy()
+    # m_u = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[2].copy()
+    m_q = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/5.npy')[1].copy()
+    m_u = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/5.npy')[2].copy()
     # m_q = np.load(f'../../fitdata/2048/NOISE/{freq}/0.npy')[1].copy()
     # m_u = np.load(f'../../fitdata/2048/NOISE/{freq}/0.npy')[2].copy()
     # m = np.load(f'../../fitdata/2048/PS/270/ps.npy')[1]
@@ -451,13 +527,9 @@ def main():
 
     # obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
 
-    # obj.calc_C_theta_itp_func()
-    # obj.calc_C_theta(save_path='./cov_r_2.0/2048')
-    # obj.calc_precise_C_theta()
-
     # obj.calc_cmb_cov()
-    # obj.calc_definite_fixed_cmb_cov()
-    # obj.calc_covariance_matrix(mode='cmb+noise')
+    obj.calc_definite_fixed_cmb_cov()
+    obj.calc_covariance_matrix(mode='cmb+noise')
     # obj.calc_covariance_matrix(mode='noise')
 
     obj.fit_all(cov_mode='cmb+noise')

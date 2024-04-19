@@ -68,7 +68,7 @@ class FitPointSource:
         self.ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
 
         self.ipix_fit = hp.query_disc(nside=self.nside, vec=self.ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
-        np.save(f'ipix_fit.npy', self.ipix_fit)
+        # np.save(f'ipix_fit.npy', self.ipix_fit)
 
         ## if you want the ipix_fit to range from near point to far point, add the following code
         # self.vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=self.ipix_fit.astype(int))).astype(np.float64)
@@ -150,6 +150,7 @@ class FitPointSource:
 
         # cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
         cmb_cov_path = Path(f'./Cov_T.npy')
+        # cmb_cov_path = Path(f'./exp_cov_I.npy')
         cov = np.load(cmb_cov_path)
         logger.debug(f'{cov=}')
         eigenval, eigenvec = np.linalg.eigh(cov)

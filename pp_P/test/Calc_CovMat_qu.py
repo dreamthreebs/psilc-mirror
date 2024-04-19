@@ -15,11 +15,12 @@ def Calc_CovMat(l_range, nside, opt='E', mskopt=True):
     lmax = 2000
     beam = 9
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=10000, pol=True)
-    bl = bl[2:nl+2,:]
-    Cl_TT = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,0] * bl[:,0]**2
-    Cl_EE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,1] * bl[:,1]**2
-    Cl_BB = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,2] * bl[:,2]**2
-    Cl_TE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,3] * bl[:,3]**2
+    bl = bl[0:nl,:]
+    print(f'{bl[0:10,0]=}')
+    Cl_TT = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[0:nl,0] * bl[:,0]**2
+    Cl_EE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[0:nl,1] * bl[:,1]**2
+    Cl_BB = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[0:nl,2] * bl[:,2]**2
+    Cl_TE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[0:nl,3] * bl[:,3]**2
 
     # bl = hp.gauss_beam(0.25*np.pi/180, lmax=10000)
     # bl = bl[2:nl+2]
