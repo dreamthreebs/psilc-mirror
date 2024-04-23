@@ -13,14 +13,17 @@ def Calc_CovMat(l_range, nside, opt='E', mskopt=True):
 
 
     lmax = 2000
-    beam = 9
+    beam = 17
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=10000, pol=True)
-    bl = bl[0:nl,:]
+    bl = bl[2:nl+2,:]
     print(f'{bl[0:10,0]=}')
-    Cl_TT = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[0:nl,0] * bl[:,0]**2
-    Cl_EE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[0:nl,1] * bl[:,1]**2
-    Cl_BB = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[0:nl,2] * bl[:,2]**2
-    Cl_TE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[0:nl,3] * bl[:,3]**2
+    print(f'{bl[0:10,1]=}')
+    print(f'{bl[0:10,2]=}')
+    print(f'{bl[0:10,3]=}')
+    Cl_TT = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,0] * bl[:,0]**2
+    Cl_EE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,1] * bl[:,1]**2
+    Cl_BB = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,2] * bl[:,2]**2
+    Cl_TE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,3] * bl[:,3]**2
 
     # bl = hp.gauss_beam(0.25*np.pi/180, lmax=10000)
     # bl = bl[2:nl+2]
@@ -37,7 +40,7 @@ def Calc_CovMat(l_range, nside, opt='E', mskopt=True):
     elif opt=='T':
         Cls = np.array([Cl, nCl, nCl, nCl, nCl])
     elif opt=='all':
-        Cls = np.array([Cl_TT, Cl_EE, Cl_BB, nCl, nCl])
+        Cls = np.array([Cl_TT, Cl_EE, Cl_BB, Cl_TE, nCl])
 
     if mskopt ==True:
     	pixind = Mask_Operation(nside)
@@ -72,37 +75,30 @@ def is_pos_def(M):
 def check_symmetric(m, rtol=1e-05, atol=1e-05):
 	return np.allclose(m, m.T, rtol=rtol, atol=atol)
 
-def combine_matrices(matrix_list):
-    # Ensure all matrices have the same shape
-    shape = matrix_list[0].shape
-    assert all(matrix.shape == shape for matrix in matrix_list), "All matrices must have the same shape"
-
-    # Stack matrices to form rows
-    top_row = np.hstack((matrix_list[0], matrix_list[1]))
-    print(f'{top_row.shape=}')
-    bottom_row = np.hstack((matrix_list[2], matrix_list[3]))
-    print(f'{bottom_row.shape=}')
-
-    # Stack rows to form the combined matrix
-    combined_matrix = np.vstack((top_row, bottom_row))
-    print(f'{combined_matrix.shape=}')
-
-    return combined_matrix
-
-def ChooseMat(M):
+def ChooseMat(M, opt):
     indi = np.arange(0, len(M), 3)
     indq = np.arange(1, len(M)+1, 3)
     indu = np.arange(2, len(M)+2, 3)
     print(f'{indi=}')
     print(f'{indq=}')
     print(f'{indu=}')
+    print(f'{len(M)=}')
 
-    QQ = M[1:len(M)+1:3, 1:len(M)+1:3]
-    QU = np.zeros_like(QQ)
-    UQ = np.zeros_like(QQ)
-    UU = M[2:len(M)+2:3, 2:len(M)+2:3]
-    MP = np.block([[QQ,QU],[UQ,UU]])
-    # MP = combine_matrices([QQ, QU, UQ, UU])
+    if opt=='all':
+        QQ = M[1:len(M)+1:3, 1:len(M)+1:3]
+        print(f'{QQ.shape=}')
+        QU = M[1:len(M)+1:3, 2:len(M)+2:3]
+        # QU = np.zeros_like(QQ)
+        UQ = M[2:len(M)+2:3, 1:len(M)+1:3]
+        # UQ = np.zeros_like(QQ)
+        UU = M[2:len(M)+2:3, 2:len(M)+2:3]
+        MP = np.block([[QQ,QU],[UQ,UU]])
+        # MP = combine_matrices([QQ, QU, UQ, UU])
+    if opt=='QQ':
+        MP = M[1:len(M)+1:3, 1:len(M)+1:3]
+    if opt=='UU':
+        MP = M[2:len(M)+2:3, 2:len(M)+2:3]
+
     return MP
 
 if __name__=='__main__':
@@ -114,12 +110,13 @@ if __name__=='__main__':
     print(f'{CovMat.shape=}')
     # CovMatT = ChooseMat(CovMat, opt='T')
     # CovMatPol = ChooseMat(CovMat, opt='Pol')
-    CovMatPol = ChooseMat(CovMat)
+    CovMatPol = ChooseMat(CovMat, opt='UU')
     # CovMatPol = extract_elements(CovMat)
     # print(f'{CovMatT.shape=}')
     print(f'{CovMatPol.shape=}')
     # np.save('Cov_T.npy', CovMatT)
-    np.save('Cov_QU.npy', CovMatPol)
+    # np.save('Cov_QU.npy', CovMatPol)
+    np.save('Cov_U.npy', CovMatPol)
     
     print(CovMat[:9,:9])
     # np.set_printoptions(threshold=np.inf)

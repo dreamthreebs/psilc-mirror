@@ -44,7 +44,7 @@ def Calc_CovMat(l_range, nside, opt='E', mskopt=True):
     else:
     	# npix = hp.nside2npix(nside)
     	# pixind = np.arange(npix)
-        pixind = np.load('./ipix_fit_qu.npy')
+        pixind = np.load('./ipix_fit.npy')
 
     # print('npix=', npix)
     npix = len(pixind)
@@ -71,23 +71,6 @@ def is_pos_def(M):
 def check_symmetric(m, rtol=1e-05, atol=1e-05):
 	return np.allclose(m, m.T, rtol=rtol, atol=atol)
 
-def combine_matrices(matrix_list):
-    # Ensure all matrices have the same shape
-    shape = matrix_list[0].shape
-    assert all(matrix.shape == shape for matrix in matrix_list), "All matrices must have the same shape"
-
-    # Stack matrices to form rows
-    top_row = np.hstack((matrix_list[0], matrix_list[1]))
-    print(f'{top_row.shape=}')
-    bottom_row = np.hstack((matrix_list[2], matrix_list[3]))
-    print(f'{bottom_row.shape=}')
-
-    # Stack rows to form the combined matrix
-    combined_matrix = np.vstack((top_row, bottom_row))
-    print(f'{combined_matrix.shape=}')
-
-    return combined_matrix
-
 def ChooseMat(M):
     indi = np.arange(0, len(M), 3)
     indq = np.arange(1, len(M)+1, 3)
@@ -95,14 +78,8 @@ def ChooseMat(M):
     print(f'{indi=}')
     print(f'{indq=}')
     print(f'{indu=}')
-
-    QQ = M[1:len(M)+1:3, 1:len(M)+1:3]
-    QU = np.zeros_like(QQ)
-    UQ = np.zeros_like(QQ)
-    UU = M[2:len(M)+2:3, 2:len(M)+2:3]
-    MP = np.block([[QQ,QU],[UQ,UU]])
-    # MP = combine_matrices([QQ, QU, UQ, UU])
-    return MP
+    TT = M[0:len(M):3, 0:len(M):3]
+    return TT
 
 if __name__=='__main__':
     l_range = np.arange(2,2000)
@@ -111,22 +88,22 @@ if __name__=='__main__':
     CovMat = Calc_CovMat(l_range, nside, opt='all', mskopt=mskopt)
     print(f'{len(CovMat)=}')
     print(f'{CovMat.shape=}')
-    # CovMatT = ChooseMat(CovMat, opt='T')
+    CovMatT = ChooseMat(CovMat)
     # CovMatPol = ChooseMat(CovMat, opt='Pol')
-    CovMatPol = ChooseMat(CovMat)
+    # CovMatPol = ChooseMat(CovMat)
     # CovMatPol = extract_elements(CovMat)
-    # print(f'{CovMatT.shape=}')
-    print(f'{CovMatPol.shape=}')
+    print(f'{CovMatT.shape=}')
+    # print(f'{CovMatPol.shape=}')
     # np.save('Cov_T.npy', CovMatT)
-    np.save('Cov_QU.npy', CovMatPol)
+    np.save('Cov_T_another.npy', CovMatT)
     
     print(CovMat[:9,:9])
     # np.set_printoptions(threshold=np.inf)
     # print(CovMatPol[196:392,0:196])
 
     # print(CovMatT)
-    print(check_symmetric(CovMatPol))
-    print(is_pos_def(CovMatPol))
+    # print(check_symmetric(CovMatPol))
+    # print(is_pos_def(CovMatPol))
     #eigvals = np.diag(CovMatT)
     #fig = plt.figure()
     #ax = fig.add_subplot(111)

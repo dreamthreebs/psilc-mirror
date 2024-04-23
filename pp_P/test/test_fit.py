@@ -261,7 +261,7 @@ class FitPolPS:
 
             def model():
                 profile = 1 / (2 * np.pi * self.sigma**2) * np.exp(- (theta)**2 / (2 * self.sigma**2))
-                P = (q_amp + 1j * 1e-3) * np.exp(2j * self.lon_rad)
+                P = (q_amp + 1j * 1e-4) * np.exp(2j * self.lon_rad)
                 lugwid_P = P * profile
                 QU = lugwid_P * np.exp(-2j * self.phi_around)
                 Q = QU.real
@@ -457,9 +457,9 @@ def main():
     # obj.calc_covariance_matrix(mode='cmb+noise')
     # obj.calc_covariance_matrix(mode='noise')
 
-    obj.fit_all(cov_mode='cmb+noise')
+    # obj.fit_all(cov_mode='cmb+noise')
     # obj.fit_all(cov_mode='noise', mode='check_sigma')
-    # obj.fit_all(cov_mode='noise')
+    obj.fit_all(cov_mode='noise')
 
 
 if __name__ == '__main__':

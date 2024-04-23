@@ -6,7 +6,7 @@ nside = 512
 npix  = hp.nside2npix(nside)
 m = np.zeros((3, npix))
 lon = 1
-colat = 70
+colat = 40
 idx = hp.ang2pix(nside, np.deg2rad(colat), np.deg2rad(lon))
 
 # m[:, idx] = np.random.uniform(-10, 10, 3)
@@ -27,7 +27,9 @@ hp.gnomview(healpy_m[2], rot=(lon, 90-colat), sub=122)
 # smoothing by lugwid
 
 # P = m[1, idx] + 1j * m[2, idx]
-P = m[1, idx]
+P = m[1, idx] + 1j * m[2, idx]
+# P = m[1, idx]
+# P = 1j * m[2, idx]
 _, iphi = hp.pix2ang(nside, idx)
 P = P * np.exp(2j * iphi)
 

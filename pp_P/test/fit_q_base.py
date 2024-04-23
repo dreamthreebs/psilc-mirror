@@ -89,7 +89,7 @@ class FitPolPS:
 
         self.vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=self.ipix_fit.astype(int))).astype(np.float64)
         _, self.phi_around = hp.pix2ang(nside=self.nside, ipix=self.ipix_fit)
-        self.ndof = len(self.ipix_fit) * 2
+        self.ndof = len(self.ipix_fit)
 
         self.num_near_ps = 0
         self.flag_too_near = False
@@ -103,7 +103,7 @@ class FitPolPS:
     def calc_definite_fixed_cmb_cov(self):
 
         # cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
-        cmb_cov_path = Path(f'./exp_cov_QU.npy')
+        cmb_cov_path = Path(f'./Cov_Q.npy')
         # cmb_cov_path = Path(f'./exp_cov_QU.npy')
         cov = np.load(cmb_cov_path)
         logger.debug(f'{cov=}')
@@ -122,9 +122,7 @@ class FitPolPS:
     def calc_covariance_matrix(self, mode='cmb+noise'):
 
         if mode == 'noise':
-            nstd_q2 = (self.nstd_q**2)[self.ipix_fit].copy()
-            nstd_u2 = (self.nstd_u**2)[self.ipix_fit].copy()
-            nstd2 = np.concatenate([nstd_q2, nstd_u2])
+            nstd2 = (self.nstd_q**2)[self.ipix_fit].copy()
             logger.debug(f'{nstd2.shape=}')
 
             cov = np.zeros((self.ndof,self.ndof))
@@ -154,9 +152,7 @@ class FitPolPS:
             return None
 
         if mode == 'cmb+noise':
-            nstd_q2 = (self.nstd_q**2)[self.ipix_fit].copy()
-            nstd_u2 = (self.nstd_u**2)[self.ipix_fit].copy()
-            nstd2 = np.concatenate([nstd_q2, nstd_u2])
+            nstd2 = (self.nstd_q**2)[self.ipix_fit].copy()
             logger.debug(f'{nstd2.shape=}')
             logger.debug(f'{cov=}')
             for i in range(self.ndof):
@@ -331,22 +327,21 @@ class FitPolPS:
             sigma = 1 / np.sqrt(Fish_mat)
             logger.info(f'{sigma=}')
 
-        def lsq_2_params(q_amp,u_amp, const):
+        def lsq_2_params(q_amp, const):
 
             theta = hp.rotator.angdist(dir1=ctr0_vec, dir2=vec_around)
 
             def model():
                 profile = 1 / (2 * np.pi * self.sigma**2) * np.exp(- (theta)**2 / (2 * self.sigma**2))
-                P = (q_amp + 1j * u_amp) * np.exp(2j * self.lon_rad)
+                P = (q_amp + 1j * self.u_amp) * np.exp(2j * self.lon_rad)
                 lugwid_P = P * profile
                 QU = lugwid_P * np.exp(-2j * self.phi_around)
                 Q = QU.real
-                U = QU.imag
-                return np.concatenate([Q,U]) + const
+                return Q + const
 
             y_model = model()
-            y_data = np.concatenate([self.m_q[ipix_fit], self.m_u[ipix_fit]])
-            y_err = np.concatenate([self.nstd_q[ipix_fit], self.nstd_u[ipix_fit]])
+            y_data = self.m_q[ipix_fit]
+            # y_err = np.concatenate([self.nstd_q[ipix_fit], self.nstd_u[ipix_fit]])
             y_diff = y_data - y_model
 
             # error_estimate = np.sum(y_model**2 / y_err**2)
@@ -385,8 +380,7 @@ class FitPolPS:
                 lugwid_P = P * profile
                 QU = lugwid_P * np.exp(-2j * self.phi_around)
                 Q = QU.real
-                U = QU.imag
-                model = np.concatenate([Q,U])
+                model = Q
 
                 thetas.append(model)
         
@@ -394,7 +388,7 @@ class FitPolPS:
                 return sum(thetas) + const
         
             y_model = model()
-            y_data = np.concatenate([self.m_q[ipix_fit], self.m_u[ipix_fit]])
+            y_data = self.m_q[ipix_fit]
         
             y_diff = y_data - y_model
 
@@ -403,9 +397,9 @@ class FitPolPS:
             return z
 
         def test_fit():
-            params = (self.q_amp, self.u_amp, 0)
-            obj_minuit = Minuit(lsq_2_params, name=("q_amp", "u_amp", "const"), *params)
-            obj_minuit.limits = [(-10,10),(-10,10),(-100,100)]
+            params = (self.q_amp, 0)
+            obj_minuit = Minuit(lsq_2_params, name=("q_amp", "const"), *params)
+            obj_minuit.limits = [(-10,10),(-100,100)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -416,7 +410,7 @@ class FitPolPS:
                 raise ValueError('hesse failed!')
 
             logger.info(f'2 parameter fitting is enough, hesse ok')
-            return chi2dof, obj_minuit.values['q_amp'],obj_minuit.errors['q_amp'], obj_minuit.values['u_amp'], obj_minuit.errors['u_amp']
+            return chi2dof, obj_minuit.values['q_amp'],obj_minuit.errors['q_amp']
 
         def fit_2_params():
             params = (self.q_amp, self.u_amp, 0.0)
@@ -425,6 +419,7 @@ class FitPolPS:
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","const"), *params)
+            obj_minuit.fixed['u_amp'] = True
             obj_minuit.limits = [(-1,1),(-1,1), (-1000,1000)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
@@ -453,7 +448,7 @@ class FitPolPS:
 
 
             logger.info(f'begin point source fitting, first do 2 parameter fit...')
-            chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = test_fit()
+            chi2dof, fit_q_amp, fit_q_amp_err = test_fit()
             # chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_params()
             if np.abs(fit_q_amp) < self.sigma_threshold * fit_q_amp_err:
                 logger.info('there is no point sources on Q map')
@@ -503,8 +498,8 @@ def main():
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
     # m_q = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/88.npy')[1].copy()
     # m_u = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/88.npy')[2].copy()
-    m_q = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/66.npy')[1].copy()
-    m_u = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/66.npy')[2].copy()
+    m_q = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/77.npy')[1].copy()
+    m_u = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/77.npy')[2].copy()
     # m_q = np.load(f'../../fitdata/2048/NOISE/{freq}/0.npy')[1].copy()
     # m_u = np.load(f'../../fitdata/2048/NOISE/{freq}/0.npy')[2].copy()
     # m = np.load(f'../../fitdata/2048/PS/270/ps.npy')[1]
