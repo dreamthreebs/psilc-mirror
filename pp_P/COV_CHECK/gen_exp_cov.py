@@ -1,22 +1,30 @@
 import numpy as np
 import healpy as hp
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 def gen_cov():
-    nside = 8
-    lmax = 3 * nside - 1
-    l_range = np.arange(2,lmax+1)
-    Cl_TT = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
-    Cl_EE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,1]
-    Cl_BB = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,2]
-    Cl_TE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,3]
+    nside = 64
+    lmax = 3 * 64 - 1
+    l_range = np.arange(2,lmax)
+    Cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
+    Cl_TT = Cl[:lmax,0]
+    Cl_EE = Cl[:lmax,1]
+    Cl_BB = Cl[:lmax,2]
+    Cl_TE = Cl[:lmax,3]
 
     m_list_T = []
     m_list_QU = []
-    for i in range(100000):
+    path_exp = Path(f'./{nside}/exp')
+    path_exp.mkdir(exist_ok=True, parents=True)
+
+    path_maps = Path(f'./{nside}/maps')
+    path_maps.mkdir(exist_ok=True, parents=True)
+
+    for i in range(100):
         print(f'{i=}')
-        m = hp.synfast([Cl_TT, Cl_EE, Cl_BB, Cl_TE], new=True, pol=True, nside=nside)
-        # np.save(f'./data/{i}.npy', m)
+        m = hp.synfast([Cl_TT, Cl_EE, Cl_BB, Cl_TE], lmax=lmax, new=True, pol=True, nside=nside)
+        np.save(f'./{nside}/maps/{i}.npy', m)
         m_list_T.append(m[0].copy())
         QU = np.concatenate([m[1].copy(), m[2].copy()])
 
@@ -32,8 +40,7 @@ def gen_cov():
     print(f'{exp_T_cov.shape=}')
     print(f'{exp_QU_cov.shape=}')
 
-    np.save('./Exp_T_cov.npy', exp_T_cov)
-    np.save('./Exp_QU_cov.npy', exp_QU_cov)
+    np.save(path_exp / Path('cov_qu.npy'), exp_QU_cov)
 
     # hp.mollview(m[0])
     # hp.mollview(m[1])
@@ -41,3 +48,4 @@ def gen_cov():
     # plt.show()
 
 gen_cov()
+

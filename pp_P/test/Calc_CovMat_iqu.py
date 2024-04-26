@@ -16,6 +16,10 @@ def Calc_CovMat(l_range, nside, opt='E', mskopt=True):
     beam = 17
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=10000, pol=True)
     bl = bl[2:nl+2,:]
+    print(f'{bl[0:10,0]=}')
+    print(f'{bl[0:10,1]=}')
+    print(f'{bl[0:10,2]=}')
+    print(f'{bl[0:10,3]=}')
     Cl_TT = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,0] * bl[:,0]**2
     Cl_EE = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,1] * bl[:,1]**2
     Cl_BB = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[2:nl+2,2] * bl[:,2]**2
@@ -36,7 +40,7 @@ def Calc_CovMat(l_range, nside, opt='E', mskopt=True):
     elif opt=='T':
         Cls = np.array([Cl, nCl, nCl, nCl, nCl])
     elif opt=='all':
-        Cls = np.array([Cl_TT, Cl_EE, Cl_BB, nCl, nCl])
+        Cls = np.array([Cl_TT, Cl_EE, Cl_BB, Cl_TE, nCl])
 
     if mskopt ==True:
     	pixind = Mask_Operation(nside)
@@ -44,7 +48,7 @@ def Calc_CovMat(l_range, nside, opt='E', mskopt=True):
     else:
     	# npix = hp.nside2npix(nside)
     	# pixind = np.arange(npix)
-        pixind = np.load('./ipix_fit.npy')
+        pixind = np.load('./ipix_fit_qu.npy')
 
     # print('npix=', npix)
     npix = len(pixind)
@@ -71,15 +75,42 @@ def is_pos_def(M):
 def check_symmetric(m, rtol=1e-05, atol=1e-05):
 	return np.allclose(m, m.T, rtol=rtol, atol=atol)
 
-def ChooseMat(M):
+def ChooseMat(M, opt):
     indi = np.arange(0, len(M), 3)
     indq = np.arange(1, len(M)+1, 3)
     indu = np.arange(2, len(M)+2, 3)
     print(f'{indi=}')
     print(f'{indq=}')
     print(f'{indu=}')
-    TT = M[0:len(M):3, 0:len(M):3]
-    return TT
+    print(f'{len(M)=}')
+
+    if opt=='iqu':
+        TT = M[0:len(M):3, 0:len(M):3]
+        TQ = M[0:len(M):3, 1:len(M)+1:3]
+        TU = M[0:len(M):3, 2:len(M)+2:3]
+        QT = M[1:len(M)+1:3, 0:len(M):3]
+        QQ = M[1:len(M)+1:3, 1:len(M)+1:3]
+        QU = M[1:len(M)+1:3, 2:len(M)+2:3]
+        UT = M[2:len(M)+2:3, 0:len(M):3]
+        UQ = M[2:len(M)+2:3, 1:len(M)+1:3]
+        UU = M[2:len(M)+2:3, 2:len(M)+2:3]
+        MP = np.block([[TT,TQ,TU], [QT,QQ,QU], [UT,UQ,UU]])
+    if opt=='pol':
+        QQ = M[1:len(M)+1:3, 1:len(M)+1:3]
+        print(f'{QQ.shape=}')
+        QU = M[1:len(M)+1:3, 2:len(M)+2:3]
+        # QU = np.zeros_like(QQ)
+        UQ = M[2:len(M)+2:3, 1:len(M)+1:3]
+        # UQ = np.zeros_like(QQ)
+        UU = M[2:len(M)+2:3, 2:len(M)+2:3]
+        MP = np.block([[QQ,QU],[UQ,UU]])
+        # MP = combine_matrices([QQ, QU, UQ, UU])
+    if opt=='QQ':
+        MP = M[1:len(M)+1:3, 1:len(M)+1:3]
+    if opt=='UU':
+        MP = M[2:len(M)+2:3, 2:len(M)+2:3]
+
+    return MP
 
 if __name__=='__main__':
     l_range = np.arange(2,2000)
@@ -88,22 +119,23 @@ if __name__=='__main__':
     CovMat = Calc_CovMat(l_range, nside, opt='all', mskopt=mskopt)
     print(f'{len(CovMat)=}')
     print(f'{CovMat.shape=}')
-    CovMatT = ChooseMat(CovMat)
-    # CovMatPol = ChooseMat(CovMat, opt='Pol')
-    # CovMatPol = ChooseMat(CovMat)
+    # CovMatT = ChooseMat(CovMat, opt='T')
+    CovMatPol = ChooseMat(CovMat, opt='iqu')
+    # CovMatPol = ChooseMat(CovMat, opt='UU')
     # CovMatPol = extract_elements(CovMat)
-    print(f'{CovMatT.shape=}')
-    # print(f'{CovMatPol.shape=}')
+    # print(f'{CovMatT.shape=}')
+    print(f'{CovMatPol.shape=}')
     # np.save('Cov_T.npy', CovMatT)
-    np.save('Cov_T.npy', CovMatT)
+    np.save('Cov_IQU.npy', CovMatPol)
+    # np.save('Cov_U.npy', CovMatPol)
     
     print(CovMat[:9,:9])
     # np.set_printoptions(threshold=np.inf)
     # print(CovMatPol[196:392,0:196])
 
     # print(CovMatT)
-    # print(check_symmetric(CovMatPol))
-    # print(is_pos_def(CovMatPol))
+    print(check_symmetric(CovMatPol))
+    print(is_pos_def(CovMatPol))
     #eigvals = np.diag(CovMatT)
     #fig = plt.figure()
     #ax = fig.add_subplot(111)

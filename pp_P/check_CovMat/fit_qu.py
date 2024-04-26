@@ -11,14 +11,14 @@ nside = 8
 npix = hp.nside2npix(nside) * 2
 ipix_fit = np.arange(npix)
 
-cov = np.load('./Exp_QU_cov.npy')
+cov = np.load('./Cov_QU.npy')
 eigenval, eigenvec = np.linalg.eigh(cov)
 print(f'{eigenval=}')
 eigenval[eigenval < 0] = 1e-6
 reconstructed_cov = np.dot(eigenvec * eigenval, eigenvec.T)
 print(f'{np.max(np.abs(reconstructed_cov-cov))=}')
 print(f'{reconstructed_cov=}')
-cov  = reconstructed_cov + 1e-2 * np.eye(cov.shape[0])
+cov  = reconstructed_cov + 1e-6 * np.eye(cov.shape[0])
 
 
 inv_cov = np.linalg.inv(cov)

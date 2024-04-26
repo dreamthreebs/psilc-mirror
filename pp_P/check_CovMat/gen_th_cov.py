@@ -86,7 +86,8 @@ def ChooseMat(M, opt):
 
 if __name__=='__main__':
     nside = 8
-    l_range = np.arange(2,3*nside-1)
+    lmax = 3*nside - 1
+    l_range = np.arange(2,lmax+1)
     mskopt = False
     CovMat = Calc_CovMat(l_range, nside, opt='all', mskopt=mskopt)
     print(f'{len(CovMat)=}')

@@ -445,6 +445,7 @@ class FitPointSource:
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("norm_beam1","const"), *params)
+            obj_minuit.fixed['const'] = True
             obj_minuit.limits = [(-1,1), (-1000,1000)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')

@@ -177,8 +177,8 @@ void RotMat(double alpha, double R[][3])
 	//R[2][0] = 0.;
 	R[1][1] = cos(2*alpha);
 	R[2][2] = cos(2*alpha);
-	R[1][2] = sin(2*alpha);
-	R[2][1] = -sin(2*alpha);
+	R[1][2] = -sin(2*alpha);
+	R[2][1] = sin(2*alpha);
 }
 
 // Transpose the matrix

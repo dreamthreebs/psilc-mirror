@@ -159,7 +159,6 @@ void Calc_alpha(double *ri, double *rj, double *rij, double *rji, double *rsi, d
 	{
 		//if(Dist(rsi)<p) modify(ri);
 		//if(Dist(rsj)<p) modify(rj);
-    /* printf("cos alpha ij %f\n", DotProd(rij, rsi)); */
 		if(DotProd(rij, zvec)>0.) alpha[0] = acos(DotProd(rij, rsi));
 		else alpha[0] = -acos(DotProd(rij, rsi));
 		if(DotProd(rji, zvec)>0.) alpha[1] = acos(DotProd(rji, rsj));
@@ -178,8 +177,8 @@ void RotMat(double alpha, double R[][3])
 	//R[2][0] = 0.;
 	R[1][1] = cos(2*alpha);
 	R[2][2] = cos(2*alpha);
-	R[1][2] = -sin(2*alpha);
-	R[2][1] = sin(2*alpha);
+	R[1][2] = sin(2*alpha);
+	R[2][1] = -sin(2*alpha);
 }
 
 // Transpose the matrix
@@ -324,8 +323,8 @@ void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int 
 
 			Calc_alpha(ri, rj, rij, rji, rsi, rsj, alpha, zvec);
 
-      /* printf("alphaij=%f\n", alpha[0]); */
-      /* printf("alphaji=%f\n", alpha[1]); */
+//			printf("alphaij=%f\n", alpha[0]);
+//			printf("alphaji=%f\n", alpha[1]);
 //			getchar();
 //			if(i==0 && j==1){
 //				printv(ri, "ri");
@@ -334,27 +333,15 @@ void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int 
 //				printf("alphaji=%f\n", alpha[1]);
 //				getchar();
 //			}
-//
 			RotMat(alpha[0], Rij);
 			RotMat(alpha[1], Rji);
 
 			//RotMat(0., Rij);
 			//RotMat(0., Rji);
       //
-
 			MatT(Rji);
 			Mat_Mul(M, Rji, M1);
 			Mat_Mul(Rij, M1, covmatij);
-
-			/* MatT(Rji); */
-			/* Mat_Mul(M, Rji, M1); */
-			/* Mat_Mul(Rij, M1, covmatij); */
-
-      /* Mat_Mul(Rij, M, M1); */
-      /* MatT(Rij); */
-      /* Mat_Mul(M1, Rij, covmatij); */
-
-
 
 //			if(i==j){
 //				printM(M, "M");
@@ -364,7 +351,6 @@ void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int 
 ////				MatT(covmatij);
 ////				printM(covmatij, "covmat");
 //			}
-
 			//if(i==5 && j==1){
 			//	printM(M, "M51");
 			//	printM(Rji, "R15T");

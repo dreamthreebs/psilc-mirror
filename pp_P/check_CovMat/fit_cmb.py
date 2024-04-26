@@ -5,19 +5,19 @@ import matplotlib.pyplot as plt
 from iminuit import Minuit
 from pathlib import Path
 
-m = np.load('./data/22.npy')[0]
+m = np.load('./data/33.npy')[0]
 nside = 8
 npix = hp.nside2npix(nside)
 ipix_fit = np.arange(npix)
 
-cov = np.load('./Exp_T_cov.npy')
+cov = np.load('./Cov_T.npy')
 eigenval, eigenvec = np.linalg.eigh(cov)
 print(f'{eigenval=}')
-eigenval[eigenval < 0] = 1e-6
+eigenval[eigenval < 0] = 0
 reconstructed_cov = np.dot(eigenvec * eigenval, eigenvec.T)
 print(f'{np.max(np.abs(reconstructed_cov-cov))=}')
 print(f'{reconstructed_cov=}')
-cov  = reconstructed_cov + 100 * np.eye(cov.shape[0])
+cov  = reconstructed_cov + 0.1 * np.eye(cov.shape[0])
 
 
 inv_cov = np.linalg.inv(cov)
