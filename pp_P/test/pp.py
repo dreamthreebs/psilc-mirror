@@ -34,6 +34,7 @@ def filter_df():
 def calc_number():
     # calculate number of point source near one point source
 
+    time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
     m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/2.npy')
     m_q = m[1].copy()
@@ -69,6 +70,32 @@ def calc_number():
     print(f'{num_ps_arr=}')
     print(f'{overlap_arr=}')
 
+def get_disc_pix_ind():
+    # get pixel index for every point sources in catelogue
+
+    time0 = time.perf_counter()
+    # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/2.npy')
+    m_q = m[1].copy()
+    m_u = m[2].copy()
+    logger.debug(f'{sys.getrefcount(m_q)-1=}')
+
+    logger.info(f'time for fitting = {time.perf_counter()-time0}')
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    nstd_q = nstd[1].copy()
+    nstd_u = nstd[2].copy()
+    df_mask = pd.read_csv(f'../mask/mask_csv/{freq}.csv')
+    df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
+
+    for flux_idx in range(700):
+        obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+        pix_ind = obj.get_pix_ind()
+        path_pix_ind = Path('./pix_idx')
+        path_pix_ind.mkdir(exist_ok=True, parents=True)
+        np.save(path_pix_ind / Path(f'./{flux_idx}.npy'), pix_ind)
+        print(f'{pix_ind=}')
+
 # filter_df()
-calc_number()
+# calc_number()
+get_disc_pix_ind()
 
