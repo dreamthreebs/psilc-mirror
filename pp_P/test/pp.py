@@ -95,7 +95,7 @@ def get_disc_pix_ind():
         np.save(path_pix_ind / Path(f'./{flux_idx}.npy'), pix_ind)
         print(f'{pix_ind=}')
 
-# filter_df()
+filter_df()
 # calc_number()
 # get_disc_pix_ind()
 
