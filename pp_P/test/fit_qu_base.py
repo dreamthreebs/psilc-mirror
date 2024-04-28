@@ -98,11 +98,13 @@ class FitPolPS:
         logger.info(f'{freq=}, {beam=}, {flux_idx=}, {radius_factor=}, lon={self.lon}, lat={self.lat}, ndof={self.ndof}')
         logger.info(f'iflux={self.iflux=}, {self.qflux=}, {self.uflux=}')
         logger.info(f'i_amp={self.i_amp}, q_amp={self.q_amp}, u_amp={self.u_amp}')
+    def get_pix_ind(self):
+        return self.ipix_fit
 
     def calc_definite_fixed_cmb_cov(self):
 
         # cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
-        cmb_cov_path = Path(f'./Cov_QU.npy')
+        cmb_cov_path = Path(f'./cmb_qu_cov/{self.flux_idx}.npy')
         # cmb_cov_path = Path(f'./exp_cov_QU.npy')
         cov = np.load(cmb_cov_path)
         logger.debug(f'{cov=}')
@@ -538,8 +540,8 @@ class FitPolPS:
 def main():
     freq = 155
     time0 = time.perf_counter()
-    m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
-    # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/2.npy')
+    # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')
     m_q = m[1].copy()
     m_u = m[2].copy()
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
@@ -554,7 +556,7 @@ def main():
     nside = 2048
     beam = 17
 
-    flux_idx = 18
+    flux_idx = 16
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
@@ -562,12 +564,12 @@ def main():
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     obj.see_true_map(m_q=m_q, m_u=m_u, nside=nside, beam=beam)
 
-    # obj.calc_definite_fixed_cmb_cov()
-    # obj.calc_covariance_matrix(mode='cmb+noise')
-    # obj.fit_all(cov_mode='cmb+noise')
+    obj.calc_definite_fixed_cmb_cov()
+    obj.calc_covariance_matrix(mode='cmb+noise')
+    obj.fit_all(cov_mode='cmb+noise')
 
-    obj.calc_covariance_matrix(mode='noise')
-    obj.fit_all(cov_mode='noise')
+    # obj.calc_covariance_matrix(mode='noise')
+    # obj.fit_all(cov_mode='noise')
 
     # obj.fit_all(cov_mode='noise', mode='check_sigma')
 

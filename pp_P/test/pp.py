@@ -97,5 +97,5 @@ def get_disc_pix_ind():
 
 # filter_df()
 # calc_number()
-get_disc_pix_ind()
+# get_disc_pix_ind()
 
