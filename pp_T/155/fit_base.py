@@ -659,10 +659,10 @@ class FitPointSource:
 
 
 def main():
-    freq = 215
+    freq = 155
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
-    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/0.npy')[0]
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')[0]
     # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0]
     logger.debug(f'{sys.getrefcount(m)-1=}')
 
@@ -673,7 +673,7 @@ def main():
     df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
-    beam = 11
+    beam = 17
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
     # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
     # cl1 = hp.anafast(m, lmax=lmax)
@@ -687,7 +687,7 @@ def main():
     # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
     # plt.show()
 
-    flux_idx = 596
+    flux_idx = 1
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']

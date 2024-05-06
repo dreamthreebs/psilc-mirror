@@ -561,7 +561,7 @@ class FitPolPS:
 
 
 def main():
-    freq = 155
+    freq = 215
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
     m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')
@@ -577,7 +577,7 @@ def main():
     df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
-    beam = 17
+    beam = 11
 
     flux_idx = 1
 

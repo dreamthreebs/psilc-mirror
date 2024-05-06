@@ -215,7 +215,7 @@ class FitPolPS:
         plt.show()
 
     def find_nearby_ps(self, num_ps=1):
-        threshold_factor = self.radius_factor + 1.1
+        threshold_factor = self.radius_factor + 0.8
         logger.debug(f'{threshold_factor=}')
         dir_0 = (self.lon, self.lat)
         arr_1 = self.df_ps.loc[:, 'flux_idx']
@@ -228,6 +228,7 @@ class FitPolPS:
         ang = np.rad2deg(hp.rotator.angdist(dir1=dir_0, dir2=dir_other, lonlat=True))
         logger.debug(f'{ang.shape=}')
         threshold = threshold_factor * self.beam / 60
+        logger.debug(f'{threshold=}')
         logger.debug(f'{ang=}')
 
         if len(ang) - np.count_nonzero(ang) > 0:
@@ -409,7 +410,10 @@ class FitPolPS:
                 thetas.append(model)
         
             def model():
-                return sum(thetas)
+                md = sum(thetas)
+                md[:len(Q)] = md[:len(Q)] + c_q
+                md[len(Q)+1:-1] = md[len(Q)+1:-1] + c_u
+                return md
         
             y_model = model()
             y_data = np.concatenate([self.m_q[ipix_fit], self.m_u[ipix_fit]])
@@ -546,7 +550,7 @@ class FitPolPS:
             logger.info(f'{num_ps=}, {chi2dof=}')
             logger.info(f'{self.q_amp=}, {fit_q_amp=}, {fit_error_q=}')
             logger.info(f'{self.u_amp=}, {fit_u_amp=}, {fit_error_u=}')
-            return num_ps, chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err
+            return num_ps, chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err, fit_error_q, fit_error_u
 
         if mode == 'get_num_ps':
             num_ps, near = self.find_nearby_ps(num_ps=10)
@@ -561,10 +565,10 @@ class FitPolPS:
 
 
 def main():
-    freq = 155
+    freq = 270
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
-    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/2.npy')
     m_q = m[1].copy()
     m_u = m[2].copy()
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
@@ -577,7 +581,7 @@ def main():
     df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
-    beam = 17
+    beam = 9
 
     flux_idx = 1
 

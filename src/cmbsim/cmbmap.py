@@ -7,12 +7,12 @@ cmbcl = np.load('./cmbdata/cmbcl.npy') # (n_ell, n_cl) TT, EE, BB, TE
 l = np.arange(cmbcl.shape[0])
 print(f'{cmbcl.shape}')
 
-lmax = 2000
+lmax = 1999
 nside = 2048
 
 if not os.path.exists('./cmbdata/m_realization'):
     os.mkdir('./cmbdata/m_realization')
-for i in range(900,1000):
+for i in range(1000,1001):
     print(f'{i=}')
     m = hp.synfast(cmbcl.T, nside=nside, lmax=lmax, new=True)
 

@@ -199,10 +199,10 @@ class FitPolPS:
         radiops = hp.read_map(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{self.freq}GHz/strongradiops_map_{self.freq}GHz.fits', field=0)
         irps = hp.read_map(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{self.freq}GHz/strongirps_map_{self.freq}GHz.fits', field=0)
 
-        hp.gnomview(irps, rot=[lon, lat, 0], xsize=100, ysize=100, reso=1, title='irps', sub=223)
-        hp.gnomview(radiops, rot=[lon, lat, 0], xsize=100, ysize=100, reso=1, title='radiops', sub=224)
-        hp.gnomview(m_q, rot=[lon, lat, 0], xsize=100, ysize=100, sub=221, title='Q map')
-        hp.gnomview(m_u, rot=[lon, lat, 0], xsize=100, ysize=100, sub=222, title='U map')
+        hp.gnomview(irps, rot=[lon, lat, 0], xsize=200, ysize=200, reso=1, title='irps', sub=223)
+        hp.gnomview(radiops, rot=[lon, lat, 0], xsize=200, ysize=200, reso=1, title='radiops', sub=224)
+        hp.gnomview(m_q, rot=[lon, lat, 0], xsize=200, ysize=200, sub=221, title='Q map')
+        hp.gnomview(m_u, rot=[lon, lat, 0], xsize=200, ysize=200, sub=222, title='U map')
         plt.show()
 
         vec = hp.ang2vec(theta=lon, phi=lat, lonlat=True)
@@ -215,7 +215,7 @@ class FitPolPS:
         plt.show()
 
     def find_nearby_ps(self, num_ps=1):
-        threshold_factor = self.radius_factor + 1.1
+        threshold_factor = self.radius_factor
         logger.debug(f'{threshold_factor=}')
         dir_0 = (self.lon, self.lat)
         arr_1 = self.df_ps.loc[:, 'flux_idx']
@@ -292,6 +292,8 @@ class FitPolPS:
         logger.debug(f'lon_arr before mask very faint: {lon_arr}')
         logger.debug(f'lat_arr before mask very faint: {lat_arr}')
         logger.debug(f'pflux_arr before mask very faint: {pflux_arr}')
+        logger.debug(f'qflux_arr before mask very faint: {qflux_arr}')
+        logger.debug(f'uflux_arr before mask very faint: {uflux_arr}')
 
         mask_very_faint = pflux_arr > self.flux2norm_beam(flux=1)
 
@@ -308,6 +310,8 @@ class FitPolPS:
         logger.debug(f'lon_arr after mask very faint: {lon_arr}')
         logger.debug(f'lat_arr after mask very faint: {lat_arr}')
         logger.debug(f'pflux_arr after mask very faint: {pflux_arr}')
+        logger.debug(f'qflux_arr after mask very faint: {qflux_arr}')
+        logger.debug(f'uflux_arr after mask very faint: {uflux_arr}')
 
         if num_ps > 0:
             ang_near_and_bigger_than_threshold = ang_near[0:num_ps]
@@ -561,10 +565,10 @@ class FitPolPS:
 
 
 def main():
-    freq = 155
+    freq = 40
     time0 = time.perf_counter()
-    # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
-    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
+    # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')
     m_q = m[1].copy()
     m_u = m[2].copy()
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
@@ -577,9 +581,9 @@ def main():
     df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
     lmax = 1999
     nside = 2048
-    beam = 17
+    beam = 63
 
-    flux_idx = 1
+    flux_idx = 0
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
@@ -587,12 +591,12 @@ def main():
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     obj.see_true_map(m_q=m_q, m_u=m_u, nside=nside, beam=beam)
 
-    obj.calc_definite_fixed_cmb_cov()
-    obj.calc_covariance_matrix(mode='cmb+noise')
-    obj.fit_all(cov_mode='cmb+noise')
+    # obj.calc_definite_fixed_cmb_cov()
+    # obj.calc_covariance_matrix(mode='cmb+noise')
+    # obj.fit_all(cov_mode='cmb+noise')
 
-    # obj.calc_covariance_matrix(mode='noise')
-    # obj.fit_all(cov_mode='noise')
+    obj.calc_covariance_matrix(mode='noise')
+    obj.fit_all(cov_mode='noise')
 
     # obj.fit_all(cov_mode='noise', mode='check_sigma')
 
