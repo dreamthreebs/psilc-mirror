@@ -103,7 +103,6 @@ class FitPolPS:
 
     def calc_definite_fixed_cmb_cov(self):
 
-        # cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
         cmb_cov_path = Path(f'./cmb_qu_cov/{self.flux_idx}.npy')
         # cmb_cov_path = Path(f'./exp_cov_QU.npy')
         cov = np.load(cmb_cov_path)
@@ -214,8 +213,8 @@ class FitPolPS:
         hp.gnomview(mask, rot=[lon, lat, 0])
         plt.show()
 
-    def find_nearby_ps(self, num_ps=1):
-        threshold_factor = self.radius_factor + 0.8
+    def find_nearby_ps(self, num_ps=1, threshold_extra_factor=1.1):
+        threshold_factor = self.radius_factor + threshold_extra_factor
         logger.debug(f'{threshold_factor=}')
         dir_0 = (self.lon, self.lat)
         arr_1 = self.df_ps.loc[:, 'flux_idx']
@@ -487,7 +486,7 @@ class FitPolPS:
             num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat) = self.find_nearby_ps(num_ps=2)
             params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, 0.0, 0.0)
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon)
-            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat)
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","c_q","c_u"), *params)
@@ -504,6 +503,31 @@ class FitPolPS:
 
             logger.info(f'three ps fitting is enough, hesse ok')
             return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
+        def fit_4_ps():
+            ## TODO
+            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat) = self.find_nearby_ps(num_ps=3)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, 0.0, 0.0)
+            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat)
+            logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
+
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","c_q","c_u"), *params)
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-500,500), (-500,500)]
+            logger.debug(f'\n{obj_minuit.migrad()}')
+            logger.debug(f'\n{obj_minuit.hesse()}')
+
+            chi2dof = obj_minuit.fval / self.ndof
+            str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {self.ndof} = {chi2dof}"
+            logger.debug(str_chi2)
+
+            if obj_minuit.fmin.hesse_failed:
+                raise ValueError('hesse failed!')
+
+            logger.info(f'three ps fitting is enough, hesse ok')
+            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
+
 
 
 
@@ -544,6 +568,67 @@ class FitPolPS:
             elif num_ps == 7:
                 chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
 
+            ### deprecated!
+
+            # try:
+            #     if num_ps == 0:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
+            #     elif num_ps == 1:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_ps()
+            #     elif num_ps == 2:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_3_ps()
+            #     elif num_ps == 3:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_4_ps()
+            #     elif num_ps == 4:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_5_ps()
+            #     elif num_ps == 5:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_6_ps()
+            #     elif num_ps == 6:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_7_ps()
+            #     elif num_ps == 7:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
+            # except ValueError:
+            #     logger.info('there might be some hesse error, try to use smaller threshold_extra_factor: 0.8')
+            #     num_ps, near = self.find_nearby_ps(num_ps=10, threshold_extra_factor=0.8)
+            #     logger.info(f'{num_ps=}, {near=}')
+            #     try:
+            #         if num_ps == 0:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
+            #         elif num_ps == 1:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_ps()
+            #         elif num_ps == 2:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_3_ps()
+            #         elif num_ps == 3:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_4_ps()
+            #         elif num_ps == 4:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_5_ps()
+            #         elif num_ps == 5:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_6_ps()
+            #         elif num_ps == 6:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_7_ps()
+            #         elif num_ps == 7:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
+            #     except ValueError:
+            #         logger.info('there might be some hesse error, try to use smaller threshold_extra_factor: 0.5')
+            #         num_ps, near = self.find_nearby_ps(num_ps=10, threshold_extra_factor=0.5)
+            #         logger.info(f'{num_ps=}, {near=}')
+            #         if num_ps == 0:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
+            #         elif num_ps == 1:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_ps()
+            #         elif num_ps == 2:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_3_ps()
+            #         elif num_ps == 3:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_4_ps()
+            #         elif num_ps == 4:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_5_ps()
+            #         elif num_ps == 5:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_6_ps()
+            #         elif num_ps == 6:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_7_ps()
+            #         elif num_ps == 7:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
+
             fit_error_q = np.abs((fit_q_amp - self.q_amp) / self.q_amp )
             fit_error_u = np.abs((fit_u_amp - self.u_amp) / self.u_amp )
 
@@ -568,7 +653,7 @@ def main():
     freq = 270
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
-    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/2.npy')
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/3.npy')
     m_q = m[1].copy()
     m_u = m[2].copy()
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
@@ -583,7 +668,7 @@ def main():
     nside = 2048
     beam = 9
 
-    flux_idx = 1
+    flux_idx = 50
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
@@ -591,8 +676,8 @@ def main():
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     obj.see_true_map(m_q=m_q, m_u=m_u, nside=nside, beam=beam)
 
-    obj.calc_definite_fixed_cmb_cov()
-    obj.calc_covariance_matrix(mode='cmb+noise')
+    # obj.calc_definite_fixed_cmb_cov()
+    # obj.calc_covariance_matrix(mode='cmb+noise')
     obj.fit_all(cov_mode='cmb+noise')
 
     # obj.calc_covariance_matrix(mode='noise')

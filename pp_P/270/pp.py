@@ -75,6 +75,10 @@ def calc_number():
 
 def check_num_ps_overlap():
     num_ps = np.load('./num_ps.npy')
+    n_ps_2 = np.where(num_ps==2, num_ps, 0)
+    print(f'{n_ps_2=}')
+    idx_n_ps_2 = np.nonzero(n_ps_2)
+    print(f'{idx_n_ps_2=}')
     overlap_ps = np.load('./overlap_ps.npy')
     print(f'{num_ps=}')
     print(f'{overlap_ps=}')
@@ -174,9 +178,9 @@ def save_fit_res_to_csv():
 
 # filter_df()
 # calc_number()
-# check_num_ps_overlap()
+check_num_ps_overlap()
 # get_disc_pix_ind()
 # calc_cov()
-save_fit_res_to_csv()
+# save_fit_res_to_csv()
 
 
