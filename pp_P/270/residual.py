@@ -16,11 +16,11 @@ class GetResidual:
         self.sigma = np.deg2rad(beam) / 60 / (np.sqrt(8 * np.log(2)))
         self.radius_factor = radius_factor
 
-    def pcn_res(self, mask):
+    def pcn_res(self, mask, threshold=2):
         overlap_arr = np.load('./overlap_ps.npy')
-        hesse_err_arr = np.array([199,])
+        hesse_err_arr = np.array(None)
         print(f'{overlap_arr=}')
-        for idx_rlz in range(0, 100):
+        for idx_rlz in range(100):
             print(f'{idx_rlz=}')
 
             m_pcn = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{self.freq}/{idx_rlz}.npy')
@@ -50,9 +50,10 @@ class GetResidual:
                 pcn_u_amp = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/u_amp.npy')
                 pcn_q_amp_err = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/q_amp_err.npy')
                 pcn_u_amp_err = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/u_amp_err.npy')
+                print(f'{pcn_q_amp[idx_rlz]=}, {pcn_q_amp_err[idx_rlz]=}, {pcn_u_amp[idx_rlz]=}, {pcn_u_amp_err[idx_rlz]=}')
 
-                if (pcn_q_amp[idx_rlz] < 2 * pcn_q_amp_err[idx_rlz]) and (pcn_u_amp[idx_rlz] < 2 * pcn_u_amp_err[idx_rlz]):
-                    print(f'smaller than threshold, pass this index')
+                if (np.abs(pcn_q_amp[idx_rlz]) < threshold * pcn_q_amp_err[idx_rlz]) and (np.abs(pcn_u_amp[idx_rlz]) < threshold * pcn_u_amp_err[idx_rlz]):
+                    print(f'smaller than threshold:{threshold}, pass this index')
                     continue
 
                 mask_list.append(flux_idx)
@@ -78,21 +79,25 @@ class GetResidual:
                 Q = QU.real
                 U = QU.imag
 
-                # hp.gnomview(de_ps_q, rot=[pcn_fit_lon, pcn_fit_lat, 0], xsize=100, ysize=100, title='before q')
-                # hp.gnomview(de_ps_u, rot=[pcn_fit_lon, pcn_fit_lat, 0], xsize=100, ysize=100, title='before u')
+                # hp.gnomview(m_cn_q, rot=[pcn_fit_lon, pcn_fit_lat, 0], xsize=30, ysize=30, title='cmb noise q')
+                # hp.gnomview(m_cn_u, rot=[pcn_fit_lon, pcn_fit_lat, 0], xsize=30, ysize=30, title='cmb noise u')
+                # plt.show()
+
+                # hp.gnomview(de_ps_q, rot=[pcn_fit_lon, pcn_fit_lat, 0], xsize=30, ysize=30, title='before removal q')
+                # hp.gnomview(de_ps_u, rot=[pcn_fit_lon, pcn_fit_lat, 0], xsize=30, ysize=30, title='before removal u')
                 # plt.show()
 
                 de_ps_q[ipix_fit] = de_ps_q[ipix_fit].copy() - Q
                 de_ps_u[ipix_fit] = de_ps_u[ipix_fit].copy() - U
 
-                # hp.gnomview(de_ps_q, rot=[pcn_fit_lon, pcn_fit_lat, 0], xsize=100, ysize=100, title='q')
-                # hp.gnomview(de_ps_u, rot=[pcn_fit_lon, pcn_fit_lat, 0], xsize=100, ysize=100, title='u')
+                # hp.gnomview(de_ps_q, rot=[pcn_fit_lon, pcn_fit_lat, 0], xsize=30, ysize=30, title='after removal q')
+                # hp.gnomview(de_ps_u, rot=[pcn_fit_lon, pcn_fit_lat, 0], xsize=30, ysize=30, title='after removal u')
                 # plt.show()
 
             res_q = np.copy(de_ps_q)
             res_u = np.copy(de_ps_u)
 
-            path_for_res_map = Path('./fit_res/2048/pcn_after_removal/2sigma')
+            path_for_res_map = Path(f'./fit_res/2048/pcn_after_removal/{threshold}sigma')
             path_for_res_map.mkdir(parents=True, exist_ok=True)
             np.save(path_for_res_map / Path(f'map_q_{idx_rlz}.npy'), res_q)
             np.save(path_for_res_map / Path(f'map_u_{idx_rlz}.npy'), res_u)
@@ -107,7 +112,7 @@ def main():
     mask = np.load('../../src/mask/north/BINMASKG2048.npy')
 
     obj = GetResidual(freq=freq, df_mask=df_mask, nside=nside, beam=beam, radius_factor=radius_factor)
-    obj.pcn_res(mask)
+    obj.pcn_res(mask, threshold=3)
 
 
 main()
