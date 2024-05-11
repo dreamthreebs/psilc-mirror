@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./pp_cov.py
+mpiexec python -u ./pp.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

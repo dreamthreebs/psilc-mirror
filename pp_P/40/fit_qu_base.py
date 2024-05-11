@@ -103,7 +103,6 @@ class FitPolPS:
 
     def calc_definite_fixed_cmb_cov(self):
 
-        # cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
         cmb_cov_path = Path(f'./cmb_qu_cov/{self.flux_idx}.npy')
         # cmb_cov_path = Path(f'./exp_cov_QU.npy')
         cov = np.load(cmb_cov_path)
@@ -199,10 +198,10 @@ class FitPolPS:
         radiops = hp.read_map(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{self.freq}GHz/strongradiops_map_{self.freq}GHz.fits', field=0)
         irps = hp.read_map(f'/sharefs/alicpt/users/zrzhang/allFreqPSMOutput/skyinbands/AliCPT_uKCMB/{self.freq}GHz/strongirps_map_{self.freq}GHz.fits', field=0)
 
-        hp.gnomview(irps, rot=[lon, lat, 0], xsize=200, ysize=200, reso=1, title='irps', sub=223)
-        hp.gnomview(radiops, rot=[lon, lat, 0], xsize=200, ysize=200, reso=1, title='radiops', sub=224)
-        hp.gnomview(m_q, rot=[lon, lat, 0], xsize=200, ysize=200, sub=221, title='Q map')
-        hp.gnomview(m_u, rot=[lon, lat, 0], xsize=200, ysize=200, sub=222, title='U map')
+        hp.gnomview(irps, rot=[lon, lat, 0], xsize=100, ysize=100, reso=1, title='irps', sub=223)
+        hp.gnomview(radiops, rot=[lon, lat, 0], xsize=100, ysize=100, reso=1, title='radiops', sub=224)
+        hp.gnomview(m_q, rot=[lon, lat, 0], xsize=100, ysize=100, sub=221, title='Q map')
+        hp.gnomview(m_u, rot=[lon, lat, 0], xsize=100, ysize=100, sub=222, title='U map')
         plt.show()
 
         vec = hp.ang2vec(theta=lon, phi=lat, lonlat=True)
@@ -214,8 +213,8 @@ class FitPolPS:
         hp.gnomview(mask, rot=[lon, lat, 0])
         plt.show()
 
-    def find_nearby_ps(self, num_ps=1):
-        threshold_factor = self.radius_factor
+    def find_nearby_ps(self, num_ps=1, threshold_extra_factor=1.1):
+        threshold_factor = self.radius_factor + threshold_extra_factor
         logger.debug(f'{threshold_factor=}')
         dir_0 = (self.lon, self.lat)
         arr_1 = self.df_ps.loc[:, 'flux_idx']
@@ -228,6 +227,7 @@ class FitPolPS:
         ang = np.rad2deg(hp.rotator.angdist(dir1=dir_0, dir2=dir_other, lonlat=True))
         logger.debug(f'{ang.shape=}')
         threshold = threshold_factor * self.beam / 60
+        logger.debug(f'{threshold=}')
         logger.debug(f'{ang=}')
 
         if len(ang) - np.count_nonzero(ang) > 0:
@@ -292,8 +292,6 @@ class FitPolPS:
         logger.debug(f'lon_arr before mask very faint: {lon_arr}')
         logger.debug(f'lat_arr before mask very faint: {lat_arr}')
         logger.debug(f'pflux_arr before mask very faint: {pflux_arr}')
-        logger.debug(f'qflux_arr before mask very faint: {qflux_arr}')
-        logger.debug(f'uflux_arr before mask very faint: {uflux_arr}')
 
         mask_very_faint = pflux_arr > self.flux2norm_beam(flux=1)
 
@@ -310,8 +308,6 @@ class FitPolPS:
         logger.debug(f'lon_arr after mask very faint: {lon_arr}')
         logger.debug(f'lat_arr after mask very faint: {lat_arr}')
         logger.debug(f'pflux_arr after mask very faint: {pflux_arr}')
-        logger.debug(f'qflux_arr after mask very faint: {qflux_arr}')
-        logger.debug(f'uflux_arr after mask very faint: {uflux_arr}')
 
         if num_ps > 0:
             ang_near_and_bigger_than_threshold = ang_near[0:num_ps]
@@ -413,7 +409,10 @@ class FitPolPS:
                 thetas.append(model)
         
             def model():
-                return sum(thetas)
+                md = sum(thetas)
+                md[:len(Q)] = md[:len(Q)] + c_q
+                md[len(Q)+1:-1] = md[len(Q)+1:-1] + c_u
+                return md
         
             y_model = model()
             y_data = np.concatenate([self.m_q[ipix_fit], self.m_u[ipix_fit]])
@@ -487,7 +486,7 @@ class FitPolPS:
             num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat) = self.find_nearby_ps(num_ps=2)
             params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, 0.0, 0.0)
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon)
-            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat)
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","c_q","c_u"), *params)
@@ -505,7 +504,115 @@ class FitPolPS:
             logger.info(f'three ps fitting is enough, hesse ok')
             return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
 
+        def fit_4_ps():
+            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat) = self.find_nearby_ps(num_ps=3)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, 0.0, 0.0)
+            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat)
+            logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","c_q","c_u"), *params)
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-500,500), (-500,500)]
+            logger.debug(f'\n{obj_minuit.migrad()}')
+            logger.debug(f'\n{obj_minuit.hesse()}')
+
+            chi2dof = obj_minuit.fval / self.ndof
+            str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {self.ndof} = {chi2dof}"
+            logger.debug(str_chi2)
+
+            if obj_minuit.fmin.hesse_failed:
+                raise ValueError('hesse failed!')
+
+            logger.info(f'four ps fitting is enough, hesse ok')
+            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
+        def fit_5_ps():
+            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat) = self.find_nearby_ps(num_ps=4)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, 0.0, 0.0)
+            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat)
+            logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
+
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","c_q","c_u"), *params)
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-500,500), (-500,500)]
+            logger.debug(f'\n{obj_minuit.migrad()}')
+            logger.debug(f'\n{obj_minuit.hesse()}')
+
+            chi2dof = obj_minuit.fval / self.ndof
+            str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {self.ndof} = {chi2dof}"
+            logger.debug(str_chi2)
+
+            if obj_minuit.fmin.hesse_failed:
+                raise ValueError('hesse failed!')
+
+            logger.info(f'five ps fitting is enough, hesse ok')
+            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
+        def fit_6_ps():
+            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat) = self.find_nearby_ps(num_ps=5)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, 0.0, 0.0)
+            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat)
+            logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
+
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6","c_q","c_u"), *params)
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-500,500), (-500,500)]
+            logger.debug(f'\n{obj_minuit.migrad()}')
+            logger.debug(f'\n{obj_minuit.hesse()}')
+
+            chi2dof = obj_minuit.fval / self.ndof
+            str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {self.ndof} = {chi2dof}"
+            logger.debug(str_chi2)
+
+            if obj_minuit.fmin.hesse_failed:
+                raise ValueError('hesse failed!')
+
+            logger.info(f'six ps fitting is enough, hesse ok')
+            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
+        def fit_7_ps():
+            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat, self.q_amp_7, self.u_amp_7, self.ctr7_lon, self.ctr7_lat) = self.find_nearby_ps(num_ps=6)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, self.q_amp_7, self.u_amp_7, 0.0, 0.0)
+            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon, self.ctr7_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat)
+            logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
+
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6","q_amp_7","u_amp_7","c_q","c_u"), *params)
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-500,500), (-500,500)]
+            logger.debug(f'\n{obj_minuit.migrad()}')
+            logger.debug(f'\n{obj_minuit.hesse()}')
+
+            chi2dof = obj_minuit.fval / self.ndof
+            str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {self.ndof} = {chi2dof}"
+            logger.debug(str_chi2)
+
+            if obj_minuit.fmin.hesse_failed:
+                raise ValueError('hesse failed!')
+
+            logger.info(f'seven ps fitting is enough, hesse ok')
+            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
+        def fit_8_ps():
+            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat, self.q_amp_7, self.u_amp_7, self.ctr7_lon, self.ctr7_lat, self.q_amp_8, self.u_amp_8, self.ctr8_lon, self.ctr8_lat) = self.find_nearby_ps(num_ps=7)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, self.q_amp_7, self.u_amp_7, self.q_amp_8, self.u_amp_8, 0.0, 0.0)
+            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon, self.ctr7_lon, self.ctr8_lon)
+            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat, self.ctr8_lat)
+            logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
+
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6","q_amp_7","u_amp_7","q_amp_8","u_amp_8","c_q","c_u"), *params)
+            obj_minuit.limits = [(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-500,500), (-500,500)]
+            logger.debug(f'\n{obj_minuit.migrad()}')
+            logger.debug(f'\n{obj_minuit.hesse()}')
+
+            chi2dof = obj_minuit.fval / self.ndof
+            str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {self.ndof} = {chi2dof}"
+            logger.debug(str_chi2)
+
+            if obj_minuit.fmin.hesse_failed:
+                raise ValueError('hesse failed!')
+
+            logger.info(f'eight ps fitting is enough, hesse ok')
+            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
 
         if mode == 'pipeline':
             self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.flux_idx}.npy')
@@ -544,13 +651,74 @@ class FitPolPS:
             elif num_ps == 7:
                 chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
 
+            ### deprecated!
+
+            # try:
+            #     if num_ps == 0:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
+            #     elif num_ps == 1:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_ps()
+            #     elif num_ps == 2:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_3_ps()
+            #     elif num_ps == 3:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_4_ps()
+            #     elif num_ps == 4:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_5_ps()
+            #     elif num_ps == 5:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_6_ps()
+            #     elif num_ps == 6:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_7_ps()
+            #     elif num_ps == 7:
+            #         chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
+            # except ValueError:
+            #     logger.info('there might be some hesse error, try to use smaller threshold_extra_factor: 0.8')
+            #     num_ps, near = self.find_nearby_ps(num_ps=10, threshold_extra_factor=0.8)
+            #     logger.info(f'{num_ps=}, {near=}')
+            #     try:
+            #         if num_ps == 0:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
+            #         elif num_ps == 1:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_ps()
+            #         elif num_ps == 2:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_3_ps()
+            #         elif num_ps == 3:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_4_ps()
+            #         elif num_ps == 4:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_5_ps()
+            #         elif num_ps == 5:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_6_ps()
+            #         elif num_ps == 6:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_7_ps()
+            #         elif num_ps == 7:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
+            #     except ValueError:
+            #         logger.info('there might be some hesse error, try to use smaller threshold_extra_factor: 0.5')
+            #         num_ps, near = self.find_nearby_ps(num_ps=10, threshold_extra_factor=0.5)
+            #         logger.info(f'{num_ps=}, {near=}')
+            #         if num_ps == 0:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
+            #         elif num_ps == 1:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_ps()
+            #         elif num_ps == 2:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_3_ps()
+            #         elif num_ps == 3:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_4_ps()
+            #         elif num_ps == 4:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_5_ps()
+            #         elif num_ps == 5:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_6_ps()
+            #         elif num_ps == 6:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_7_ps()
+            #         elif num_ps == 7:
+            #             chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
+
             fit_error_q = np.abs((fit_q_amp - self.q_amp) / self.q_amp )
             fit_error_u = np.abs((fit_u_amp - self.u_amp) / self.u_amp )
 
             logger.info(f'{num_ps=}, {chi2dof=}')
             logger.info(f'{self.q_amp=}, {fit_q_amp=}, {fit_error_q=}')
             logger.info(f'{self.u_amp=}, {fit_u_amp=}, {fit_error_u=}')
-            return num_ps, chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err
+            return num_ps, chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err, fit_error_q, fit_error_u
 
         if mode == 'get_num_ps':
             num_ps, near = self.find_nearby_ps(num_ps=10)
@@ -567,8 +735,8 @@ class FitPolPS:
 def main():
     freq = 40
     time0 = time.perf_counter()
-    m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
-    # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')
+    # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/3.npy')
     m_q = m[1].copy()
     m_u = m[2].copy()
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
@@ -593,16 +761,17 @@ def main():
 
     # obj.calc_definite_fixed_cmb_cov()
     # obj.calc_covariance_matrix(mode='cmb+noise')
-    # obj.fit_all(cov_mode='cmb+noise')
+    obj.fit_all(cov_mode='cmb+noise')
 
-    obj.calc_covariance_matrix(mode='noise')
-    obj.fit_all(cov_mode='noise')
+    # obj.calc_covariance_matrix(mode='noise')
+    # obj.fit_all(cov_mode='noise')
 
     # obj.fit_all(cov_mode='noise', mode='check_sigma')
 
 
 if __name__ == '__main__':
     main()
+
 
 
 

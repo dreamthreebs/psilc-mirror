@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm, chi2
 
 # Load your data
-data = np.load('./PSCMBNOISE/1.5/idx_2/u_amp.npy')[1:100]
+data = np.load('./PSCMBNOISE/check_bias/idx_1/u_amp.npy')[1:100]
 print(f'{data.shape=}')
 
 # Define the number of bins
-bin_count = 15
+bin_count = 9
 
 # Calculate the histogram without density normalization
 hist_counts, bin_edges = np.histogram(data, bins=bin_count, density=False)
