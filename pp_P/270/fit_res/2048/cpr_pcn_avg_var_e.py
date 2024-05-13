@@ -3,6 +3,7 @@ import healpy as hp
 import matplotlib.pyplot as plt
 import pandas as pd
 import pymaster as nmt
+import glob
 
 from pathlib import Path
 
@@ -18,7 +19,7 @@ beam = df.at[7, 'beam']
 print(f'{freq=}, {beam=}')
 
 rmv_list = []
-rmv1_list = []
+# rmv1_list = []
 c_list = []
 cn_list = []
 pcn_list = []
@@ -37,19 +38,31 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     bins_edges.append(l_max)
     return bins_edges[:-1], bins_edges[1:]
 
+l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=1999, fold=0.2)
+bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+ell_arr = bin_dl.get_effective_ells()
 
 for rlz_idx in range(1,100):
+    if rlz_idx == 50:
+        continue
     rmv = np.load(f'./pcn_dl/E/removal_2sigma/{rlz_idx}.npy')
-    # rmv1 = np.load(f'./pcn_dl/E/removal_3sigma/{rlz_idx}.npy')
+    # rmv1 = np.load(f'./pcn_dl/E/removal_10sigma/{rlz_idx}.npy')
     c = np.load(f'./pcn_dl/E/c/{rlz_idx}.npy')
     cn = np.load(f'./pcn_dl/E/cn/{rlz_idx}.npy')
     pcn = np.load(f'./pcn_dl/E/pcn/{rlz_idx}.npy')
+
+    # plt.plot(ell_arr, rmv, label=f'rmv {rlz_idx}')
+    # plt.plot(ell_arr, c, label=f'c {rlz_idx}')
+    # plt.semilogy()
+    # plt.legend()
 
     rmv_list.append(rmv)
     # rmv1_list.append(rmv1)
     c_list.append(c)
     cn_list.append(cn)
     pcn_list.append(pcn)
+
+# plt.show()
 
 rmv_arr = np.array(rmv_list)
 # rmv1_arr = np.array(rmv1_list)
@@ -72,27 +85,54 @@ cn_std = np.std(cn_arr, axis=0)
 pcn_std = np.std(pcn_arr, axis=0)
 print(f'{rmv_std.shape=}')
 
+n_list = []
+path_n = glob.glob('./pcn_dl/E/n/*.npy')
+for p in path_n:
+    n = np.load(p)
+    n_list.append(n)
+
+n_arr = np.array(n_list)
+print(f'{n_arr.shape=}')
+n_mean = np.mean(n_arr, axis=0)
+n_std = np.std(n_arr, axis=0)
+
 l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=1999, fold=0.2)
 bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
 
-# plt.plot(ell_arr, rmv_mean, label='rmv_mean 2sigma')
-# # plt.plot(ell_arr, rmv1_mean, label='rmv_mean 3sigma')
-# plt.plot(ell_arr, c_mean, label='c_mean')
-# plt.plot(ell_arr, cn_mean, label='cn_mean')
-# plt.plot(ell_arr, pcn_mean, label='pcn_mean')
-
-# plt.plot(ell_arr, rmv_std, label='rmv_std 2sigma')
-# # plt.plot(ell_arr, rmv1_std, label='rmv_std 3sigma')
-# plt.plot(ell_arr, c_std, label='c_std')
-# plt.plot(ell_arr, cn_std, label='cn_std')
-# plt.plot(ell_arr, pcn_std, label='pcn_std')
-
-plt.plot(ell_arr, np.abs(rmv_mean - cn_mean), label='rmv res')
-plt.plot(ell_arr, np.abs(pcn_mean - cn_mean), label='pcn res')
-
+plt.figure(1)
+plt.plot(ell_arr, rmv_mean - n_mean, label='debias rmv_mean 2sigma')
+# plt.plot(ell_arr, rmv1_mean, label='rmv_mean 10sigma')
+plt.plot(ell_arr, c_mean, label='c_mean')
+plt.plot(ell_arr, cn_mean - n_mean, label='debias cn_mean')
+plt.plot(ell_arr, pcn_mean - n_mean, label='debias pcn_mean')
+plt.xlabel('$\\ell$')
+plt.ylabel('$D_\\ell^{EE}$')
 plt.semilogy()
 plt.legend()
+plt.title('debiased power spectrum')
+
+plt.figure(2)
+plt.plot(ell_arr, rmv_std, label='rmv_std 2sigma')
+# plt.plot(ell_arr, rmv1_std, label='rmv_std 10sigma')
+plt.plot(ell_arr, c_std, label='c_std')
+plt.plot(ell_arr, cn_std, label='cn_std')
+plt.plot(ell_arr, pcn_std, label='pcn_std')
+plt.xlabel('$\\ell$')
+plt.ylabel('$D_\\ell^{EE}$')
+plt.semilogy()
+plt.legend()
+plt.title('standard deviation')
+
+plt.figure(3)
+
+plt.plot(ell_arr, rmv_mean - cn_mean, label='rmv res')
+plt.plot(ell_arr, pcn_mean - cn_mean, label='pcn res')
+plt.xlabel('$\\ell$')
+plt.ylabel('$D_\\ell^{EE}$')
+plt.legend()
+plt.title('residual power spectrum')
+
 plt.show()
 
 

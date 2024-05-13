@@ -36,33 +36,41 @@ ell_arr = bin_dl.get_effective_ells()
 bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
 apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
 
-m_q = np.load('./pcn_after_removal/2sigma/map_q_1.npy') * bin_mask * apo_mask
-m_u = np.load('./pcn_after_removal/2sigma/map_u_1.npy') * bin_mask * apo_mask
+m_q = np.load('./pcn_after_removal/2sigma/map_q_1.npy') * bin_mask
+m_u = np.load('./pcn_after_removal/2sigma/map_u_1.npy') * bin_mask
 
-pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy') * apo_mask
+pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy') * bin_mask
 pcn_q = pcn[1].copy()
 pcn_u = pcn[2].copy()
 
-cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/1.npy') * apo_mask
+cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/1.npy') * bin_mask
 cn_q = cn[1].copy()
 cn_u = cn[2].copy()
 
 df = pd.read_csv(f'../../../mask/mask_csv/{freq}.csv')
 
-fig_size = 100
+fig_size = 30
+q_min = -15
+q_max = 15
+u_min = -15
+u_max = 15
+
 flux_idx = 1
 lon = np.rad2deg(df.at[flux_idx, 'lon'])
 lat = np.rad2deg(df.at[flux_idx, 'lat'])
 print(f'{lon=}, {lat=}')
 
-hp.gnomview(pcn_q, rot=[lon, lat, 0], title='pcn q', xsize=fig_size, ysize=fig_size)
-hp.gnomview(cn_q, rot=[lon, lat, 0], title='cn q', xsize=fig_size, ysize=fig_size)
-hp.gnomview(m_q, rot=[lon, lat, 0], title='removal q', xsize=fig_size, ysize=fig_size)
+plt.figure(1)
+hp.gnomview(pcn_q, rot=[lon, lat, 0], title='pcn q', xsize=fig_size, ysize=fig_size, min=q_min, max=q_max, sub=221)
+hp.gnomview(cn_q, rot=[lon, lat, 0], title='cn q', xsize=fig_size, ysize=fig_size, min=q_min, max=q_max, sub=222)
+hp.gnomview(m_q, rot=[lon, lat, 0], title='removal q', xsize=fig_size, ysize=fig_size, min=q_min, max=q_max, sub=223)
+hp.gnomview(m_q - cn_q, rot=[lon, lat, 0], title='residual q', xsize=fig_size, ysize=fig_size, sub=224)
+plt.figure(2)
 
-hp.gnomview(pcn_u, rot=[lon, lat, 0], title='pcn u', xsize=fig_size, ysize=fig_size)
-hp.gnomview(cn_u, rot=[lon, lat, 0], title='cn u', xsize=fig_size, ysize=fig_size)
-hp.gnomview(m_u, rot=[lon, lat, 0], title='removal u', xsize=fig_size, ysize=fig_size)
-
+hp.gnomview(pcn_u, rot=[lon, lat, 0], title='pcn u', xsize=fig_size, ysize=fig_size, min=u_min, max=u_max, sub=221)
+hp.gnomview(cn_u, rot=[lon, lat, 0], title='cn u', xsize=fig_size, ysize=fig_size, min=u_min, max=u_max, sub=222)
+hp.gnomview(m_u, rot=[lon, lat, 0], title='removal u', xsize=fig_size, ysize=fig_size, min=u_min, max=u_max, sub=223)
+hp.gnomview(m_u - cn_u, rot=[lon, lat, 0], title='residual u', xsize=fig_size, ysize=fig_size, sub=224)
 
 plt.show()
 
