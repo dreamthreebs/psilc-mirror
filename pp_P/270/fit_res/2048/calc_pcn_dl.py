@@ -10,7 +10,7 @@ lmax = 1999
 l = np.arange(lmax+1)
 nside = 2048
 rlz_idx = 0
-threshold = 5
+threshold = 10
 
 df = pd.read_csv('../../../../FGSim/FreqBand')
 freq = df.at[7, 'freq']
@@ -59,31 +59,31 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # ### test: checking map
     # hp.orthview(m_cn_b, rot=[100,50,0], half_sky=True, title=' cn b ')
     # hp.orthview(m_pcn_b, rot=[100,50,0], half_sky=True, title=' pcn b ')
-    # hp.orthview(m_removal_b, rot=[100,50,0], half_sky=True, title=' removal b ')
-    # plt.show()
+    hp.orthview(m_removal_b, rot=[100,50,0], half_sky=True, title=' removal b ')
+    plt.show()
 
     # dl_c_b = calc_dl_from_scalar_map(m_c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     # dl_cn_b = calc_dl_from_scalar_map(m_cn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     # dl_pcn_b = calc_dl_from_scalar_map(m_pcn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
-    dl_removal_b = calc_dl_from_scalar_map(m_removal_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_removal_b = calc_dl_from_scalar_map(m_removal_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
-    path_dl_c = Path(f'pcn_dl/B/c')
-    path_dl_c.mkdir(parents=True, exist_ok=True)
-    path_dl_cn = Path(f'pcn_dl/B/cn')
-    path_dl_cn.mkdir(parents=True, exist_ok=True)
-    path_dl_pcn = Path(f'pcn_dl/B/pcn')
-    path_dl_pcn.mkdir(parents=True, exist_ok=True)
-    path_dl_removal = Path(f'pcn_dl/B/removal_{threshold}sigma')
-    path_dl_removal.mkdir(parents=True, exist_ok=True)
-    path_dl_inpaint = Path(f'pcn_dl/B/inpaint_{threshold}sigma')
-    path_dl_inpaint.mkdir(parents=True, exist_ok=True)
+    # path_dl_c = Path(f'pcn_dl/B/c')
+    # path_dl_c.mkdir(parents=True, exist_ok=True)
+    # path_dl_cn = Path(f'pcn_dl/B/cn')
+    # path_dl_cn.mkdir(parents=True, exist_ok=True)
+    # path_dl_pcn = Path(f'pcn_dl/B/pcn')
+    # path_dl_pcn.mkdir(parents=True, exist_ok=True)
+    # path_dl_removal = Path(f'pcn_dl/B/removal_{threshold}sigma')
+    # path_dl_removal.mkdir(parents=True, exist_ok=True)
+    # path_dl_inpaint = Path(f'pcn_dl/B/inpaint_{threshold}sigma')
+    # path_dl_inpaint.mkdir(parents=True, exist_ok=True)
 
     # np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_b)
     # np.save(path_dl_cn / Path(f'{rlz_idx}.npy'), dl_cn_b)
     # np.save(path_dl_pcn / Path(f'{rlz_idx}.npy'), dl_pcn_b)
 
-    np.save(path_dl_removal / Path(f'{rlz_idx}.npy'), dl_removal_b)
+    # np.save(path_dl_removal / Path(f'{rlz_idx}.npy'), dl_removal_b)
 
     # plt.plot(ell_arr, dl_c_b, label='c b', marker='o')
     # plt.plot(ell_arr, dl_cn_b, label='cn b', marker='o')
@@ -151,10 +151,56 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
     # plt.legend()
     # plt.show()
 
+def cpr_spectrum_noise_bias_b(bin_mask=bin_mask, apo_mask=apo_mask):
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,2]
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=1999, fold=0.2)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    nstd = np.load(f'../../../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    noise = nstd * np.random.normal(loc=0, scale=1, size=(nstd.shape[0], nstd.shape[1]))
+
+    ### test: noise map
+    # hp.mollview(noise[0])
+    # hp.mollview(noise[1])
+    # hp.mollview(noise[2])
+    # plt.show()
+
+    noise_b = hp.alm2map(hp.map2alm(noise, lmax=lmax)[2], nside=nside) * bin_mask
+    dl_n_b = calc_dl_from_scalar_map(noise_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
+    path_dl_n = Path(f'pcn_dl/B/n')
+    path_dl_n.mkdir(exist_ok=True, parents=True)
+    np.save(path_dl_n / Path(f'{rlz_idx}.npy'), dl_n_b)
+
+def cpr_spectrum_noise_bias_e(bin_mask=bin_mask, apo_mask=apo_mask):
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,1]
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=1999, fold=0.2)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    nstd = np.load(f'../../../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    noise = nstd * np.random.normal(loc=0, scale=1, size=(nstd.shape[0], nstd.shape[1]))
+
+    ### test: noise map
+    # hp.mollview(noise[0])
+    # hp.mollview(noise[1])
+    # hp.mollview(noise[2])
+    # plt.show()
+
+    noise_e = hp.alm2map(hp.map2alm(noise, lmax=lmax)[1], nside=nside) * bin_mask
+    dl_n_e = calc_dl_from_scalar_map(noise_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
+    path_dl_n = Path(f'pcn_dl/E/n')
+    path_dl_n.mkdir(exist_ok=True, parents=True)
+    np.save(path_dl_n / Path(f'{rlz_idx}.npy'), dl_n_e)
+
 
 def main():
-    cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=apo_mask)
+    # cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=apo_mask)
     # cpr_spectrum_pcn_e(bin_mask=bin_mask, apo_mask=apo_mask)
+    # cpr_spectrum_noise_bias_b()
+    cpr_spectrum_noise_bias_e()
 
 main()
 
