@@ -26,8 +26,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=120GB
-#SBATCH --exclude=aliws[005-028]
+#SBATCH --mem=100GB
+#SBATCH --exclude=aliws[005-010]
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 
@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./calc_pcn_dl.py
+mpiexec python -u ./run_eblc.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)
