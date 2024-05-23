@@ -148,7 +148,7 @@ def save_fit_res_to_csv():
         chi2dof_arr = np.zeros(700)
         fit_err_q_arr = np.zeros(700)
         fit_err_u_arr = np.zeros(700)
-        for flux_idx in range(276):
+        for flux_idx in range(135):
             if flux_idx in [199,]:
                 continue
             print(f'{flux_idx=}')
@@ -180,9 +180,9 @@ def save_fit_res_to_csv():
 
 # filter_df()
 # calc_number()
-check_num_ps_overlap()
+# check_num_ps_overlap()
 # get_disc_pix_ind()
 # calc_cov()
-# save_fit_res_to_csv()
+save_fit_res_to_csv()
 
 

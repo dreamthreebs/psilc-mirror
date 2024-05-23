@@ -52,9 +52,9 @@ for rlz_idx in range(1,100):
     pcn = np.load(f'./pcn_dl/B/pcn/{rlz_idx}.npy')
 
     # plt.plot(ell_arr, rmv, label=f'rmv {rlz_idx}')
-    # plt.plot(ell_arr, c, label=f'c {rlz_idx}')
-    # plt.semilogy()
-    # plt.legend()
+    plt.plot(ell_arr, c, label=f'c {rlz_idx}')
+    plt.semilogy()
+    plt.legend()
 
     rmv_list.append(rmv)
     # rmv1_list.append(rmv1)
@@ -62,7 +62,7 @@ for rlz_idx in range(1,100):
     cn_list.append(cn)
     pcn_list.append(pcn)
 
-# plt.show()
+plt.show()
 
 rmv_arr = np.array(rmv_list)
 # rmv1_arr = np.array(rmv1_list)

@@ -1,3 +1,12 @@
+sbatch submit_1.sh
+sbatch submit_2.sh
+sbatch submit_3.sh
+sbatch submit_4.sh
+sbatch submit_5.sh
+sbatch submit_6.sh
+sbatch submit_7.sh
+sbatch submit_8.sh
+sbatch submit_9.sh
 sbatch submit_10.sh
 sbatch submit_11.sh
 sbatch submit_12.sh
@@ -8,7 +17,6 @@ sbatch submit_16.sh
 sbatch submit_17.sh
 sbatch submit_18.sh
 sbatch submit_19.sh
-sbatch submit_1.sh
 sbatch submit_20.sh
 sbatch submit_21.sh
 sbatch submit_22.sh
@@ -19,7 +27,6 @@ sbatch submit_26.sh
 sbatch submit_27.sh
 sbatch submit_28.sh
 sbatch submit_29.sh
-sbatch submit_2.sh
 sbatch submit_30.sh
 sbatch submit_31.sh
 sbatch submit_32.sh
@@ -30,7 +37,6 @@ sbatch submit_36.sh
 sbatch submit_37.sh
 sbatch submit_38.sh
 sbatch submit_39.sh
-sbatch submit_3.sh
 sbatch submit_40.sh
 sbatch submit_41.sh
 sbatch submit_42.sh
@@ -41,7 +47,6 @@ sbatch submit_46.sh
 sbatch submit_47.sh
 sbatch submit_48.sh
 sbatch submit_49.sh
-sbatch submit_4.sh
 sbatch submit_50.sh
 sbatch submit_51.sh
 sbatch submit_52.sh
@@ -52,7 +57,6 @@ sbatch submit_56.sh
 sbatch submit_57.sh
 sbatch submit_58.sh
 sbatch submit_59.sh
-sbatch submit_5.sh
 sbatch submit_60.sh
 sbatch submit_61.sh
 sbatch submit_62.sh
@@ -63,7 +67,6 @@ sbatch submit_66.sh
 sbatch submit_67.sh
 sbatch submit_68.sh
 sbatch submit_69.sh
-sbatch submit_6.sh
 sbatch submit_70.sh
 sbatch submit_71.sh
 sbatch submit_72.sh
@@ -74,7 +77,6 @@ sbatch submit_76.sh
 sbatch submit_77.sh
 sbatch submit_78.sh
 sbatch submit_79.sh
-sbatch submit_7.sh
 sbatch submit_80.sh
 sbatch submit_81.sh
 sbatch submit_82.sh
@@ -85,7 +87,6 @@ sbatch submit_86.sh
 sbatch submit_87.sh
 sbatch submit_88.sh
 sbatch submit_89.sh
-sbatch submit_8.sh
 sbatch submit_90.sh
 sbatch submit_91.sh
 sbatch submit_92.sh
@@ -96,4 +97,3 @@ sbatch submit_96.sh
 sbatch submit_97.sh
 sbatch submit_98.sh
 sbatch submit_99.sh
-sbatch submit_9.sh

@@ -142,9 +142,9 @@ def save_fit_res_to_csv():
         chi2dof_arr = np.zeros(700)
         fit_err_q_arr = np.zeros(700)
         fit_err_u_arr = np.zeros(700)
-        for flux_idx in range(276):
-            if flux_idx in [199,]:
-                continue
+        for flux_idx in range(152):
+            # if flux_idx in [199,]:
+                # continue
             print(f'{flux_idx=}')
             num_ps_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/num_ps.npy')[rlz_idx]
             q_amp_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/q_amp.npy')[rlz_idx]
@@ -173,11 +173,11 @@ def save_fit_res_to_csv():
 
 
 # filter_df()
-calc_number()
+# calc_number()
 # check_num_ps_overlap()
 # get_disc_pix_ind()
 # calc_cov()
-# save_fit_res_to_csv()
+save_fit_res_to_csv()
 
 
 

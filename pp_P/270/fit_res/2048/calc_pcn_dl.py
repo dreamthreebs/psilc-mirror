@@ -195,11 +195,45 @@ def cpr_spectrum_noise_bias_e(bin_mask=bin_mask, apo_mask=apo_mask):
     path_dl_n.mkdir(exist_ok=True, parents=True)
     np.save(path_dl_n / Path(f'{rlz_idx}.npy'), dl_n_e)
 
+def test_c_b(bin_mask, apo_mask):
+    lmax = 1200
+
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,2]
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+    print(f'{ell_arr.shape=}')
+
+    m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
+
+    m_c_b = hp.alm2map(hp.map2alm(m_c, lmax=lmax)[2], nside=nside) * bin_mask
+
+    dl_c_b = calc_dl_from_scalar_map(m_c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
+    path_dl_c = Path(f'pcn_dl/B/test_c')
+    path_dl_c.mkdir(parents=True, exist_ok=True)
+
+    np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_b)
+
+    # plt.plot(ell_arr, dl_c_b, label='c b', marker='o')
+    # plt.plot(ell_arr, dl_cn_b, label='cn b', marker='o')
+    # plt.plot(ell_arr, dl_pcn_b, label='pcn b', marker='o')
+    # plt.plot(ell_arr, dl_removal_b, label='removal b', marker='o')
+    # plt.semilogy()
+    # plt.xlabel('$\\ell$')
+    # plt.ylabel('$D_\\ell$')
+    # plt.legend()
+    # plt.show()
+
+
 def main():
-    cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=apo_mask)
-    cpr_spectrum_pcn_e(bin_mask=bin_mask, apo_mask=apo_mask)
-    cpr_spectrum_noise_bias_b()
-    cpr_spectrum_noise_bias_e()
+
+    # cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=apo_mask)
+    # cpr_spectrum_pcn_e(bin_mask=bin_mask, apo_mask=apo_mask)
+    # cpr_spectrum_noise_bias_b()
+    # cpr_spectrum_noise_bias_e()
+
+    test_c_b(bin_mask=bin_mask, apo_mask=apo_mask)
 
 main()
 
