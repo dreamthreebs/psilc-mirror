@@ -9,7 +9,7 @@ from eblc_base import EBLeakageCorrection
 
 lmax = 1999
 nside = 2048
-threshold = 2
+threshold = 3
 mask = np.load('../../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
 rlz_idx=0
 
@@ -59,7 +59,7 @@ def from_qu_to_E():
     # plt.show()
 
 
-# run_eblc()
+run_eblc()
 from_qu_to_E()
 
 

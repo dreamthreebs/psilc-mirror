@@ -112,7 +112,7 @@ def main():
     mask = np.load('../../src/mask/north/BINMASKG2048.npy')
 
     obj = GetResidual(freq=freq, df_mask=df_mask, nside=nside, beam=beam, radius_factor=radius_factor)
-    obj.pcn_res(mask, threshold=10)
+    obj.pcn_res(mask, threshold=3)
 
 
 main()

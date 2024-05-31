@@ -19,7 +19,7 @@ beam = df.at[7, 'beam']
 print(f'{freq=}, {beam=}')
 
 rmv_list = []
-# rmv1_list = []
+rmv1_list = []
 c_list = []
 cn_list = []
 pcn_list = []
@@ -46,40 +46,40 @@ for rlz_idx in range(1,100):
     if rlz_idx == 50:
         continue
     rmv = np.load(f'./pcn_dl/B/removal_2sigma/{rlz_idx}.npy')
-    # rmv1 = np.load(f'./pcn_dl/B/removal_10sigma/{rlz_idx}.npy')
+    rmv1 = np.load(f'./pcn_dl/B/removal_3sigma/{rlz_idx}.npy')
     c = np.load(f'./pcn_dl/B/c/{rlz_idx}.npy')
     cn = np.load(f'./pcn_dl/B/cn/{rlz_idx}.npy')
     pcn = np.load(f'./pcn_dl/B/pcn/{rlz_idx}.npy')
 
-    # plt.plot(ell_arr, rmv, label=f'rmv {rlz_idx}')
-    plt.plot(ell_arr, c, label=f'c {rlz_idx}')
-    plt.semilogy()
-    plt.legend()
+    # # plt.plot(ell_arr, rmv, label=f'rmv {rlz_idx}')
+    # plt.plot(ell_arr, c, label=f'c {rlz_idx}')
+    # plt.semilogy()
+    # plt.legend()
 
     rmv_list.append(rmv)
-    # rmv1_list.append(rmv1)
+    rmv1_list.append(rmv1)
     c_list.append(c)
     cn_list.append(cn)
     pcn_list.append(pcn)
 
-plt.show()
+# plt.show()
 
 rmv_arr = np.array(rmv_list)
-# rmv1_arr = np.array(rmv1_list)
+rmv1_arr = np.array(rmv1_list)
 c_arr = np.array(c_list)
 cn_arr = np.array(cn_list)
 pcn_arr = np.array(pcn_list)
 print(f'{rmv_arr.shape=}')
 
 rmv_mean = np.mean(rmv_arr, axis=0)
-# rmv1_mean = np.mean(rmv1_arr, axis=0)
+rmv1_mean = np.mean(rmv1_arr, axis=0)
 c_mean = np.mean(c_arr, axis=0)
 cn_mean = np.mean(cn_arr, axis=0)
 pcn_mean = np.mean(pcn_arr, axis=0)
 print(f'{rmv_mean.shape=}')
 
 rmv_std = np.std(rmv_arr, axis=0)
-# rmv1_std = np.std(rmv1_arr, axis=0)
+rmv1_std = np.std(rmv1_arr, axis=0)
 c_std = np.std(c_arr, axis=0)
 cn_std = np.std(cn_arr, axis=0)
 pcn_std = np.std(pcn_arr, axis=0)
@@ -102,10 +102,13 @@ ell_arr = bin_dl.get_effective_ells()
 
 plt.figure(1)
 plt.plot(ell_arr, rmv_mean - n_mean, label='debias rmv_mean 2sigma')
-# plt.plot(ell_arr, rmv1_mean, label='rmv_mean 10sigma')
+plt.plot(ell_arr, rmv1_mean - n_mean, label='rmv_mean 10sigma')
 plt.plot(ell_arr, c_mean, label='c_mean')
 plt.plot(ell_arr, cn_mean - n_mean, label='debias cn_mean')
 plt.plot(ell_arr, pcn_mean - n_mean, label='debias pcn_mean')
+plt.plot(ell_arr, pcn_mean, label='pcn_mean')
+plt.plot(ell_arr, cn_mean, label='cn_mean')
+plt.plot(ell_arr, rmv_mean, label='rmv_mean')
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB}$')
 plt.semilogy()
@@ -127,6 +130,7 @@ plt.title('standard deviation')
 plt.figure(3)
 
 plt.plot(ell_arr, rmv_mean - cn_mean, label='rmv res')
+plt.plot(ell_arr, rmv1_mean - cn_mean, label='rmv1 res')
 plt.plot(ell_arr, pcn_mean - cn_mean, label='pcn res')
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB}$')

@@ -26,6 +26,7 @@ def calc_dl_from_scalar_map(scalar_map, bl, apo_mask, bin_dl, masked_on_input):
 freq = 270
 lmax = 1999
 beam = 9
+nside = 2048
 l = np.arange(lmax+1)
 bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)
 
@@ -58,6 +59,11 @@ u_max = 15
 flux_idx = 1
 lon = np.rad2deg(df.at[flux_idx, 'lon'])
 lat = np.rad2deg(df.at[flux_idx, 'lat'])
+ctr_vec = hp.ang2vec(theta=lon, phi=lat, lonlat=True)
+
+pix_mask = hp.query_disc(nside=nside, vec=ctr_vec, radius=1.5 * np.deg2rad(beam)/60)
+mask = np.ones(hp.nside2npix(nside))
+mask[pix_mask] = 0
 print(f'{lon=}, {lat=}')
 
 plt.figure(1)
@@ -65,12 +71,18 @@ hp.gnomview(pcn_q, rot=[lon, lat, 0], title='pcn q', xsize=fig_size, ysize=fig_s
 hp.gnomview(cn_q, rot=[lon, lat, 0], title='cn q', xsize=fig_size, ysize=fig_size, min=q_min, max=q_max, sub=222)
 hp.gnomview(m_q, rot=[lon, lat, 0], title='removal q', xsize=fig_size, ysize=fig_size, min=q_min, max=q_max, sub=223)
 hp.gnomview(m_q - cn_q, rot=[lon, lat, 0], title='residual q', xsize=fig_size, ysize=fig_size, sub=224)
-plt.figure(2)
 
+plt.figure(2)
 hp.gnomview(pcn_u, rot=[lon, lat, 0], title='pcn u', xsize=fig_size, ysize=fig_size, min=u_min, max=u_max, sub=221)
 hp.gnomview(cn_u, rot=[lon, lat, 0], title='cn u', xsize=fig_size, ysize=fig_size, min=u_min, max=u_max, sub=222)
 hp.gnomview(m_u, rot=[lon, lat, 0], title='removal u', xsize=fig_size, ysize=fig_size, min=u_min, max=u_max, sub=223)
 hp.gnomview(m_u - cn_u, rot=[lon, lat, 0], title='residual u', xsize=fig_size, ysize=fig_size, sub=224)
+
+plt.figure(3)
+hp.gnomview(pcn_q * mask, rot=[lon, lat, 0], title='pcn q masked', xsize=fig_size, ysize=fig_size, min=q_min, max=q_max, sub=221)
+hp.gnomview(pcn_u * mask, rot=[lon, lat, 0], title='pcn u masked', xsize=fig_size, ysize=fig_size, min=q_min, max=q_max, sub=222)
+hp.gnomview(cn_q, rot=[lon, lat, 0], title='cn q', xsize=fig_size, ysize=fig_size, min=q_min, max=q_max, sub=223)
+hp.gnomview(cn_u, rot=[lon, lat, 0], title='cn u', xsize=fig_size, ysize=fig_size, min=q_min, max=q_max, sub=224)
 
 plt.show()
 

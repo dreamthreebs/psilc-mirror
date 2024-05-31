@@ -10,7 +10,7 @@ lmax = 1999
 l = np.arange(lmax+1)
 nside = 2048
 rlz_idx = 0
-threshold = 2
+threshold = 3
 
 df = pd.read_csv('../../../../FGSim/FreqBand')
 freq = df.at[7, 'freq']
@@ -46,13 +46,13 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
-    m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
-    m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
-    m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
+    # m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
+    # m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
+    # m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
 
-    m_c_b = hp.alm2map(hp.map2alm(m_c, lmax=lmax)[2], nside=nside) * bin_mask
-    m_cn_b = hp.alm2map(hp.map2alm(m_cn, lmax=lmax)[2], nside=nside) * bin_mask
-    m_pcn_b = hp.alm2map(hp.map2alm(m_pcn, lmax=lmax)[2], nside=nside) * bin_mask
+    # m_c_b = hp.alm2map(hp.map2alm(m_c, lmax=lmax)[2], nside=nside) * bin_mask
+    # m_cn_b = hp.alm2map(hp.map2alm(m_cn, lmax=lmax)[2], nside=nside) * bin_mask
+    # m_pcn_b = hp.alm2map(hp.map2alm(m_pcn, lmax=lmax)[2], nside=nside) * bin_mask
 
     m_removal_b = np.load(f'./pcn_after_removal/{threshold}sigma/B/map_cln_b{rlz_idx}.npy')
 
@@ -62,9 +62,9 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # hp.orthview(m_removal_b, rot=[100,50,0], half_sky=True, title=' removal b ')
     # plt.show()
 
-    dl_c_b = calc_dl_from_scalar_map(m_c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_cn_b = calc_dl_from_scalar_map(m_cn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_pcn_b = calc_dl_from_scalar_map(m_pcn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_c_b = calc_dl_from_scalar_map(m_c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_cn_b = calc_dl_from_scalar_map(m_cn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_pcn_b = calc_dl_from_scalar_map(m_pcn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
     dl_removal_b = calc_dl_from_scalar_map(m_removal_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
@@ -79,9 +79,9 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     path_dl_inpaint = Path(f'pcn_dl/B/inpaint_{threshold}sigma')
     path_dl_inpaint.mkdir(parents=True, exist_ok=True)
 
-    np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_b)
-    np.save(path_dl_cn / Path(f'{rlz_idx}.npy'), dl_cn_b)
-    np.save(path_dl_pcn / Path(f'{rlz_idx}.npy'), dl_pcn_b)
+    # np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_b)
+    # np.save(path_dl_cn / Path(f'{rlz_idx}.npy'), dl_cn_b)
+    # np.save(path_dl_pcn / Path(f'{rlz_idx}.npy'), dl_pcn_b)
 
     np.save(path_dl_removal / Path(f'{rlz_idx}.npy'), dl_removal_b)
 
@@ -102,13 +102,13 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
-    m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
-    m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
-    m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
+    # m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
+    # m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
+    # m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
 
-    m_c_e = hp.alm2map(hp.map2alm(m_c, lmax=lmax)[1], nside=nside) * bin_mask
-    m_cn_e = hp.alm2map(hp.map2alm(m_cn, lmax=lmax)[1], nside=nside) * bin_mask
-    m_pcn_e = hp.alm2map(hp.map2alm(m_pcn, lmax=lmax)[1], nside=nside) * bin_mask
+    # m_c_e = hp.alm2map(hp.map2alm(m_c, lmax=lmax)[1], nside=nside) * bin_mask
+    # m_cn_e = hp.alm2map(hp.map2alm(m_cn, lmax=lmax)[1], nside=nside) * bin_mask
+    # m_pcn_e = hp.alm2map(hp.map2alm(m_pcn, lmax=lmax)[1], nside=nside) * bin_mask
 
     m_removal_e = np.load(f'./pcn_after_removal/{threshold}sigma/E/map_crp_e{rlz_idx}.npy')
 
@@ -118,9 +118,9 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
     # hp.orthview(m_removal_e, rot=[100,50,0], half_sky=True, title=' removal e ')
     # plt.show()
 
-    dl_c_e = calc_dl_from_scalar_map(m_c_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_cn_e = calc_dl_from_scalar_map(m_cn_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_pcn_e = calc_dl_from_scalar_map(m_pcn_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_c_e = calc_dl_from_scalar_map(m_c_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_cn_e = calc_dl_from_scalar_map(m_cn_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_pcn_e = calc_dl_from_scalar_map(m_pcn_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
     dl_removal_e = calc_dl_from_scalar_map(m_removal_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
@@ -135,9 +135,9 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
     path_dl_inpaint = Path(f'pcn_dl/E/inpaint_{threshold}sigma')
     path_dl_inpaint.mkdir(parents=True, exist_ok=True)
 
-    np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_e)
-    np.save(path_dl_cn / Path(f'{rlz_idx}.npy'), dl_cn_e)
-    np.save(path_dl_pcn / Path(f'{rlz_idx}.npy'), dl_pcn_e)
+    # np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_e)
+    # np.save(path_dl_cn / Path(f'{rlz_idx}.npy'), dl_cn_e)
+    # np.save(path_dl_pcn / Path(f'{rlz_idx}.npy'), dl_pcn_e)
 
     np.save(path_dl_removal / Path(f'{rlz_idx}.npy'), dl_removal_e)
 
@@ -272,11 +272,11 @@ def test_c_b(bin_mask, apo_mask):
 def main():
 
     # cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=apo_mask)
-    # cpr_spectrum_pcn_e(bin_mask=bin_mask, apo_mask=apo_mask)
+    cpr_spectrum_pcn_e(bin_mask=bin_mask, apo_mask=apo_mask)
     # cpr_spectrum_noise_bias_b()
     # cpr_spectrum_noise_bias_e()
 
-    calc_true_noise_bias_b()
+    # calc_true_noise_bias_b()
 
     # test_c_b(bin_mask=bin_mask, apo_mask=apo_mask)
 

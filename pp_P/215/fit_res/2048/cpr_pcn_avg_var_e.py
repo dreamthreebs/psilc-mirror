@@ -45,7 +45,7 @@ ell_arr = bin_dl.get_effective_ells()
 for rlz_idx in range(1,100):
     if rlz_idx == 50:
         continue
-    rmv = np.load(f'./pcn_dl/E/removal_2sigma/{rlz_idx}.npy')
+    rmv = np.load(f'./pcn_dl/E/removal_3sigma/{rlz_idx}.npy')
     # rmv1 = np.load(f'./pcn_dl/E/removal_10sigma/{rlz_idx}.npy')
     c = np.load(f'./pcn_dl/E/c/{rlz_idx}.npy')
     cn = np.load(f'./pcn_dl/E/cn/{rlz_idx}.npy')
