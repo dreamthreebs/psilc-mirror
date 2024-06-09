@@ -66,7 +66,7 @@ hp.gnomview(pcn_masked_b, rot=[lon, lat, 0], title='pcn_b', xsize=fig_size, sub=
 
 # hp.gnomview(cn_masked_e - pcn_masked_e, rot=[lon, lat, 0], title='cn_e - pcn_e', xsize=fig_size, sub=263)
 hp.gnomview(cn_masked_b - pcn_masked_b, rot=[lon, lat, 0], title='cn_b - pcn_b', xsize=fig_size, sub=263)
-hp.gnomview(cln_b, rot=[lon, lat, 0], title='cln b', xsize=fig_size, sub=269)
+hp.gnomview(cln_b, rot=[lon, lat, 0], title='cln b', xsize=fig_size, sub=269, min=-3.6, max=3.46)
 
 hp.gnomview(pcn_masked_e*mask, rot=[lon, lat, 0], title='masked e', xsize=fig_size, sub=264)
 hp.gnomview(pcn_masked_b*mask, rot=[lon, lat, 0], title='masked b', xsize=fig_size, sub=(2,6,10))

@@ -8,7 +8,7 @@ lmax = 1999
 l = np.arange(lmax+1)
 nside = 2048
 rlz_idx = 1
-threshold = 2
+threshold = 3
 
 df = pd.read_csv('../../../../FGSim/FreqBand')
 freq = df.at[7, 'freq']
@@ -17,6 +17,7 @@ print(f'{freq=}, {beam=}')
 
 bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
 apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
+ps_mask = np.load(f'./inpaint_pcn/{threshold}sigma/apo_mask/apo_c1_1/{rlz_idx}.npy')
 
 def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     bins_edges = []
@@ -44,34 +45,43 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
-    m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
+    # m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
+    m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
+    m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
 
-    # m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
-    # m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
-
-    m_c_b = hp.alm2map(hp.map2alm(m_c, lmax=lmax)[2], nside=nside) * bin_mask
-
-    # m_cn_b = hp.alm2map(hp.map2alm(m_cn, lmax=lmax)[2], nside=nside) * bin_mask
-    # m_pcn_b = hp.alm2map(hp.map2alm(m_pcn, lmax=lmax)[2], nside=nside) * bin_mask
-    # m_removal_b = np.load(f'./pcn_after_removal/{threshold}sigma/B/map_cln_b{rlz_idx}.npy')
+    # m_c_b = hp.alm2map(hp.map2alm(m_c, lmax=lmax)[2], nside=nside) * bin_mask
+    m_cn_b = hp.alm2map(hp.map2alm(m_cn, lmax=lmax)[2], nside=nside) * bin_mask
+    m_pcn_b = hp.alm2map(hp.map2alm(m_pcn, lmax=lmax)[2], nside=nside) * bin_mask
+    m_removal_b = np.load(f'./pcn_after_removal/{threshold}sigma/B/map_cln_b{rlz_idx}.npy')
+    m_ps_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_input/{rlz_idx}.fits') * bin_mask
+    m_inp_eb_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_output/{rlz_idx}.fits') * bin_mask
+    m_inp_qu_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/QU/B/{rlz_idx}.fits') * bin_mask
 
     # ### test: checking map
     # hp.orthview(m_cn_b, rot=[100,50,0], half_sky=True, title=' cn b ')
     # hp.orthview(m_pcn_b, rot=[100,50,0], half_sky=True, title=' pcn b ')
     # hp.orthview(m_removal_b, rot=[100,50,0], half_sky=True, title=' removal b ')
+
+    # hp.orthview(m_ps_b, rot=[100,50,0], half_sky=True, title='ps b', xsize=2000)
+    # hp.orthview(m_inp_eb_b, rot=[100,50,0], half_sky=True, title='inp eb b', xsize=2000)
+    # hp.orthview(m_inp_qu_b, rot=[100,50,0], half_sky=True, title='inp qu b', xsize=2000)
     # plt.show()
 
-    dl_c_b = calc_dl_from_scalar_map(m_c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_c_b = calc_dl_from_scalar_map(m_c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_cn_b = calc_dl_from_scalar_map(m_cn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_pcn_b = calc_dl_from_scalar_map(m_pcn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_removal_b = calc_dl_from_scalar_map(m_removal_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_ps_b = calc_dl_from_scalar_map(m_ps_b, bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_inp_eb_b = calc_dl_from_scalar_map(m_inp_eb_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_inp_qu_b = calc_dl_from_scalar_map(m_inp_qu_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
-    # dl_cn_b = calc_dl_from_scalar_map(m_cn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    # dl_pcn_b = calc_dl_from_scalar_map(m_pcn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    # dl_removal_b = calc_dl_from_scalar_map(m_removal_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-
-    plt.plot(ell_arr, dl_c_b, label='c b', marker='o')
-
-    # plt.plot(ell_arr, dl_cn_b, label='cn b', marker='o')
-    # plt.plot(ell_arr, dl_pcn_b, label='pcn b', marker='o')
-    # plt.plot(ell_arr, dl_removal_b, label='removal b', marker='o')
+    # plt.plot(ell_arr, dl_c_b, label='c b', marker='o')
+    plt.plot(ell_arr, dl_cn_b, label='cn b', marker='o')
+    plt.plot(ell_arr, dl_pcn_b, label='pcn b', marker='o')
+    plt.plot(ell_arr, dl_removal_b, label='removal b', marker='o')
+    plt.plot(ell_arr, dl_ps_b, label='ps b', marker='o')
+    plt.plot(ell_arr, dl_inp_eb_b, label='inp eb b', marker='o')
+    plt.plot(ell_arr, dl_inp_qu_b, label='inp qu b', marker='o')
 
     plt.semilogy()
     plt.xlabel('$\\ell$')
@@ -86,14 +96,17 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
-    m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
+    # m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
     m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
     m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
 
-    m_c_e = hp.alm2map(hp.map2alm(m_c, lmax=lmax)[1], nside=nside) * bin_mask
+    # m_c_e = hp.alm2map(hp.map2alm(m_c, lmax=lmax)[1], nside=nside) * bin_mask
     m_cn_e = hp.alm2map(hp.map2alm(m_cn, lmax=lmax)[1], nside=nside) * bin_mask
     m_pcn_e = hp.alm2map(hp.map2alm(m_pcn, lmax=lmax)[1], nside=nside) * bin_mask
     m_removal_e = np.load(f'./pcn_after_removal/{threshold}sigma/E/map_crp_e{rlz_idx}.npy')
+    m_ps_e = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/E_input/{rlz_idx}.fits') * bin_mask
+    m_inp_eb_e = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/E_output/{rlz_idx}.fits') * bin_mask
+    m_inp_qu_e = hp.read_map(f'./inpaint_pcn/{threshold}sigma/QU/E/{rlz_idx}.fits') * bin_mask
 
     # ### test: checking map
     # hp.orthview(m_cn_e, rot=[100,50,0], half_sky=True, title=' cn e ')
@@ -101,15 +114,23 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
     # hp.orthview(m_removal_e, rot=[100,50,0], half_sky=True, title=' removal e ')
     # plt.show()
 
-    dl_c_e = calc_dl_from_scalar_map(m_c_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_c_e = calc_dl_from_scalar_map(m_c_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     dl_cn_e = calc_dl_from_scalar_map(m_cn_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     dl_pcn_e = calc_dl_from_scalar_map(m_pcn_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     dl_removal_e = calc_dl_from_scalar_map(m_removal_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_ps_e = calc_dl_from_scalar_map(m_ps_e, bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_inp_eb_e = calc_dl_from_scalar_map(m_inp_eb_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_inp_qu_e = calc_dl_from_scalar_map(m_inp_qu_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
-    plt.plot(ell_arr, dl_c_e, label='c e', marker='o')
+    # plt.plot(ell_arr, dl_c_e, label='c e', marker='o')
     plt.plot(ell_arr, dl_cn_e, label='cn e', marker='o')
     plt.plot(ell_arr, dl_pcn_e, label='pcn e', marker='o')
     plt.plot(ell_arr, dl_removal_e, label='removal e', marker='o')
+    plt.plot(ell_arr, dl_ps_e, label='ps e', marker='o')
+    plt.plot(ell_arr, dl_inp_eb_e, label='inp eb e', marker='o')
+    plt.plot(ell_arr, dl_inp_qu_e, label='inp qu e', marker='o')
+
+
     plt.semilogy()
     plt.xlabel('$\\ell$')
     plt.ylabel('$D_\\ell$')
@@ -118,8 +139,8 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
 
 
 def main():
-    cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=apo_mask)
-    # cpr_spectrum_pcn_e(bin_mask=bin_mask, apo_mask=apo_mask)
+    # cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=apo_mask)
+    cpr_spectrum_pcn_e(bin_mask=bin_mask, apo_mask=apo_mask)
 
 main()
 

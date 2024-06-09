@@ -18,7 +18,7 @@ df = pd.read_csv(f'../../../../mask/mask_csv/{freq}.csv')
 ori_mask = np.load('../../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
 ori_apo_mask = np.load('../../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
 
-rlz_idx = 1
+rlz_idx = 0
 print(f'{rlz_idx=}')
 mask_list = np.load(f'../pcn_after_removal/{threshold}sigma/mask_{rlz_idx}.npy')
 print(f'{mask_list.shape=}')
@@ -46,8 +46,12 @@ for flux_idx in mask_list:
 # plt.show()
 
 apo_ps_mask = nmt.mask_apodization(mask, aposize=1, apotype='C1') * ori_apo_mask
-path_ps_mask = Path(f'./3sigma/apo_mask/dl_c1_1')
+hp.orthview(apo_ps_mask, rot=[100,50, 0], title='mask', xsize=2000)
+plt.show()
+
+path_ps_mask = Path(f'./3sigma/apo_mask/apo_c1_1')
 path_ps_mask.mkdir(exist_ok=True, parents=True)
+np.save(path_ps_mask / Path(f'{rlz_idx}.npy'), apo_ps_mask)
 
 
 
