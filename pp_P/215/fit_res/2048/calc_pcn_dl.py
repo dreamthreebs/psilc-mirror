@@ -13,8 +13,8 @@ rlz_idx = 0
 threshold = 3
 
 df = pd.read_csv('../../../../FGSim/FreqBand')
-freq = df.at[7, 'freq']
-beam = df.at[7, 'beam']
+freq = df.at[6, 'freq']
+beam = df.at[6, 'beam']
 print(f'{freq=}, {beam=}')
 
 bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
@@ -57,7 +57,7 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # m_removal_b = np.load(f'./pcn_after_removal/{threshold}sigma/B/map_cln_b{rlz_idx}.npy')
     m_ps_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_input/{rlz_idx}.fits') * bin_mask
     m_inp_eb_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_output/{rlz_idx}.fits') * bin_mask
-    m_inp_qu_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/QU/B/{rlz_idx}.fits') * bin_mask
+    # m_inp_qu_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/QU/B/{rlz_idx}.fits') * bin_mask
 
     # b_min = -1.8
     # b_max = 1.8
@@ -79,7 +79,7 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     dl_ps_b = calc_dl_from_scalar_map(m_ps_b, bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False)
     dl_inp_eb_b = calc_dl_from_scalar_map(m_inp_eb_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_inp_qu_b = calc_dl_from_scalar_map(m_inp_qu_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_inp_qu_b = calc_dl_from_scalar_map(m_inp_qu_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
     path_dl_c = Path(f'pcn_dl/B/c')
     path_dl_c.mkdir(parents=True, exist_ok=True)
@@ -93,8 +93,9 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     path_dl_ps.mkdir(parents=True, exist_ok=True)
     path_dl_inpaint_eb = Path(f'pcn_dl/B/inpaint_eb_{threshold}sigma')
     path_dl_inpaint_eb.mkdir(parents=True, exist_ok=True)
-    path_dl_inpaint_qu = Path(f'pcn_dl/B/inpaint_qu_{threshold}sigma')
-    path_dl_inpaint_qu.mkdir(parents=True, exist_ok=True)
+
+    # path_dl_inpaint_qu = Path(f'pcn_dl/B/inpaint_qu_{threshold}sigma')
+    # path_dl_inpaint_qu.mkdir(parents=True, exist_ok=True)
 
     # np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_b)
     # np.save(path_dl_cn / Path(f'{rlz_idx}.npy'), dl_cn_b)
@@ -103,7 +104,7 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     np.save(path_dl_ps / Path(f'{rlz_idx}.npy'), dl_ps_b)
     np.save(path_dl_inpaint_eb / Path(f'{rlz_idx}.npy'), dl_inp_eb_b)
-    np.save(path_dl_inpaint_qu / Path(f'{rlz_idx}.npy'), dl_inp_qu_b)
+    # np.save(path_dl_inpaint_qu / Path(f'{rlz_idx}.npy'), dl_inp_qu_b)
 
     # plt.plot(ell_arr, dl_c_b, label='c b', marker='o')
     # plt.plot(ell_arr, dl_cn_b, label='cn b', marker='o')
@@ -133,7 +134,7 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
 
     m_ps_e = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/E_input/{rlz_idx}.fits') * bin_mask
     m_inp_eb_e = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/E_output/{rlz_idx}.fits') * bin_mask
-    m_inp_qu_e = hp.read_map(f'./inpaint_pcn/{threshold}sigma/QU/E/{rlz_idx}.fits') * bin_mask
+    # m_inp_qu_e = hp.read_map(f'./inpaint_pcn/{threshold}sigma/QU/E/{rlz_idx}.fits') * bin_mask
 
     # e_min = -20
     # e_max = 20
@@ -156,7 +157,7 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
 
     dl_ps_e = calc_dl_from_scalar_map(m_ps_e, bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False)
     dl_inp_eb_e = calc_dl_from_scalar_map(m_inp_eb_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_inp_qu_e = calc_dl_from_scalar_map(m_inp_qu_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_inp_qu_e = calc_dl_from_scalar_map(m_inp_qu_e, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
 
     path_dl_c = Path(f'pcn_dl/E/c')
@@ -173,8 +174,9 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
     path_dl_ps.mkdir(parents=True, exist_ok=True)
     path_dl_inpaint_eb = Path(f'pcn_dl/E/inpaint_eb_{threshold}sigma')
     path_dl_inpaint_eb.mkdir(parents=True, exist_ok=True)
-    path_dl_inpaint_qu = Path(f'pcn_dl/E/inpaint_qu_{threshold}sigma')
-    path_dl_inpaint_qu.mkdir(parents=True, exist_ok=True)
+
+    # path_dl_inpaint_qu = Path(f'pcn_dl/E/inpaint_qu_{threshold}sigma')
+    # path_dl_inpaint_qu.mkdir(parents=True, exist_ok=True)
 
     # np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_e)
     # np.save(path_dl_cn / Path(f'{rlz_idx}.npy'), dl_cn_e)
@@ -183,7 +185,7 @@ def cpr_spectrum_pcn_e(bin_mask, apo_mask):
 
     np.save(path_dl_ps / Path(f'{rlz_idx}.npy'), dl_ps_e)
     np.save(path_dl_inpaint_eb / Path(f'{rlz_idx}.npy'), dl_inp_eb_e)
-    np.save(path_dl_inpaint_qu / Path(f'{rlz_idx}.npy'), dl_inp_qu_e)
+    # np.save(path_dl_inpaint_qu / Path(f'{rlz_idx}.npy'), dl_inp_qu_e)
 
     # plt.plot(ell_arr, dl_c_e, label='c e', marker='o')
     # plt.plot(ell_arr, dl_cn_e, label='cn e', marker='o')
@@ -326,5 +328,6 @@ def main():
     # test_c_b(bin_mask=bin_mask, apo_mask=apo_mask)
 
 main()
+
 
 
