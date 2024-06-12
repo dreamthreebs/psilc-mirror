@@ -41,7 +41,7 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     bins_edges.append(l_max)
     return bins_edges[:-1], bins_edges[1:]
 
-l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=1999, fold=0.2)
+l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
 bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
 
@@ -49,7 +49,7 @@ for rlz_idx in range(1,100):
     if rlz_idx == 50:
         continue
 
-    n = np.load(f'./pcn_dl/E/removal_3sigma/{rlz_idx}.npy')
+    n = np.load(f'./pcn_dl/E/n_true/{rlz_idx}.npy')
     rmv = np.load(f'./pcn_dl/E/removal_3sigma/{rlz_idx}.npy') - n
     # rmv1 = np.load(f'./pcn_dl/E/removal_10sigma/{rlz_idx}.npy')
     c = np.load(f'./pcn_dl/E/c/{rlz_idx}.npy')
@@ -116,10 +116,6 @@ print(f'{rmv_std.shape=}')
 # n_mean = np.mean(n_arr, axis=0)
 # n_std = np.std(n_arr, axis=0)
 
-l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=1999, fold=0.2)
-bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
-ell_arr = bin_dl.get_effective_ells()
-
 plt.figure(1)
 plt.plot(ell_arr, rmv_mean, label='debias rmv_mean 3sigma')
 # plt.plot(ell_arr, rmv1_mean, label='rmv_mean 10sigma')
@@ -163,6 +159,45 @@ plt.ylabel('$D_\\ell^{EE}$')
 plt.ylim(-0.1,0.1)
 plt.legend()
 plt.title('residual power spectrum')
+
+rmv_rres = (rmv_mean - cn_mean) / cn_mean
+rmv_rres_pos = np.where(rmv_rres > 0, rmv_rres, np.nan)
+rmv_rres_neg = np.where(rmv_rres < 0, np.abs(rmv_rres), np.nan)
+
+pcn_rres = (pcn_mean - cn_mean) / cn_mean
+pcn_rres_pos = np.where(pcn_rres > 0, pcn_rres, np.nan)
+pcn_rres_neg = np.where(pcn_rres < 0, np.abs(pcn_rres), np.nan)
+
+ps_mask_rres = (ps_mask_mean - cn_mean) / cn_mean
+ps_mask_rres_pos = np.where(ps_mask_rres > 0, ps_mask_rres, np.nan)
+ps_mask_rres_neg = np.where(ps_mask_rres < 0, np.abs(ps_mask_rres), np.nan)
+
+inp_eb_rres = (inp_eb_mean - cn_mean) / cn_mean
+inp_eb_rres_pos = np.where(inp_eb_rres > 0, inp_eb_rres, np.nan)
+inp_eb_rres_neg = np.where(inp_eb_rres < 0, np.abs(inp_eb_rres), np.nan)
+
+plt.figure(4)
+plt.scatter(ell_arr, rmv_rres_pos, color='g', marker='+', label='rmv')
+plt.scatter(ell_arr, rmv_rres_neg, color='g', marker='_', label='rmv')
+
+plt.scatter(ell_arr, pcn_rres_pos, color='b', marker='+', label='pcn')
+plt.scatter(ell_arr, pcn_rres_neg, color='b', marker='_', label='pcn')
+
+plt.scatter(ell_arr, ps_mask_rres_pos, color='m', marker='+', label='ps_mask')
+plt.scatter(ell_arr, ps_mask_rres_neg, color='m', marker='_', label='ps_mask')
+
+plt.scatter(ell_arr, inp_eb_rres_pos, color='y', marker='+', label='inp_eb')
+plt.scatter(ell_arr, inp_eb_rres_neg, color='y', marker='_', label='inp_eb')
+
+plt.scatter(ell_arr, cn_std / cn_mean, color='k', marker='.', label='std')
+
+plt.xlabel('$\\ell$')
+plt.ylabel('$D_\\ell^{EE res} / D_\\ell^{EE cn}$')
+# plt.ylim(bottom=1e-10)
+plt.loglog()
+# plt.ylim(-0.1,0.1)
+plt.legend()
+plt.title('relative residual power spectrum')
 
 plt.show()
 
