@@ -53,7 +53,7 @@ def lsq_2_params(norm_beam, const):
     return z
 
 
-params = (1e4, 0.0)
+params = (0, 0.0)
 obj_minuit = Minuit(lsq_2_params, name=("norm_beam", "const"), *params)
 obj_minuit.limits = [(-1e4,1e4), (-1000,1000)]
 print(obj_minuit.migrad())

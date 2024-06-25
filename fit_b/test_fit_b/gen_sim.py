@@ -15,12 +15,16 @@ m_delta = np.zeros((3, npix))
 
 lon = 0
 lat = 0
-flux_density_i = 1e3
-flux_density_q = 1e2
-flux_density_u = 1e2
 ipix_ctr = hp.ang2pix(theta=lon, phi=lat, lonlat=True, nside=nside)
 pix_lon, pix_lat = hp.pix2ang(ipix=ipix_ctr, nside=nside, lonlat=True)
 print(f"{pix_lon=}, {pix_lat=}")
+
+flux_density_i = 1e3
+flux_density_q = 5e2
+flux_density_u = 5e2
+
+flux_density_q = 5e2
+flux_density_u = -2.5e2
 
 m_delta[0,ipix_ctr] = flux_density_i
 m_delta[1,ipix_ctr] = flux_density_q
@@ -36,7 +40,16 @@ nstd = np.load('../../FGSim/NSTDNORTH/2048/215.npy')
 
 noise = nstd * np.random.normal(loc=0, scale=1, size=(3,npix))
 m = noise + sm_m
-np.save('sim.npy', m)
+
+# np.save('./data/sim.npy', m)
+# np.save('./data/ps.npy', sm_m)
+# np.save('./data/noise.npy', noise)
+
+# np.save('./data/sim.npy', m)
+np.save('../test_ps_on_b/ps.npy', sm_m)
+# np.save('./data/noise.npy', noise)
+
+
 
 
 
