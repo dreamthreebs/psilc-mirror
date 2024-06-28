@@ -65,6 +65,7 @@ sin_2xi = np.sin(2*xi)
 r_2 = norm_vec_ctr_to_disc**2
 r_2_div_sigma = norm_vec_ctr_to_disc**2 / (2*sigma**2)
 ps_2phi = np.arctan2(-1,2)
+print(f'{ps_2phi=}')
 # ps_phi = 0
 
 m = -(sin_2xi * np.cos(ps_2phi) - cos_2xi * np.sin(ps_2phi)) * (1 / r_2) * (np.exp(-r_2_div_sigma) * (1+r_2_div_sigma) - 1)
