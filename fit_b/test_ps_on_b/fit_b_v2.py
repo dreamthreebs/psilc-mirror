@@ -86,56 +86,27 @@ class Fit_on_B:
     # Calculate inverse covariance matrix
     def calc_inv_cov(self, mode='n'):
 
-        if mode == 'cn1':
-            # cmb_cov = np.load('./cmb_b_cov/0.npy') # load cmb cov
-            cmb_cov = np.load('./data/c_cov.npy')
-
-            print(f'{cmb_cov.shape=}')
-            noise_cov = np.load('./data/noise_cov.npy')
-            cov = cmb_cov + noise_cov
-            eigenval = np.linalg.eigvalsh(cov)
-            print(f'{eigenval=}')
-            self.inv_cov = np.linalg.inv(cov)
-            return None
-
-        if mode == 'n1':
-            noise_cov = np.load('./data/noise_cov.npy')
-            cov = noise_cov
-            self.inv_cov = np.linalg.inv(cov)
-            return None
-
         if mode == "c":
             cov = np.load('./cmb_b_cov/0.npy') # load cmb cov
-
-            eigenval, eigenvec = np.linalg.eigh(cov)
-            print(f'{eigenval=}')
-            eigenval[eigenval < 0] = 1e-10
-            reconstructed_cov = np.dot(eigenvec * eigenval, eigenvec.T)
-
-            self.inv_cov = np.linalg.inv(reconstructed_cov)
+            self.inv_cov = np.linalg.inv(cov)
             return None
 
         if mode == 'cn':
             cov = np.load('./cmb_b_cov/0.npy') # load cmb cov
-            # cov = np.load('./data/c_cov.npy')
             print(f'{cov.shape=}')
-
-            eigenval, eigenvec = np.linalg.eigh(cov)
-            print(f'{eigenval=}')
-            eigenval[eigenval < 0] = 1e-10
-            cov = np.dot(eigenvec * eigenval, eigenvec.T)
-
             # nstd = 0.85661
+            # nstd = 0.1
 
         if mode == 'n':
             cov = np.zeros((self.ndof, self.ndof))
 
-        nstd = 0.1
-        # nstd = 0.086
+        # nstd = 0.1
+        nstd = 0.0856540128628882
         nstd2 = nstd**2
 
         for i in range(self.ndof):
             cov[i,i] = cov[i,i] + nstd2
+
 
         self.inv_cov = np.linalg.inv(cov)
 
@@ -145,8 +116,8 @@ class Fit_on_B:
         model = np.nan_to_num(model, nan=0)
         return model
 
-    def lsq(self, A, ps_2phi, const):
-        y_model = self.model(A, ps_2phi) + const
+    def lsq(self, A, ps_2phi):
+        y_model = self.model(A, ps_2phi)
         y_data = self.m[self.ipix_disc]
         y_diff = y_data - y_model
 
@@ -154,9 +125,9 @@ class Fit_on_B:
         return z
 
     def fit_b(self):
-        params = (1.3e-4, -0.46, 0.0)
-        obj_minuit = Minuit(self.lsq, name=("A", "ps_2phi", "const"), *params)
-        obj_minuit.limits = [(0,1), (-np.pi,np.pi), (-100,100)]
+        params = (0.0, 0.0)
+        obj_minuit = Minuit(self.lsq, name=("A", "ps_2phi"), *params)
+        obj_minuit.limits = [(None,None), (-np.pi,np.pi)]
         print(obj_minuit.migrad())
         print(obj_minuit.hesse())
         chi2dof = obj_minuit.fval / self.ndof
@@ -166,11 +137,9 @@ class Fit_on_B:
         self.A_err = obj_minuit.errors["A"]
         self.P = self.A / hp.nside2pixarea(nside=self.nside)
         self.P_err = self.A_err / hp.nside2pixarea(nside=self.nside)
-        print(f'P={self.P}')
-        print(f'P_err={self.P_err}')
+        print(f'{self.P=}')
+        print(f'{self.P_err=}')
         self.ps_2phi = obj_minuit.values["ps_2phi"]
-        self.ps_2phi_err = obj_minuit.errors["ps_2phi"]
-        print(f'phi={self.ps_2phi}, phi_err={self.ps_2phi_err}')
         print(f'Q = {self.P*np.cos(self.ps_2phi)}')
         print(f'U = {self.P*np.sin(self.ps_2phi)}')
 
@@ -182,18 +151,11 @@ class Fit_on_B:
         m_model[self.ipix_disc] = self.model(self.A, self.ps_2phi)
 
         res = self.m - m_model
-        # res = res - np.load('./m_cn_b_1.npy')
-        m_input = np.load('./m_qu_cn.npy')
-        # m_input = np.load('./data/m_pn_b_1.npy')
-        res = res - m_input
+        res = res - np.load('./m_cn_b_1.npy')
 
-
-        m_min = -1.5
-        m_max = 1.5
-        hp.gnomview(m_input, rot=[self.pix_lon, self.pix_lat, 0], title='input cn', min=m_min, max=m_max)
-        hp.gnomview(m_model, rot=[self.pix_lon, self.pix_lat, 0], title='model', min=m_min, max=m_max)
-        hp.gnomview(self.m, rot=[self.pix_lon, self.pix_lat, 0], title='input pcn', min=m_min, max=m_max)
-        hp.gnomview(res, rot=[self.pix_lon, self.pix_lat, 0], title='res', min=m_min, max=m_max)
+        hp.gnomview(m_model, rot=[self.pix_lon, self.pix_lat, 0], title='model')
+        hp.gnomview(self.m, rot=[self.pix_lon, self.pix_lat, 0], title='input')
+        hp.gnomview(res, rot=[self.pix_lon, self.pix_lat, 0], title='res', min=-3.5, max=3.5)
 
         plt.show()
 
@@ -206,11 +168,11 @@ if __name__=='__main__':
     beam = 11
     lon = 0
     lat = 0
-    # m = np.load('./data/m_pn_b').copy()
+    # m = np.load('./data/qu_pn.npy').copy()
     # m = np.load('./data/m_pn_b.npy').copy()
-    m = np.load('./m_pcn_b_1.npy').copy()
-    # m = np.load('./m_qu_pcn.npy').copy()
-    # m = np.load('./m_qu_pn').copy()
+    # m = np.load('./m_pcn_b_1.npy').copy()
+    m = np.load('./m_qu_pcn.npy').copy()
+    # m = np.load('./m_qu_cn.npy').copy()
 
     obj = Fit_on_B(m, lmax, nside, beam, lon, lat, r_fold=2.5, r_fold_rmv=5)
     obj.params_for_fitting()

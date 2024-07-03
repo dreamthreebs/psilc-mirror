@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from ctypes import *
 from pathlib import Path
 
-beam = 9
+beam = 11
 flux_idx = 0
 
 def signal_handler(sig, frame):
