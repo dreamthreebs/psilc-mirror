@@ -87,19 +87,25 @@ class Fit_on_B:
     def calc_inv_cov(self, mode='n'):
 
         if mode == 'cn1':
-            # cmb_cov = np.load('./cmb_b_cov/0.npy') # load cmb cov
-            cmb_cov = np.load('./data/c_cov.npy')
+            cmb_cov = np.load('./cmb_b_cov/0.npy') # load cmb cov
+            # cmb_cov = np.load('./data/c_cov.npy')
 
             print(f'{cmb_cov.shape=}')
-            noise_cov = np.load('./data/noise_cov.npy')
+            # noise_cov = np.load('./data/noise_cov.npy')
+            noise_cov = np.load('./noise_b_cov/0.npy')
+            print(f'{noise_cov=}')
             cov = cmb_cov + noise_cov
-            eigenval = np.linalg.eigvalsh(cov)
+            eigenval, eigenvec = np.linalg.eigh(cov)
             print(f'{eigenval=}')
-            self.inv_cov = np.linalg.inv(cov)
+            eigenval[eigenval < 0] = 1e-10
+            reconstructed_cov = np.dot(eigenvec * eigenval, eigenvec.T)
+
+            self.inv_cov = np.linalg.inv(reconstructed_cov)
             return None
 
         if mode == 'n1':
-            noise_cov = np.load('./data/noise_cov.npy')
+            # noise_cov = np.load('./data/noise_cov.npy')
+            noise_cov = np.load('./noise_b_cov/0.npy')
             cov = noise_cov
             self.inv_cov = np.linalg.inv(cov)
             return None
@@ -208,14 +214,14 @@ if __name__=='__main__':
     lat = 0
     # m = np.load('./data/m_pn_b').copy()
     # m = np.load('./data/m_pn_b.npy').copy()
-    m = np.load('./m_pcn_b_1.npy').copy()
-    # m = np.load('./m_qu_pcn.npy').copy()
-    # m = np.load('./m_qu_pn').copy()
+    # m = np.load('./m_pcn_b_1.npy').copy()
+    m = np.load('./m_qu_pcn.npy').copy()
+    # m = np.load('./data/qu_pn.npy').copy()
 
     obj = Fit_on_B(m, lmax, nside, beam, lon, lat, r_fold=2.5, r_fold_rmv=5)
     obj.params_for_fitting()
-    # obj.calc_inv_cov(mode='n')
-    obj.calc_inv_cov(mode='cn')
+    # obj.calc_inv_cov(mode='n1')
+    obj.calc_inv_cov(mode='cn1')
     obj.fit_b()
     obj.params_for_testing()
     obj.test_residual()

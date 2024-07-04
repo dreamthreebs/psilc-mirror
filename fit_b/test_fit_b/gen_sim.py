@@ -29,7 +29,7 @@ flux_density_u = -2.5e2
 m_delta[0,ipix_ctr] = flux_density_i
 m_delta[1,ipix_ctr] = flux_density_q
 m_delta[2,ipix_ctr] = flux_density_u
-sm_m = hp.smoothing(m_delta, fwhm=np.deg2rad(beam)/60, lmax=lmax)
+sm_m = hp.smoothing(m_delta, fwhm=np.deg2rad(beam)/60)
 
 hp.gnomview(sm_m[0], rot=[lon, lat, 0], xsize=100, title='T')
 hp.gnomview(sm_m[1], rot=[lon, lat, 0], xsize=100, title='Q')
@@ -46,7 +46,7 @@ m = noise + sm_m
 # np.save('./data/noise.npy', noise)
 
 # np.save('./data/sim.npy', m)
-np.save('../test_ps_on_b/ps.npy', sm_m)
+np.save('../test_ps_on_b/ps1.npy', sm_m)
 # np.save('./data/noise.npy', noise)
 
 

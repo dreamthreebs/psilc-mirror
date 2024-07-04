@@ -22,7 +22,7 @@ print(f'{ctr_theta=}, {ctr_phi=}, {ctr_vec=}')
 
 def gen_b_map():
 
-    ps = np.load('./data/ps.npy')
+    ps = np.load('./ps1.npy')
     nstd = 0.1
     noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
     print(f"{np.std(noise[1])=}")
@@ -37,9 +37,9 @@ def gen_b_map():
     # plt.loglog(l, l*(l+1)*cls_out[2])
     # plt.show()
 
-    # pcn = noise + ps + cmb_iqu
+    pcn = noise + ps + cmb_iqu
 
-    pcn = ps + cmb_iqu
+    # pcn = ps + cmb_iqu
     # pcn = ps + noise
     pcn_b = hp.alm2map(hp.map2alm(pcn)[2], nside=nside)
 
@@ -52,7 +52,7 @@ def main():
     obj = Fit_on_B(m=m, lmax=lmax, nside=nside, beam=beam, lon=ctr_ori_lon, lat=ctr_ori_lat, r_fold=2.5, r_fold_rmv=5)
     obj.params_for_fitting()
     # obj.calc_inv_cov(mode='cn')
-    obj.calc_inv_cov(mode='c')
+    obj.calc_inv_cov(mode='cn1')
     # obj.calc_inv_cov(mode='n1')
     obj.fit_b()
     print(f'{obj.P=}, {obj.ps_2phi=}')
@@ -60,8 +60,8 @@ def main():
     path_params = Path('./params')
     path_params.mkdir(parents=True, exist_ok=True)
 
-    # np.save(path_params / Path(f'P_{rlz_idx}.npy'), obj.P)
-    # np.save(path_params / Path(f'phi_{rlz_idx}.npy'), obj.ps_2phi)
+    np.save(path_params / Path(f'P_{rlz_idx}.npy'), obj.P)
+    np.save(path_params / Path(f'phi_{rlz_idx}.npy'), obj.ps_2phi)
 
     obj.params_for_testing()
     obj.test_residual()

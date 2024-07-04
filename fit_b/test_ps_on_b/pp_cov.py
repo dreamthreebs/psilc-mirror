@@ -23,12 +23,18 @@ def Calc_CovMat(l_range, nside, pixind, opt='E', mskopt=True):
     print(f'{bl[0:10,2]=}')
     print(f'{bl[0:10,3]=}')
     cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
-    Cl_TT = cl[2:nl+2,0] * bl[:,0]**2
-    Cl_EE = cl[2:nl+2,1] * bl[:,1]**2
-    Cl_BB = cl[2:nl+2,2] * bl[:,2]**2
-    Cl_TE = cl[2:nl+2,3] * bl[:,3]**2
 
-    nCl = np.zeros_like(Cl_TT)
+    # Cl_TT = cl[2:nl+2,0] * bl[:,0]**2
+    # Cl_EE = cl[2:nl+2,1] * bl[:,1]**2
+    # Cl_BB = cl[2:nl+2,2] * bl[:,2]**2
+    # Cl_TE = cl[2:nl+2,3] * bl[:,3]**2
+    
+    map_depth = 0.17177432059087
+    Cl_NN = (map_depth*np.ones(shape=(nl,)))**2 / 3437.748**2
+    print(f'{Cl_NN.shape=}')
+
+    # nCl = np.zeros_like(Cl_TT)
+    nCl = np.zeros_like(Cl_NN)
 
     if opt=='E':
     	Cls = np.array([Cl, Cl, nCl, Cl, nCl]) # TT,EE,BB,TE,TB
@@ -39,6 +45,8 @@ def Calc_CovMat(l_range, nside, pixind, opt='E', mskopt=True):
     elif opt=='all':
         # Cls = np.array([Cl_TT, Cl_EE, Cl_BB, Cl_TE, nCl]) # Cl_TB is zero
         Cls = np.array([Cl_BB, nCl, nCl, nCl, nCl]) # calc B map cov
+    elif opt=='N':
+        Cls = np.array([Cl_NN, nCl, nCl, nCl, nCl])
 
     if mskopt == True:
     	pixind = Mask_Operation(nside)
@@ -80,6 +88,7 @@ def ChooseMat(M, opt):
         TT = M[0:len(M):3, 0:len(M):3]
         print(f'{TT.shape=}')
         MP = TT
+
     if opt=='QQ':
         MP = M[1:len(M)+1:3, 1:len(M)+1:3]
     if opt=='UU':
@@ -87,16 +96,16 @@ def ChooseMat(M, opt):
     return MP
 
 def main_one_ps():
-    l_range = np.arange(2,2000)
     nside = 2048
+    l_range = np.arange(2,3*nside)
     mskopt = False
     pixind = np.load(f'./data/pix_idx.npy')
-    CovMat = Calc_CovMat(l_range, nside, pixind=pixind, opt='all', mskopt=mskopt)
+    CovMat = Calc_CovMat(l_range, nside, pixind=pixind, opt='N', mskopt=mskopt)
     print(f'{CovMat.shape=}')
     CovMatPol = ChooseMat(CovMat, opt='all')
     print(f'{CovMatPol.shape=}')
 
-    path_cmb_cov = Path('./cmb_b_cov')
+    path_cmb_cov = Path('./noise_b_cov')
     path_cmb_cov.mkdir(exist_ok=True, parents=True)
     np.save(path_cmb_cov / Path(f'{flux_idx}.npy'), CovMatPol)
 

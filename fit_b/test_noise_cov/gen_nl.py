@@ -21,11 +21,17 @@ nl = (map_depth/bl)**2 / 3437.748**2
 
 nstd = np.load('../../FGSim/NSTDNORTH/215.npy')
 
-noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
-nl_calc = hp.anafast(noise, lmax=lmax)
+n_list = []
+for i in range(100):
+    print(f'{i=}')
+    noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    nl_calc = hp.anafast(noise, lmax=lmax)[2]
+    n_list.append(nl_calc)
 
+n_arr = np.asarray(n_list)
+nl_mean = np.mean(n_arr, axis=0)
 
 plt.loglog(l, nl, label='th')
-plt.loglog(l, nl_calc[2]/bl**2, label='exp')
+plt.loglog(l, nl_mean/bl**2, label='exp')
 plt.show()
 

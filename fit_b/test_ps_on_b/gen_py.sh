@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./cmb_cov_sim.py"
+original_file="./gen_and_fit.py"
 
 # 复制文件的数量
 copies=1000
@@ -14,7 +14,7 @@ for i in $(seq 1 $copies); do
     cp $original_file $new_file
 
     # 在第10行替换文本
-    sed -i "13s/rlz_idx=0/rlz_idx=$i/" $new_file
+    sed -i "12s/rlz_idx=0/rlz_idx=$i/" $new_file
 done
 
 
