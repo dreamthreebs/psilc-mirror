@@ -23,7 +23,7 @@ print(f'{n_freq}')
 
 for i in range(n_freq):
     freq = df.at[i,'freq']
-    Delta = 1 * u.uK * u.arcmin
+    Delta = 1.9 * u.uK * u.arcmin
     Nside = 2048
 
     sigma = calc_sigma(Delta, Nside)
