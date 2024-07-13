@@ -89,13 +89,15 @@ class CovCalculator:
         MP = self.ChooseMat(M)
         return MP
 
+# tests
 def test_cmb_cl(beam, lmax):
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=10000, pol=True)
     print(f'{bl[0:10,0]=}')
     print(f'{bl[0:10,1]=}')
     print(f'{bl[0:10,2]=}')
     print(f'{bl[0:10,3]=}')
-    cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
+    # cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
+    cl = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
     print(f'{cl.shape=}')
 
     Cl_TT = cl[0:lmax+1,0] * bl[0:lmax+1,0]**2
@@ -120,21 +122,22 @@ if __name__=='__main__':
 
     ## test for cmb cov
 
-    # _,_,Cl_BB,_ = test_cmb_cl(beam=beam, lmax=1999)
-    # obj = CovCalculator(nside=nside, lmin=2, lmax=1999, Cl_TT=Cl_BB, Cl_EE=None, Cl_BB=None, Cl_TE=None, pixind=pixind)
-    # MP = obj.run_calc_cov()
-    # path_test_class_cov = Path('./test_class_cov')
-    # path_test_class_cov.mkdir(exist_ok=True, parents=True)
-    # np.save(f'./test_class_cov/cmb.npy', MP)
-
-    ## test for noise cov
-
-    Cl_NN = test_noise_cl(lmax=3*nside-1)
-    obj = CovCalculator(nside=nside, lmin=2, lmax=3*nside-1, Cl_TT=Cl_NN, Cl_EE=None, Cl_BB=None, Cl_TE=None, pixind=pixind)
+    _,_,Cl_BB,_ = test_cmb_cl(beam=beam, lmax=3*nside-1)
+    obj = CovCalculator(nside=nside, lmin=2, lmax=3*nside-1, Cl_TT=Cl_BB, Cl_EE=None, Cl_BB=None, Cl_TE=None, pixind=pixind)
     MP = obj.run_calc_cov()
     path_test_class_cov = Path('./test_class_cov')
     path_test_class_cov.mkdir(exist_ok=True, parents=True)
-    np.save(f'./test_class_cov/noise.npy', MP)
+    # np.save(f'./test_class_cov/cmb.npy', MP)
+    np.save(f'./cmb_b_cov/{flux_idx}.npy', MP)
+
+    ## test for noise cov
+
+    # Cl_NN = test_noise_cl(lmax=3*nside-1)
+    # obj = CovCalculator(nside=nside, lmin=2, lmax=3*nside-1, Cl_TT=Cl_NN, Cl_EE=None, Cl_BB=None, Cl_TE=None, pixind=pixind)
+    # MP = obj.run_calc_cov()
+    # path_test_class_cov = Path('./test_class_cov')
+    # path_test_class_cov.mkdir(exist_ok=True, parents=True)
+    # np.save(f'./test_class_cov/noise.npy', MP)
 
 
 

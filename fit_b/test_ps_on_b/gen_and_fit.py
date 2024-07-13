@@ -28,8 +28,10 @@ def gen_b_map():
     print(f"{np.std(noise[1])=}")
 
     # cmb_iqu = np.load(f'../../fitdata/2048/CMB/215/{rlz_idx}.npy')
-    cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
-    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
+    # cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
+    cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
+    # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
+    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
 
     # l = np.arange(lmax+1)
     # cls_out = hp.anafast(cmb_iqu, lmax=lmax)

@@ -54,7 +54,8 @@ mu_ref = 757.28
 std_ref = 23.782
 
 scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0]
-plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref:.2f}, std={std_ref:.2f})')
+# plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref:.2f}, std={std_ref:.2f})')
+plt.axvline(x=mu_ref, color='purple', linewidth=2, label=f'Input value: {mu_ref}')
 
 plt.title(f"Fit results: mu = {mu:.2f}, std = {std:.2f}\nChi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}")
 plt.xlabel('Point source amplitude')

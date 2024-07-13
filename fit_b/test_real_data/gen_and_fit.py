@@ -24,8 +24,10 @@ def gen_b_map():
     print(f"{np.std(noise[1])=}")
 
     # cmb_iqu = np.load(f'../../fitdata/2048/CMB/215/{rlz_idx}.npy')
-    cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
-    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
+    # cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
+    cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
+    # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
+    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
 
     # l = np.arange(lmax+1)
     # cls_out = hp.anafast(cmb_iqu, lmax=lmax)
@@ -38,9 +40,13 @@ def gen_b_map():
     # pcn = ps + noise
 
     m = noise + ps + cmb_iqu
+    # cn = noise + cmb_iqu
     m_b = hp.alm2map(hp.map2alm(m)[2], nside=nside)
+    # m_b_cn = hp.alm2map(hp.map2alm(cn)[2], nside=nside)
 
-    # m = np.load('./1.npy')
+    # m = np.load('./1_8k.npy')
+    # np.save('./1_6k_pcn.npy', m_b)
+    # np.save('./1_6k_cn.npy', m_b_cn)
     return m_b
 
 def main():

@@ -7,7 +7,7 @@ from scipy.stats import norm, chi2
 # data = np.load('./PSCMBNOISE/normalize_noise_1000/idx_1/norm_beam.npy')
 P_list = []
 phi_list = []
-for rlz_idx in range(1,1000):
+for rlz_idx in range(1,4599):
     P = np.load(f'./params/P_{rlz_idx}.npy')
     phi = np.load(f'./params/phi_{rlz_idx}.npy')
     P_list.append(P)
@@ -15,9 +15,18 @@ for rlz_idx in range(1,1000):
 
 data = np.asarray(phi_list)
 print(f'{data=}')
+data_mean = np.mean(data, axis=0)
+data_std = np.std(data, axis=0)
+print(f'{data_mean=}')
+print(f'{data_std=}')
+SEM = data_std / np.sqrt(1000)
+t = (data_mean - np.arctan2(727.84, -209.09)) / SEM
+print(f'{t=}')
+
+
 
 # Define the number of bins
-bin_count = 20
+bin_count = 15
 
 # Calculate the histogram as counts
 hist_counts, bin_edges = np.histogram(data, bins=bin_count)
@@ -40,16 +49,16 @@ plt.bar(bin_centers, hist_counts, width=bin_edges[1] - bin_edges[0], color='g', 
 xmin, xmax = plt.xlim()
 x = np.linspace(xmin, xmax, 100)
 scaled_pdf = norm.pdf(x, mu, std) * len(data) * np.diff(bin_edges)[0]
-plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:7f}, std={std:7f})')
+plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:.4f}, std={std:.4f})')
 
 mu_ref = np.arctan2(727.84, -209.09)
-std_ref = 0.03138
+std_ref = 0.0323
 
 scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0]
-plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref}, std={std_ref})')
+plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref:.4f}, std={std_ref:.4f})')
 
-plt.title(f"Fit results: mu = {mu:.7f}, std = {std:.7f}\nChi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}")
-plt.xlabel('Point source amplitude')
+plt.title(f"Fit results: mu = {mu:.4f}, std = {std:.4f}\nChi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}")
+plt.xlabel('Polarization angle')
 plt.ylabel("Counts")
 plt.legend()
 plt.show()
