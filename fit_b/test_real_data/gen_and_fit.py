@@ -3,7 +3,7 @@ import healpy as hp
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from fit_b import Fit_on_B
+from fit_b_v2 import Fit_on_B
 from pathlib import Path
 
 lmax = 2000
@@ -11,9 +11,6 @@ nside = 2048
 npix = hp.nside2npix(nside)
 beam = 11
 rlz_idx=0
-
-flux_idx = 1
-
 
 def gen_b_map():
 
@@ -40,8 +37,9 @@ def gen_b_map():
     # pcn = ps + noise
 
     m = noise + ps + cmb_iqu
-    # cn = noise + cmb_iqu
     m_b = hp.alm2map(hp.map2alm(m)[2], nside=nside)
+
+    # cn = noise + cmb_iqu
     # m_b_cn = hp.alm2map(hp.map2alm(cn)[2], nside=nside)
 
     # m = np.load('./1_8k.npy')
@@ -52,32 +50,45 @@ def gen_b_map():
 def main():
     m_b = gen_b_map()
 
-    df = pd.read_csv('../../pp_P/mask/mask_csv/215.csv')
+    df_mask = pd.read_csv('../../pp_P/mask/mask_csv/215.csv')
+    df_ps = pd.read_csv('../../pp_P/mask/ps_csv/215.csv')
+
     lmax = 1999
     nside = 2048
     beam = 11
     freq = 215
-    flux_idx = 1
-    lon = df.at[flux_idx, 'lon']
+    flux_idx = 12
+    lon = df_mask.at[flux_idx, 'lon']
     print(f'{lon=}')
-    lat = df.at[flux_idx, 'lat']
-    qflux = df.at[flux_idx, 'qflux']
-    uflux = df.at[flux_idx, 'uflux']
-    pflux = df.at[flux_idx, 'pflux']
+    lat = df_mask.at[flux_idx, 'lat']
+    qflux = df_mask.at[flux_idx, 'qflux']
+    uflux = df_mask.at[flux_idx, 'uflux']
+    pflux = df_mask.at[flux_idx, 'pflux']
 
-    obj = Fit_on_B(m_b, flux_idx, qflux, uflux, pflux, lmax, nside, beam, lon, lat, freq, r_fold=2.5, r_fold_rmv=5)
+
+    # m_b = np.load('./1_6k_pcn.npy')
+    obj = Fit_on_B(m_b, df_mask, df_ps, flux_idx, qflux, uflux, pflux, lmax, nside, beam, lon, lat, freq, r_fold=2.5, r_fold_rmv=5)
     obj.params_for_fitting()
     # obj.calc_inv_cov(mode='cn')
     obj.calc_inv_cov(mode='cn1')
     # obj.calc_inv_cov(mode='n1')
-    obj.fit_b()
-    print(f'{obj.P=}, {obj.ps_2phi=}')
 
-    path_params = Path('./params')
-    path_params.mkdir(parents=True, exist_ok=True)
+    # obj.fit_1_ps()
+    # print(f'{obj.P=}, {obj.ps_2phi=}')
+    obj.run_fit()
 
-    np.save(path_params / Path(f'P_{rlz_idx}.npy'), obj.P)
-    np.save(path_params / Path(f'phi_{rlz_idx}.npy'), obj.ps_2phi)
+    # path_params = Path(f'./params/{flux_idx}/fit_1')
+    # path_params.mkdir(parents=True, exist_ok=True)
+
+    # np.save(path_params / Path(f'P_{rlz_idx}.npy'), obj.P)
+    # np.save(path_params / Path(f'phi_{rlz_idx}.npy'), obj.ps_2phi)
+
+    # path_params = Path(f'./params/{flux_idx}/fit_2')
+    # path_params.mkdir(parents=True, exist_ok=True)
+
+    # obj.fit_2_ps()
+    # np.save(path_params / Path(f'P_{rlz_idx}.npy'), obj.P)
+    # np.save(path_params / Path(f'phi_{rlz_idx}.npy'), obj.ps_2phi)
 
     # obj.params_for_testing()
     # obj.test_residual()

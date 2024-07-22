@@ -8,30 +8,36 @@ from scipy.stats import norm, chi2
 # data = np.load('./PSCMBNOISE/normalize_noise_1000/idx_1/norm_beam.npy')
 P_list = []
 phi_list = []
-pos_list = glob.glob(f'./params/0/fit_1/phi_*.npy')
 
-for p in pos_list:
-    phi = np.load(p)
-    phi_list.append(phi)
+# pos = glob.glob(f'./fit_res/pcn/idx_0/fit_P_*.npy')
 
-# for rlz_idx in range(1,1000):
-#     P = np.load(f'./params/P_{rlz_idx}.npy')
-#     phi = np.load(f'./params/phi_{rlz_idx}.npy')
+# for p in pos:
+#     P = np.load(p)
 #     P_list.append(P)
-#     phi_list.append(phi)
 
-data = np.asarray(phi_list)
-print(f'{data=}')
-data_mean = np.mean(data, axis=0)
-data_std = np.std(data, axis=0)
-print(f'{data_mean=}')
-print(f'{data_std=}')
-SEM = data_std / np.sqrt(1000)
-t = (data_mean - np.arctan2(727.84, -209.09)) / SEM
-print(f'{t=}')
+for rlz_idx in range(0,1000):
+    # if rlz_idx in [80, ]:
+        # continue
+    P = np.load(f'./fit_res/pcn/idx_0/fit_phi_{rlz_idx}.npy')
+    if P < 0.75:
+        print(f'{rlz_idx=}')
+        print(f'{P=}')
+    # phi = np.load(f'./params/phi_{rlz_idx}.npy')
+    P_list.append(P)
+    # phi_list.append(phi)
+
+data = np.asarray(P_list)
+# print(f'{data.shape=}')
+# data_mean = np.mean(data, axis=0)
+# data_std = np.std(data, axis=0)
+# print(f'{data_mean=}')
+# print(f'{data_std=}')
+# SEM = data_std / np.sqrt(1000)
+# t = (data_mean - 757.28) / SEM
+# print(f'{t=}')
 
 # Define the number of bins
-bin_count = 15
+bin_count = 20
 
 # Calculate the histogram as counts
 hist_counts, bin_edges = np.histogram(data, bins=bin_count)
@@ -54,24 +60,25 @@ plt.bar(bin_centers, hist_counts, width=bin_edges[1] - bin_edges[0], color='g', 
 xmin, xmax = plt.xlim()
 x = np.linspace(xmin, xmax, 100)
 scaled_pdf = norm.pdf(x, mu, std) * len(data) * np.diff(bin_edges)[0]
-plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:.4f}, std={std:.4f})')
+plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:.2f}, std={std:.2f})')
 
-# mu_ref = np.arctan2(727.84, -209.09)
-mu_ref = 0.9172
-std_ref = 0.0323
+# mu_ref = np.sqrt(250**2 + 500**2)
+mu_ref = 0.9172 # 828.8
+std_ref = 0.038
 
 scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0]
-# plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref:.4f}, std={std_ref:.4f})')
-plt.axvline(x=mu_ref, color='purple', linewidth=2, label=f'Input value: {mu_ref:.4f}')
+# plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref:.2f}, std={std_ref:.2f})')
+plt.axvline(x=mu_ref, color='purple', linewidth=2, label=f'Input value: {mu_ref}')
 
-plt.title(f"Fit results: mu = {mu:.4f}, std = {std:.4f}\nChi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}")
-plt.xlabel('Polarization angle')
+plt.title(f"Fit results: mu = {mu:.2f}, std = {std:.2f}\nChi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}")
+plt.xlabel('Point source amplitude')
 plt.ylabel("Counts")
 plt.legend()
 plt.show()
 
 # Print the chi-squared test result
 print(f"Chi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}")
+
 
 
 

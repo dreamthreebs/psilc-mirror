@@ -10,17 +10,17 @@ def check_unique_seeds(seeds):
         seen[seed] = True
     return True
 
-seeds_number = 100
+seeds_number = 2000
 seeds = [secrets.randbits(32) for _ in range(seeds_number)]
 print(f'{seeds=}')
-np.save('./seeds_noise.npy', np.array(seeds))
+np.save('./seeds_cmb_2k.npy', np.array(seeds))
 
-seeds_arr = np.load('./seeds.npy', allow_pickle=True)
+seeds_arr = np.load('./seeds_cmb_2k.npy', allow_pickle=True)
 print(f'{seeds_arr.shape=}')
 
-print(f'{type(seeds_arr[0])=}')
+# print(f'{type(seeds_arr[0])=}')
 
-np.random.seed(seed=seeds_arr[0])
+# np.random.seed(seed=seeds_arr[0])
 
 print(check_unique_seeds(seeds_arr))
 

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import glob
 from scipy.stats import norm, chi2
 
 # Assuming data is loaded or generated here
@@ -7,24 +8,37 @@ from scipy.stats import norm, chi2
 # data = np.load('./PSCMBNOISE/normalize_noise_1000/idx_1/norm_beam.npy')
 P_list = []
 phi_list = []
-for rlz_idx in range(1,1000):
-    P = np.load(f'./params/P_{rlz_idx}.npy')
-    phi = np.load(f'./params/phi_{rlz_idx}.npy')
+
+# pos_list = glob.glob(f'./params/0/fit_1/phi_*.npy')
+
+# pos_list = glob.glob(f'./fit_res/pcn_params/idx_0/fit_P_99.npy')
+
+# for p in pos_list:
+#     P = np.load(p)
+#     P_list.append(P)
+
+# print(f'{P_list=}')
+
+for rlz_idx in range(0,500):
+    P = np.load(f'./fit_res/pcn_params/idx_0/fit_P_{rlz_idx}.npy')
+    print(f"{P=}")
+    # phi = np.load(f'./params/0/fit_2/phi_{rlz_idx}.npy')
     P_list.append(P)
-    phi_list.append(phi)
+    # phi_list.append(phi)
 
 data = np.asarray(P_list)
 print(f'{data.shape=}')
-data_mean = np.mean(data, axis=0)
-data_std = np.std(data, axis=0)
-print(f'{data_mean=}')
-print(f'{data_std=}')
-SEM = data_std / np.sqrt(1000)
-t = (data_mean - 757.28) / SEM
-print(f'{t=}')
+
+# data_mean = np.mean(data, axis=0)
+# data_std = np.std(data, axis=0)
+# print(f'{data_mean=}')
+# print(f'{data_std=}')
+# SEM = data_std / np.sqrt(1000)
+# t = (data_mean - 757.28) / SEM
+# print(f'{t=}')
 
 # Define the number of bins
-bin_count = 20
+bin_count = 10
 
 # Calculate the histogram as counts
 hist_counts, bin_edges = np.histogram(data, bins=bin_count)
@@ -50,8 +64,8 @@ scaled_pdf = norm.pdf(x, mu, std) * len(data) * np.diff(bin_edges)[0]
 plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:.2f}, std={std:.2f})')
 
 mu_ref = np.sqrt(250**2 + 500**2)
-mu_ref = 757.28
-std_ref = 23.782
+mu_ref =  828.79 # 757.28
+std_ref =  23 # 23.782
 
 scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0]
 # plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref:.2f}, std={std_ref:.2f})')
