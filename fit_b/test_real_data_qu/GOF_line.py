@@ -15,7 +15,7 @@ phi_list = []
 #     P = np.load(p)
 #     P_list.append(P)
 
-for rlz_idx in range(0,1000):
+for rlz_idx in range(0,500):
     # if rlz_idx in [80, ]:
         # continue
     P = np.load(f'./fit_res/pcn/idx_0/fit_P_{rlz_idx}.npy')
@@ -63,7 +63,7 @@ scaled_pdf = norm.pdf(x, mu, std) * len(data) * np.diff(bin_edges)[0]
 plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:.2f}, std={std:.2f})')
 
 # mu_ref = np.sqrt(250**2 + 500**2)
-mu_ref = 757 # 828.8
+mu_ref = 828.8
 std_ref = 23.782
 
 scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0]

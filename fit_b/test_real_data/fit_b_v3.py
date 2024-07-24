@@ -456,12 +456,17 @@ class Fit_on_B:
 
         obj_minuit = Minuit(self.lsq_params, name=("A", "ps_2phi", "const"), *params)
         obj_minuit.limits = [(0,1e5), (-np.pi,np.pi), (-100,100)]
-        logger.info(f'\n{obj_minuit.migrad()}')
-        logger.info(f'{obj_minuit.errors["A"]=}')
+        obj_minuit.errors["A"] = 20
+
+        # logger.info(f'\n{obj_minuit.migrad()}')
+        # logger.info(f'{obj_minuit.errors["A"]=}')
+        # logger.info(f'\n{obj_minuit.hesse()}')
+        # logger.info(f'{obj_minuit.errors["A"]=}')
+        # logger.info(f'\n{obj_minuit.minos("A")}')
+        # logger.info(f'{obj_minuit.errors["A"]=}')
+        logger.info(f'\n{obj_minuit.scan()}')
         logger.info(f'\n{obj_minuit.hesse()}')
-        logger.info(f'{obj_minuit.errors["A"]=}')
-        logger.info(f'\n{obj_minuit.minos("A")}')
-        logger.info(f'{obj_minuit.errors["A"]=}')
+
         # logger.info(f'\n{obj_minuit.minos()}')
 
         self.chi2dof = obj_minuit.fval / (self.ndof - 3)
@@ -480,7 +485,8 @@ class Fit_on_B:
         logger.info(f'{self.fit_lon=}, {self.fit_lat=}')
 
         obj_minuit = Minuit(self.lsq_params, name=("A", "ps_2phi", "A2", "phi2", "const"), *params)
-        obj_minuit.limits = [(0, 1e5), (-np.pi, np.pi)] * 2 + [(-100, 100)]
+        # obj_minuit.fix
+        obj_minuit.limits = [(0, 1e5), (-np.pi, np.pi), (0.9*P2, 1.1*P2), (1.05*phi2, 0.95*phi2), (-100,100)]
         logger.info(f'\n{obj_minuit.migrad()}')
         logger.info(f'\n{obj_minuit.hesse()}')
 
@@ -859,7 +865,7 @@ if __name__=='__main__':
 
     # obj.check_ps()
     obj.params_for_fitting()
-    # obj.see_true_map(nside=nside, beam=beam)
+    obj.see_true_map(nside=nside, beam=beam)
     # obj.see_b_map(nside, beam)
     # obj.calc_inv_cov(mode='n1')
     obj.calc_inv_cov(mode='cn1')
@@ -867,10 +873,10 @@ if __name__=='__main__':
 
     # obj.fit_1_ps()
     # print(f'{obj.P=}')
-    obj.fit_2_ps(threshold_extra_factor=9.5)
+    # obj.fit_2_ps(threshold_extra_factor=9.5)
     # print(f'{obj.P=}')
 
-    # obj.run_fit()
+    obj.run_fit()
 
     # obj.test_lsq_params()
     # obj.params_for_testing()

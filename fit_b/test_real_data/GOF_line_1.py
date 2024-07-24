@@ -10,25 +10,25 @@ P_list = []
 phi_list = []
 pos_list = glob.glob(f'./params/0/fit_1/phi_*.npy')
 
-for p in pos_list:
-    phi = np.load(p)
-    phi_list.append(phi)
-
-# for rlz_idx in range(1,1000):
-#     P = np.load(f'./params/P_{rlz_idx}.npy')
-#     phi = np.load(f'./params/phi_{rlz_idx}.npy')
-#     P_list.append(P)
+# for p in pos_list:
+#     phi = np.load(p)
 #     phi_list.append(phi)
 
+for rlz_idx in range(0,500):
+    # P = np.load(f'./params/P_{rlz_idx}.npy')
+    phi = np.load(f'./fit_res/pcn_params/idx_0/fit_phi_{rlz_idx}.npy')
+    # P_list.append(P)
+    phi_list.append(phi)
+
 data = np.asarray(phi_list)
-print(f'{data=}')
-data_mean = np.mean(data, axis=0)
-data_std = np.std(data, axis=0)
-print(f'{data_mean=}')
-print(f'{data_std=}')
-SEM = data_std / np.sqrt(1000)
-t = (data_mean - np.arctan2(727.84, -209.09)) / SEM
-print(f'{t=}')
+# print(f'{data=}')
+# data_mean = np.mean(data, axis=0)
+# data_std = np.std(data, axis=0)
+# print(f'{data_mean=}')
+# print(f'{data_std=}')
+# SEM = data_std / np.sqrt(1000)
+# t = (data_mean - np.arctan2(727.84, -209.09)) / SEM
+# print(f'{t=}')
 
 # Define the number of bins
 bin_count = 15

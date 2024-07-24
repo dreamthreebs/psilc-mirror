@@ -25,7 +25,7 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=18
 #SBATCH --mem=50GB
 #SBATCH --exclude=aliws005
 # SBATCH --mem-per-cpu=2000
@@ -44,7 +44,6 @@ mpiexec python -u ./run.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)
-
 
 
 

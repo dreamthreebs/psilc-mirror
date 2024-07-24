@@ -15,7 +15,7 @@ phi_list = []
 #     P = np.load(p)
 #     P_list.append(P)
 
-for rlz_idx in range(0,1000):
+for rlz_idx in range(0,500):
     # if rlz_idx in [80, ]:
         # continue
     P = np.load(f'./fit_res/pcn/idx_0/fit_phi_{rlz_idx}.npy')
@@ -37,7 +37,7 @@ data = np.asarray(P_list)
 # print(f'{t=}')
 
 # Define the number of bins
-bin_count = 20
+bin_count = 15
 
 # Calculate the histogram as counts
 hist_counts, bin_edges = np.histogram(data, bins=bin_count)
@@ -60,7 +60,7 @@ plt.bar(bin_centers, hist_counts, width=bin_edges[1] - bin_edges[0], color='g', 
 xmin, xmax = plt.xlim()
 x = np.linspace(xmin, xmax, 100)
 scaled_pdf = norm.pdf(x, mu, std) * len(data) * np.diff(bin_edges)[0]
-plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:.2f}, std={std:.2f})')
+plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:.4f}, std={std:.4f})')
 
 # mu_ref = np.sqrt(250**2 + 500**2)
 mu_ref = 0.9172 # 828.8
@@ -70,8 +70,8 @@ scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0
 # plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref:.2f}, std={std_ref:.2f})')
 plt.axvline(x=mu_ref, color='purple', linewidth=2, label=f'Input value: {mu_ref}')
 
-plt.title(f"Fit results: mu = {mu:.2f}, std = {std:.2f}\nChi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}")
-plt.xlabel('Point source amplitude')
+plt.title(f"Fit results: mu = {mu:.4f}, std = {std:.4f}\nChi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}")
+plt.xlabel('Polarization Angle')
 plt.ylabel("Counts")
 plt.legend()
 plt.show()

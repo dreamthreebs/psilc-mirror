@@ -3,20 +3,24 @@ import healpy as hp
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from fit_b_v2 import Fit_on_B
+from fit_b_v3 import Fit_on_B
 from pathlib import Path
 
 lmax = 2000
 nside = 2048
 npix = hp.nside2npix(nside)
 beam = 11
-rlz_idx=0
+rlz_idx=16
+
+noise_seeds = np.load('./seeds_noise_2k.npy')
+cmb_seeds = np.load('./seeds_cmb_2k.npy')
 
 def gen_b_map():
 
     ps = np.load('../../fitdata/2048/PS/215/ps.npy')
 
     nstd = np.load('../../FGSim/NSTDNORTH/2048/215.npy')
+    np.random.seed(seed=noise_seeds[rlz_idx])
     noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
     print(f"{np.std(noise[1])=}")
 
@@ -24,6 +28,7 @@ def gen_b_map():
     # cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
     cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
     # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
+    np.random.seed(seed=cmb_seeds[rlz_idx])
     cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
 
     # l = np.arange(lmax+1)
@@ -49,6 +54,7 @@ def gen_b_map():
 
 def main():
     m_b = gen_b_map()
+    np.save('./data_for_test/map_from_gen.npy', m_b)
 
     df_mask = pd.read_csv('../../pp_P/mask/mask_csv/215.csv')
     df_ps = pd.read_csv('../../pp_P/mask/ps_csv/215.csv')
@@ -57,7 +63,7 @@ def main():
     nside = 2048
     beam = 11
     freq = 215
-    flux_idx = 12
+    flux_idx = 11
     lon = df_mask.at[flux_idx, 'lon']
     print(f'{lon=}')
     lat = df_mask.at[flux_idx, 'lat']

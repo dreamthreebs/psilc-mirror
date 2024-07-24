@@ -1,24 +1,25 @@
 import numpy as np
 
-flux_idx = 140
+flux_idx = 21
 
-P_true = np.load(f'./idx_{flux_idx}/P_0.npy')
-phi_true = np.load(f'./idx_{flux_idx}/phi_0.npy')
+# P_true = np.load(f'./32core/idx_{flux_idx}/P_0.npy')
+# phi_true = np.load(f'./32core/idx_{flux_idx}/phi_0.npy')
 
 P_err_list = []
 phi_err_list = []
 
-for rlz_idx in range(100):
+for rlz_idx in range(1, 100):
 
-    if rlz_idx==99:
-        print(f'{P_true=}, {phi_true=}')
-    P = np.load(f'./idx_{flux_idx}/fit_P_{rlz_idx}.npy')
-    P_err = np.load(f'./idx_{flux_idx}/fit_P_err_{rlz_idx}.npy')
+    # if rlz_idx==76:
+        # print(f'{rlz_idx=}')
+        # print(f'{P_true=}, {phi_true=}')
+    P = np.load(f'./16core/idx_{flux_idx}/fit_P_{rlz_idx}.npy')
+    P_err = np.load(f'./16core/idx_{flux_idx}/fit_P_err_{rlz_idx}.npy')
     P_err_list.append(P_err)
     # if P_err < 20:
         # print(f'{rlz_idx=}')
-    phi = np.load(f'./idx_{flux_idx}/fit_phi_{rlz_idx}.npy')
-    phi_err = np.load(f'./idx_{flux_idx}/fit_phi_err_{rlz_idx}.npy')
+    phi = np.load(f'./16core/idx_{flux_idx}/fit_phi_{rlz_idx}.npy')
+    phi_err = np.load(f'./16core/idx_{flux_idx}/fit_phi_err_{rlz_idx}.npy')
     phi_err_list.append(phi_err)
     print(f'{P=},{P_err=},{phi=},{phi_err=}')
 

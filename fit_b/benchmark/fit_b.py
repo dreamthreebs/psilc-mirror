@@ -316,6 +316,26 @@ class Fit_on_B:
             self.inv_cov = np.linalg.inv(reconstructed_cov)
             return None
 
+        if mode == 'cn2':
+            cmb_cov = np.load(f'./cmb_b_cov/{self.flux_idx}.npy') # load cmb cov
+            # cmb_cov = np.load('./data/c_cov.npy')
+
+            logger.debug(f'{cmb_cov.shape=}')
+            # noise_cov = np.load('./data/noise_cov.npy')
+            nstd2 = np.load('../../FGSim/NSTDNORTH/2048/215.npy')[1,0]**2
+            logger.info(f'{nstd2=}')
+            for i in range(self.ndof):
+                cmb_cov[i,i] = cmb_cov[i,i] + nstd2
+
+            eigenval, eigenvec = np.linalg.eigh(cmb_cov)
+            logger.debug(f'{eigenval=}')
+            eigenval[eigenval < 0] = 1e-10
+            reconstructed_cov = np.dot(eigenvec * eigenval, eigenvec.T)
+
+            self.inv_cov = np.linalg.inv(reconstructed_cov)
+            return None
+
+
         if mode == 'n1':
             # noise_cov = np.load('./data/noise_cov.npy')
             noise_cov = np.load('./noise_b_cov/0.npy')
@@ -457,11 +477,7 @@ class Fit_on_B:
         obj_minuit = Minuit(self.lsq_params, name=("A", "ps_2phi", "const"), *params)
         obj_minuit.limits = [(0,1e5), (-np.pi,np.pi), (-100,100)]
         logger.info(f'\n{obj_minuit.migrad()}')
-        logger.info(f'{obj_minuit.errors["A"]=}')
         logger.info(f'\n{obj_minuit.hesse()}')
-        logger.info(f'{obj_minuit.errors["A"]=}')
-        logger.info(f'\n{obj_minuit.minos("A")}')
-        logger.info(f'{obj_minuit.errors["A"]=}')
         # logger.info(f'\n{obj_minuit.minos()}')
 
         self.chi2dof = obj_minuit.fval / (self.ndof - 3)
@@ -474,7 +490,7 @@ class Fit_on_B:
         logger.info(f'doing 2 ps fitting')
         num_ps, (P2, phi2, lon2, lat2) = self.find_nearby_ps(num_ps=1, threshold_extra_factor=threshold_extra_factor)
         # print(f'{num_ps=}, {P2=}, {phi2=}, {lon2}, {lat2}')
-        params = (self.P, self.ps_2phi, P2, phi2, 0.0)
+        params = (self.fit_P, self.ps_2phi, P2, phi2, 0.0)
         self.fit_lon = (self.lon, lon2)
         self.fit_lat = (self.lat, lat2)
         logger.info(f'{self.fit_lon=}, {self.fit_lat=}')
@@ -494,7 +510,7 @@ class Fit_on_B:
         logger.info(f'doing 3 ps fitting')
         num_ps, (P2, phi2, lon2, lat2, P3, phi3, lon3, lat3) = self.find_nearby_ps(num_ps=2, threshold_extra_factor=threshold_extra_factor)
         # print(f'{num_ps=}, {P2=}, {phi2=}, {lon2}, {lat2}, {P3=}, {phi3=}, {lon3}, {lat3}')
-        params = (self.P, self.ps_2phi, P2, phi2, P3, phi3, 0.0)
+        params = (self.fit_P, self.ps_2phi, P2, phi2, P3, phi3, 0.0)
         self.fit_lon = (self.lon, lon2, lon3)
         self.fit_lat = (self.lat, lat2, lat3)
         logger.info(f'{self.fit_lon=}, {self.fit_lat=}')
@@ -514,7 +530,7 @@ class Fit_on_B:
         logger.info(f'doing 4 ps fitting')
         num_ps, (P2, phi2, lon2, lat2, P3, phi3, lon3, lat3, P4, phi4, lon4, lat4) = self.find_nearby_ps(num_ps=3, threshold_extra_factor=threshold_extra_factor)
         # print(f'{num_ps=}, {P2=}, {phi2=}, {lon2}, {lat2}, {P3=}, {phi3=}, {lon3}, {lat3}, {P4=}, {phi4=}, {lon4}, {lat4}')
-        params = (self.P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, 0.0)
+        params = (self.fit_P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, 0.0)
         self.fit_lon = (self.lon, lon2, lon3, lon4)
         self.fit_lat = (self.lat, lat2, lat3, lat4)
         logger.info(f'{self.fit_lon=}, {self.fit_lat=}')
@@ -534,7 +550,7 @@ class Fit_on_B:
         logger.info(f'doing 5 ps fitting')
         num_ps, (P2, phi2, lon2, lat2, P3, phi3, lon3, lat3, P4, phi4, lon4, lat4, P5, phi5, lon5, lat5) = self.find_nearby_ps(num_ps=4, threshold_extra_factor=threshold_extra_factor)
         # print(f'{num_ps=}, {P2=}, {phi2=}, {lon2}, {lat2}, {P3=}, {phi3=}, {lon3}, {lat3}, {P4=}, {phi4=}, {lon4}, {lat4}, {P5=}, {phi5=}, {lon5}, {lat5}')
-        params = (self.P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, P5, phi5, 0.0)
+        params = (self.fit_P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, P5, phi5, 0.0)
         self.fit_lon = (self.lon, lon2, lon3, lon4, lon5)
         self.fit_lat = (self.lat, lat2, lat3, lat4, lat5)
         logger.info(f'{self.fit_lon=}, {self.fit_lat=}')
@@ -554,7 +570,7 @@ class Fit_on_B:
         logger.info(f'doing 6 ps fitting')
         num_ps, (P2, phi2, lon2, lat2, P3, phi3, lon3, lat3, P4, phi4, lon4, lat4, P5, phi5, lon5, lat5, P6, phi6, lon6, lat6) = self.find_nearby_ps(num_ps=5, threshold_extra_factor=threshold_extra_factor)
         # logger.info(f'{num_ps=}, {P2=}, {phi2=}, {lon2}, {lat2}, {P3=}, {phi3=}, {lon3}, {lat3}, {P4=}, {phi4=}, {lon4}, {lat4}, {P5=}, {phi5=}, {lon5}, {lat5}, {lon6}, {lat6}')
-        params = (self.P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, P5, phi5, P6, phi6, 0.0)
+        params = (self.fit_P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, P5, phi5, P6, phi6, 0.0)
         self.fit_lon = (self.lon, lon2, lon3, lon4, lon5, lon6)
         self.fit_lat = (self.lat, lat2, lat3, lat4, lat5, lat6)
         logger.info(f'{self.fit_lon=}, {self.fit_lat=}')
@@ -574,7 +590,7 @@ class Fit_on_B:
         logger.info(f'doing 7 ps fitting')
         num_ps, (P2, phi2, lon2, lat2, P3, phi3, lon3, lat3, P4, phi4, lon4, lat4, P5, phi5, lon5, lat5, P6, phi6, lon6, lat6, P7, phi7, lon7, lat7) = self.find_nearby_ps(num_ps=6, threshold_extra_factor=threshold_extra_factor)
         # logger.info(f'{num_ps=}, {P2=}, {phi2=}, {lon2}, {lat2}, {P3=}, {phi3=}, {lon3}, {lat3}, {P4=}, {phi4=}, {lon4}, {lat4}, {P5=}, {phi5=}, {lon5}, {lat5}, {lon6}, {lat6}, {lon7}, {lat7}')
-        params = (self.P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, P5, phi5, P6, phi6, P7, phi7, 0.0)
+        params = (self.fit_P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, P5, phi5, P6, phi6, P7, phi7, 0.0)
         self.fit_lon = (self.lon, lon2, lon3, lon4, lon5, lon6, lon7)
         self.fit_lat = (self.lat, lat2, lat3, lat4, lat5, lat6, lat7)
         logger.info(f'{self.fit_lon=}, {self.fit_lat=}')
@@ -594,7 +610,7 @@ class Fit_on_B:
         logger.info(f'doing 8 ps fitting')
         num_ps, (P2, phi2, lon2, lat2, P3, phi3, lon3, lat3, P4, phi4, lon4, lat4, P5, phi5, lon5, lat5, P6, phi6, lon6, lat6, P7, phi7, lon7, lat7, P8, phi8, lon8, lat8) = self.find_nearby_ps(num_ps=7, threshold_extra_factor=threshold_extra_factor)
         # logger.info(f'{num_ps=}, {P2=}, {phi2=}, {lon2}, {lat2}, {P3=}, {phi3=}, {lon3}, {lat3}, {P4=}, {phi4=}, {lon4}, {lat4}, {P5=}, {phi5=}, {lon5}, {lat5}, {lon6}, {lat6}, {lon7}, {lat7}, {lon8}, {lat8}')
-        params = (self.P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, P5, phi5, P6, phi6, P7, phi7, P8, phi8, 0.0)
+        params = (self.fit_P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, P5, phi5, P6, phi6, P7, phi7, P8, phi8, 0.0)
         self.fit_lon = (self.lon, lon2, lon3, lon4, lon5, lon6, lon7, lon8)
         self.fit_lat = (self.lat, lat2, lat3, lat4, lat5, lat6, lat7, lat8)
         logger.info(f'{self.fit_lon=}, {self.fit_lat=}')
@@ -614,7 +630,7 @@ class Fit_on_B:
         logger.info(f'doing 9 ps fitting')
         num_ps, (P2, phi2, lon2, lat2, P3, phi3, lon3, lat3, P4, phi4, lon4, lat4, P5, phi5, lon5, lat5, P6, phi6, lon6, lat6, P7, phi7, lon7, lat7, P8, phi8, lon8, lat8, P9, phi9, lon9, lat9) = self.find_nearby_ps(num_ps=8, threshold_extra_factor=threshold_extra_factor)
         # logger.info(f'{num_ps=}, {P2=}, {phi2=}, {lon2=}, {lat2=}, {P3=}, {phi3=}, {lon3=}, {lat3=}, {P4=}, {phi4=}, {lon4=}, {lat4=}, {P5=}, {phi5=}, {lon5=}, {lat5=}, {P6=}, {phi6=}, {lon6=}, {lat6=}, {P7=}, {phi7=}, {lon7=}, {lat7=}, {P8=}, {phi8}, {lon8}, {lat8}, {P9}, {phi9}, {lon9}, {lat9}')
-        params = (self.P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, P5, phi5, P6, phi6, P7, phi7, P8, phi8, P9, phi9, 0.0)
+        params = (self.fit_P, self.ps_2phi, P2, phi2, P3, phi3, P4, phi4, P5, phi5, P6, phi6, P7, phi7, P8, phi8, P9, phi9, 0.0)
         self.fit_lon = (self.lon, lon2, lon3, lon4, lon5, lon6, lon7, lon8, lon9)
         self.fit_lat = (self.lat, lat2, lat3, lat4, lat5, lat6, lat7, lat8, lat9)
         logger.info(f'{self.fit_lon=}, {self.fit_lat=}')
@@ -776,47 +792,47 @@ class Fit_on_B:
             logger.info(f'already compute inverse covariance')
         else:
             logger.info(f'does not have cov, compute cov')
-            self.calc_inv_cov(mode='cn1')
+            self.calc_inv_cov()
 
         logger.info(f'-------------------------------')
-        num_ps, near = self.find_nearby_ps(num_ps=15, threshold_extra_factor=threshold_extra_factor)
+        # num_ps, near = self.find_nearby_ps(num_ps=15, threshold_extra_factor=threshold_extra_factor)
         logger.info(f'Ready for fitting...')
         logger.info(f'-------------------------------')
-        logger.info(f'{num_ps=}, {near=}')
+        # logger.info(f'{num_ps=}, {near=}')
 
         lower_chi2dof_bound, upper_chi2dof_bound = Fit_on_B.chi2_dof_bounds(dof=self.ndof-3, sigma=3)
 
         self.fit_1_ps()
         logger.info(f'{lower_chi2dof_bound=}, {upper_chi2dof_bound=}')
 
-        if (self.chi2dof > lower_chi2dof_bound) and (self.chi2dof < upper_chi2dof_bound):
-            # chi2dof is good, do not consider effect from other point sources
-            if np.abs(self.fit_P) < sigma_threshold * self.fit_P_err:
-                logger.info('there is no point sources on B map!')
-            else:
-                logger.info(f'there are some point sources on B map, try to fit it!')
-        else:
-            # try to fit other point sources
-            if num_ps == 0:
-                self.fit_1_ps()
-            elif num_ps == 1:
-                self.fit_2_ps(threshold_extra_factor=threshold_extra_factor)
-            elif num_ps == 2:
-                self.fit_3_ps(threshold_extra_factor=threshold_extra_factor)
-            elif num_ps == 3:
-                self.fit_4_ps(threshold_extra_factor=threshold_extra_factor)
-            elif num_ps == 4:
-                self.fit_5_ps(threshold_extra_factor=threshold_extra_factor)
-            elif num_ps == 5:
-                self.fit_6_ps(threshold_extra_factor=threshold_extra_factor)
-            elif num_ps == 6:
-                self.fit_7_ps(threshold_extra_factor=threshold_extra_factor)
-            elif num_ps == 7:
-                self.fit_8_ps(threshold_extra_factor=threshold_extra_factor)
-            elif num_ps == 8:
-                self.fit_9_ps(threshold_extra_factor=threshold_extra_factor)
-            elif num_ps == 9:
-                self.fit_10_ps(threshold_extra_factor=threshold_extra_factor)
+        # if (self.chi2dof > lower_chi2dof_bound) and (self.chi2dof < upper_chi2dof_bound):
+        #     # chi2dof is good, do not consider effect from other point sources
+        #     if np.abs(self.fit_P) < sigma_threshold * self.fit_P_err:
+        #         logger.info('there is no point sources on B map!')
+        #     else:
+        #         logger.info(f'there are some point sources on B map, try to fit it!')
+        # else:
+        #     # try to fit other point sources
+        #     if num_ps == 0:
+        #         self.fit_1_ps()
+        #     elif num_ps == 1:
+        #         self.fit_2_ps(threshold_extra_factor=threshold_extra_factor)
+        #     elif num_ps == 2:
+        #         self.fit_3_ps(threshold_extra_factor=threshold_extra_factor)
+        #     elif num_ps == 3:
+        #         self.fit_4_ps(threshold_extra_factor=threshold_extra_factor)
+        #     elif num_ps == 4:
+        #         self.fit_5_ps(threshold_extra_factor=threshold_extra_factor)
+        #     elif num_ps == 5:
+        #         self.fit_6_ps(threshold_extra_factor=threshold_extra_factor)
+        #     elif num_ps == 6:
+        #         self.fit_7_ps(threshold_extra_factor=threshold_extra_factor)
+        #     elif num_ps == 7:
+        #         self.fit_8_ps(threshold_extra_factor=threshold_extra_factor)
+        #     elif num_ps == 8:
+        #         self.fit_9_ps(threshold_extra_factor=threshold_extra_factor)
+        #     elif num_ps == 9:
+        #         self.fit_10_ps(threshold_extra_factor=threshold_extra_factor)
 
         logger.info(f'true P={self.P}, phi={self.ps_2phi}, Q={self.Q}, U={self.U}')
         logger.info(f'fitted P={self.fit_P}, P_err={self.fit_P_err}')
@@ -828,13 +844,13 @@ class Fit_on_B:
 
 if __name__=='__main__':
 
-    df_mask = pd.read_csv('../../pp_P/mask/mask_csv/215.csv')
+    df_mask = pd.read_csv('./mask/215.csv')
     df_ps = pd.read_csv('../../pp_P/mask/ps_csv/215.csv')
     lmax = 1999
     nside = 2048
     beam = 11
     freq = 215
-    flux_idx = 11
+    flux_idx = 0
     lon = df_mask.at[flux_idx, 'lon']
     print(f'{lon=}')
     lat = df_mask.at[flux_idx, 'lat']
@@ -849,7 +865,9 @@ if __name__=='__main__':
     # m_b = hp.alm2map(hp.map2alm(m)[2], nside=nside)
     # np.save(f'./{flux_idx}.npy', m_b)
     # m_b = np.load('./1.npy')
-    m_b = np.load('./1_6k_pcn.npy')
+    m_b = np.load('./data/ps/ps_b.npy')
+    noise = 0.1 * np.random.normal(loc=0, scale=1, size=(hp.nside2npix(nside),))
+    m_b = m_b + noise
 
 
     obj = Fit_on_B(m_b, df_mask, df_ps, flux_idx, qflux, uflux, pflux, lmax, nside, beam, lon, lat, freq, r_fold=2.5, r_fold_rmv=5)
@@ -861,13 +879,13 @@ if __name__=='__main__':
     obj.params_for_fitting()
     # obj.see_true_map(nside=nside, beam=beam)
     # obj.see_b_map(nside, beam)
-    # obj.calc_inv_cov(mode='n1')
-    obj.calc_inv_cov(mode='cn1')
+    obj.calc_inv_cov(mode='cn2')
+    # obj.calc_inv_cov(mode='cn1')
     # obj.ez_fit_b()
 
-    # obj.fit_1_ps()
+    obj.fit_1_ps()
     # print(f'{obj.P=}')
-    obj.fit_2_ps(threshold_extra_factor=9.5)
+    # obj.fit_2_ps(threshold_extra_factor=9.5)
     # print(f'{obj.P=}')
 
     # obj.run_fit()
@@ -875,6 +893,7 @@ if __name__=='__main__':
     # obj.test_lsq_params()
     # obj.params_for_testing()
     # obj.test_residual()
+
 
 
 

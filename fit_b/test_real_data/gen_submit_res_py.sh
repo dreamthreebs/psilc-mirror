@@ -4,7 +4,7 @@
 original_file="./submit.sh"
 
 # 复制文件的数量
-copies=100
+copies=99
 
 for i in $(seq 0 $copies); do
     # 创建新文件的名称

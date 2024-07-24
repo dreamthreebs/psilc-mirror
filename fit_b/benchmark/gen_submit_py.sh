@@ -4,7 +4,7 @@
 original_file="./submit.sh"
 
 # 复制文件的数量
-copies=100
+copies=19
 
 for i in $(seq 0 $copies); do
     # 创建新文件的名称
@@ -16,7 +16,6 @@ for i in $(seq 0 $copies); do
     # 在第10行替换文本
     sed -i "43s/run.py/run_$i.py/" $new_file
 done
-
 
 
 

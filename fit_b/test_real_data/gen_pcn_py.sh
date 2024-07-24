@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./run_pcn.py"
+original_file="./pcn_run.py"
 
 # 复制文件的数量
-copies=99
+copies=100
 
 for i in $(seq 0 $copies); do
     # 创建新文件的名称
@@ -14,7 +14,7 @@ for i in $(seq 0 $copies); do
     cp $original_file $new_file
 
     # 在第10行替换文本
-    sed -i "22s/rlz_idx=0/rlz_idx=$i/" $new_file
+    sed -i "59s/rlz_idx=0/rlz_idx=$i/" $new_file
 done
 
 
