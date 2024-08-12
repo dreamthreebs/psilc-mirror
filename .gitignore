@@ -5,7 +5,8 @@
 /**/*.pkl
 /**/__pycache__
 /**/*.pyc
-/**/calc_*.py
+/**/run_*.py
+/**/submit_run_*.sh
 /**/submit_*.sh
 /**/run_pcn_*.py
 /**/run_pcfn_*.py

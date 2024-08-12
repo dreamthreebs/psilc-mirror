@@ -1,0 +1,10 @@
+sbatch submit_run_0.sh
+sbatch submit_run_1.sh
+sbatch submit_run_2.sh
+sbatch submit_run_3.sh
+sbatch submit_run_4.sh
+sbatch submit_run_5.sh
+sbatch submit_run_6.sh
+sbatch submit_run_7.sh
+sbatch submit_run_8.sh
+sbatch submit_run_9.sh
