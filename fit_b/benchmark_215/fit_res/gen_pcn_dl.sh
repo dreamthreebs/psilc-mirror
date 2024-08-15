@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./calc_pcn_dl_qu_b_1.py"
+original_file="./calc_pcn_dl_act.py"
 
 # 复制文件的数量
 copies=200

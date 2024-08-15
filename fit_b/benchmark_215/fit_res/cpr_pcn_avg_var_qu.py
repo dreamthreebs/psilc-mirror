@@ -33,6 +33,7 @@ cn_qu_list = []
 pcn_qu_list = []
 
 ps_mask_list = []
+qu_mask_list = []
 inp_qu_list = []
 inp_eb_list = []
 
@@ -69,7 +70,9 @@ for rlz_idx in range(1,200):
     # cn_qu = np.load(f'./pcn_dl/QU/cn/{rlz_idx}.npy') - n_qu
     pcn = np.load(f'./pcn_dl/QU_B_1/pcn/{rlz_idx}.npy') - n_qu
     # pcn_qu = np.load(f'./pcn_dl/QU/pcn/{rlz_idx}.npy') - n_qu
-    ps_mask = np.load(f'./pcn_dl/PS_MASK/ps_3sigma/{rlz_idx}.npy') - n_qu
+    # ps_mask = np.load(f'./pcn_dl/PS_MASK/ps_3sigma/{rlz_idx}.npy') - n_qu
+    ps_mask = np.load(f'./pcn_dl/ACT/curl_yp_ps/{rlz_idx}.npy') - n_qu
+    qu_mask = np.load(f'./pcn_dl/ACT/temp_yp_ps/{rlz_idx}.npy') - n_qu
     inp_qu = np.load(f'./pcn_dl/INP_QU_1/inpaint_qu_3sigma/{rlz_idx}.npy') - n_qu
     inp_eb = np.load(f'./pcn_dl/INP_B_1/inpaint_eb_3sigma/{rlz_idx}.npy') - n_qu
 
@@ -92,6 +95,7 @@ for rlz_idx in range(1,200):
     ps_mask_list.append(ps_mask)
     inp_qu_list.append(inp_qu)
     inp_eb_list.append(inp_eb)
+    qu_mask_list.append(qu_mask)
 
 # plt.show()
 
@@ -108,8 +112,10 @@ rmv_b_qu_arr = np.array(rmv_b_qu_list)
 # pcn_qu_arr = np.array(pcn_qu_list)
 
 ps_mask_arr = np.array(ps_mask_list)
+qu_mask_arr = np.array(qu_mask_list)
 inp_qu_arr = np.array(inp_qu_list)
 inp_eb_arr = np.array(inp_eb_list)
+
 # print(f'{rmv_arr.shape=}')
 
 rmv_mean = np.mean(rmv_arr, axis=0)
@@ -125,6 +131,7 @@ rmv_b_qu_mean = np.mean(rmv_b_qu_arr, axis=0)
 # pcn_qu_mean = np.mean(pcn_qu_arr, axis=0)
 
 ps_mask_mean = np.mean(ps_mask_arr, axis=0)
+qu_mask_mean = np.mean(qu_mask_arr, axis=0)
 inp_qu_mean = np.mean(inp_qu_arr, axis=0)
 inp_eb_mean = np.mean(inp_eb_arr, axis=0)
 # print(f'{rmv_mean.shape=}')
@@ -144,6 +151,7 @@ rmv_b_qu_std = np.std(rmv_b_qu_arr, axis=0)
 # pcn_qu_std = np.std(pcn_qu_arr, axis=0)
 
 ps_mask_std = np.std(ps_mask_arr, axis=0)
+qu_mask_std = np.std(qu_mask_arr, axis=0)
 inp_qu_std = np.std(inp_qu_arr, axis=0)
 inp_eb_std = np.std(inp_eb_arr, axis=0)
 # print(f'{rmv_std.shape=}')
@@ -174,6 +182,7 @@ plt.plot(ell_arr, rmv_b_qu_mean, label='debias rmv_mean b on qu')
 # plt.plot(ell_arr, pcn_qu_mean, label='debias pcn_mean qu')
 
 plt.plot(ell_arr, ps_mask_mean, label='ps_mask_mean')
+plt.plot(ell_arr, qu_mask_mean, label='qu_mask_mean')
 # plt.plot(ell_arr, inp_qu_mean, label='debias inp_qu_mean')
 plt.plot(ell_arr, inp_eb_mean, label='debias inp_eb_mean')
 
@@ -193,6 +202,7 @@ plt.plot(ell_arr, cn_std, label='cn_std')
 plt.plot(ell_arr, pcn_std, label='pcn_std')
 
 plt.plot(ell_arr, ps_mask_std, label='ps_mask_std')
+plt.plot(ell_arr, qu_mask_std, label='qu_mask_std')
 # plt.plot(ell_arr, inp_qu_std, label='inp_qu_std')
 plt.plot(ell_arr, inp_eb_std, label='inp_eb_std')
 plt.xlabel('$\\ell$')
@@ -207,6 +217,7 @@ plt.plot(ell_arr, rmv_qu_mean - cn_mean, label='rmv qu res')
 plt.plot(ell_arr, rmv_b_qu_mean - cn_mean, label='rmv b on qu res')
 plt.plot(ell_arr, pcn_mean - cn_mean, label='pcn res')
 plt.plot(ell_arr, ps_mask_mean - cn_mean, label='ps_mask res')
+plt.plot(ell_arr, qu_mask_mean - cn_mean, label='qu_mask res')
 # plt.plot(ell_arr, inp_qu_mean - cn_mean, label='inp_qu res')
 plt.plot(ell_arr, inp_eb_mean - cn_mean, label='inp_eb res')
 plt.xlabel('$\\ell$')
@@ -239,6 +250,10 @@ ps_mask_rres = (ps_mask_mean - cn_mean) / cn_mean
 ps_mask_rres_pos = np.where(ps_mask_rres > 0, ps_mask_rres, np.nan)
 ps_mask_rres_neg = np.where(ps_mask_rres < 0, np.abs(ps_mask_rres), np.nan)
 
+qu_mask_rres = (qu_mask_mean - cn_mean) / cn_mean
+qu_mask_rres_pos = np.where(qu_mask_rres > 0, qu_mask_rres, np.nan)
+qu_mask_rres_neg = np.where(qu_mask_rres < 0, np.abs(qu_mask_rres), np.nan)
+
 inp_eb_rres = (inp_eb_mean - cn_mean) / cn_mean
 inp_eb_rres_pos = np.where(inp_eb_rres > 0, inp_eb_rres, np.nan)
 inp_eb_rres_neg = np.where(inp_eb_rres < 0, np.abs(inp_eb_rres), np.nan)
@@ -258,6 +273,9 @@ plt.scatter(ell_arr, rmv_b_qu_rres_neg, color='c', marker='_', label='fit b rmv 
 
 plt.scatter(ell_arr, ps_mask_rres_pos, color='m', marker='+', label='ps_mask')
 plt.scatter(ell_arr, ps_mask_rres_neg, color='m', marker='_', label='ps_mask')
+
+plt.scatter(ell_arr, qu_mask_rres_pos, color='hotpink', marker='+', label='qu_mask')
+plt.scatter(ell_arr, qu_mask_rres_neg, color='hotpink', marker='_', label='qu_mask')
 
 # plt.scatter(ell_arr, inp_qu_rres_pos, color='y', marker='+', label='inp_qu')
 # plt.scatter(ell_arr, inp_qu_rres_neg, color='y', marker='_', label='inp_qu')
@@ -284,6 +302,7 @@ rmv_qu_b_rmse = np.sqrt(rmv_b_qu_std**2 + (rmv_b_qu_mean - cn_mean)**2)
 inp_eb_rmse = np.sqrt(inp_eb_std**2 + (inp_eb_mean - cn_mean)**2)
 inp_qu_rmse = np.sqrt(inp_qu_std**2 + (inp_qu_mean - cn_mean)**2)
 ps_mask_rmse = np.sqrt(ps_mask_std**2 + (ps_mask_mean - cn_mean)**2)
+qu_mask_rmse = np.sqrt(qu_mask_std**2 + (qu_mask_mean - cn_mean)**2)
 
 # pcn_rmse_ratio = np.sum(pcn_rmse[1:7] / cn_mean[1:7])
 # print(f'{pcn_rmse_ratio=}')
@@ -303,6 +322,7 @@ plt.scatter(ell_arr, rmv_qu_b_rmse, label='rmv b qu', marker='.')
 plt.scatter(ell_arr, inp_eb_rmse, label='inp eb ', marker='.')
 plt.scatter(ell_arr, inp_qu_rmse, label='inp qu ', marker='.')
 plt.scatter(ell_arr, ps_mask_rmse, label='ps mask ', marker='.')
+plt.scatter(ell_arr, qu_mask_rmse, label='qu mask ', marker='.')
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB}$')
 # plt.ylim(bottom=1e-10)
