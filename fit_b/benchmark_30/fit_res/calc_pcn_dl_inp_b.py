@@ -86,9 +86,9 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     # m_removal_b = np.load(f'./pcn_fit_qu/{threshold}sigma/B/{rlz_idx}.npy') * bin_mask
     # m_removal_b_qu = np.load(f'./pcn_fit_b_qu/{threshold}sigma/B/{rlz_idx}.npy') * bin_mask
-    m_ps_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_input/{rlz_idx}.fits') * bin_mask
     # m_ps_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_input/{rlz_idx}.fits') * bin_mask
-    # m_inp_eb_b = hp.read_map(f'../inpainting/output/{rlz_idx}.fits') * bin_mask
+    # m_ps_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_input/{rlz_idx}.fits') * bin_mask
+    m_inp_eb_b = hp.read_map(f'../inpainting/output_n/{rlz_idx}.fits') * bin_mask
     # m_inp_qu_b = np.load(f'../inpainting/output_b_1/{rlz_idx}.npy') * bin_mask
 
     # b_min = -1.8
@@ -112,24 +112,24 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # dl_removal_b_qu = calc_dl_from_scalar_map(m_removal_b_qu, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
     # dl_ps_b = calc_dl_from_scalar_map(m_ps_b, bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False)
-    # dl_inp_eb_b = calc_dl_from_scalar_map(m_inp_eb_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_inp_eb_b = calc_dl_from_scalar_map(m_inp_eb_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     # dl_inp_qu_b = calc_dl_from_scalar_map(m_inp_qu_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
-    path_dl_c = Path(f'pcn_dl/INP_B_1/c')
+    path_dl_c = Path(f'pcn_dl/INP_B_n/c')
     path_dl_c.mkdir(parents=True, exist_ok=True)
-    path_dl_cn = Path(f'pcn_dl/INP_B_1/cn')
+    path_dl_cn = Path(f'pcn_dl/INP_B_n/cn')
     path_dl_cn.mkdir(parents=True, exist_ok=True)
-    path_dl_pcn = Path(f'pcn_dl/INP_B_1/pcn')
+    path_dl_pcn = Path(f'pcn_dl/INP_B_n/pcn')
     path_dl_pcn.mkdir(parents=True, exist_ok=True)
-    path_dl_n = Path(f'pcn_dl/INP_B_1/n')
+    path_dl_n = Path(f'pcn_dl/INP_B_n/n')
     path_dl_n.mkdir(parents=True, exist_ok=True)
-    path_dl_removal = Path(f'pcn_dl/INP_B_1/removal_{threshold}sigma')
+    path_dl_removal = Path(f'pcn_dl/INP_B_n/removal_{threshold}sigma')
     path_dl_removal.mkdir(parents=True, exist_ok=True)
-    path_dl_ps = Path(f'pcn_dl/INP_B_1/ps_{threshold}sigma')
+    path_dl_ps = Path(f'pcn_dl/INP_B_n/ps_{threshold}sigma')
     path_dl_ps.mkdir(parents=True, exist_ok=True)
-    path_dl_inpaint_eb = Path(f'pcn_dl/INP_B_1/inpaint_eb_{threshold}sigma')
+    path_dl_inpaint_eb = Path(f'pcn_dl/INP_B_n/inpaint_eb_{threshold}sigma')
     path_dl_inpaint_eb.mkdir(parents=True, exist_ok=True)
-    path_dl_inpaint_qu = Path(f'pcn_dl/INP_B_1/inpaint_qu_{threshold}sigma')
+    path_dl_inpaint_qu = Path(f'pcn_dl/INP_B_n/inpaint_qu_{threshold}sigma')
     path_dl_inpaint_qu.mkdir(parents=True, exist_ok=True)
 
     # np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_b)

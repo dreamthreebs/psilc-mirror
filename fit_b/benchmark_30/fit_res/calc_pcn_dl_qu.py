@@ -77,14 +77,14 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
     # m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
 
-    m_pcn, m_cn, m_c, m_n= gen_map(rlz_idx=rlz_idx)
+    # m_pcn, m_cn, m_c, m_n= gen_map(rlz_idx=rlz_idx)
 
-    m_c_b = hp.alm2map(hp.map2alm(m_c)[2], nside=nside) * bin_mask
-    m_n_b = hp.alm2map(hp.map2alm(m_n)[2], nside=nside) * bin_mask
-    m_cn_b = hp.alm2map(hp.map2alm(m_cn)[2], nside=nside) * bin_mask
-    m_pcn_b = hp.alm2map(hp.map2alm(m_pcn)[2], nside=nside) * bin_mask
+    # m_c_b = hp.alm2map(hp.map2alm(m_c)[2], nside=nside) * bin_mask
+    # m_n_b = hp.alm2map(hp.map2alm(m_n)[2], nside=nside) * bin_mask
+    # m_cn_b = hp.alm2map(hp.map2alm(m_cn)[2], nside=nside) * bin_mask
+    # m_pcn_b = hp.alm2map(hp.map2alm(m_pcn)[2], nside=nside) * bin_mask
 
-    m_removal_b = np.load(f'./pcn_fit_qu/{threshold}sigma/B/{rlz_idx}.npy') * bin_mask
+    m_removal_b = np.load(f'./pcn_fit_lon_lat_n/{threshold}sigma/B/{rlz_idx}.npy') * bin_mask
     # m_ps_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_input/{rlz_idx}.fits') * bin_mask
     # m_inp_eb_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_output/{rlz_idx}.fits') * bin_mask
     # m_inp_qu_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/QU/B/{rlz_idx}.fits') * bin_mask
@@ -102,38 +102,40 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # hp.orthview(m_removal_b - m_cn_b, rot=[100,50,0], half_sky=True, title='inp removal b res', min=b_min, max=b_max)
     # plt.show()
 
-    dl_c_b = calc_dl_from_scalar_map(m_c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_cn_b = calc_dl_from_scalar_map(m_cn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_pcn_b = calc_dl_from_scalar_map(m_pcn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_n_b = calc_dl_from_scalar_map(m_n_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_c_b = calc_dl_from_scalar_map(m_c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_cn_b = calc_dl_from_scalar_map(m_cn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_pcn_b = calc_dl_from_scalar_map(m_pcn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_n_b = calc_dl_from_scalar_map(m_n_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
     dl_removal_b = calc_dl_from_scalar_map(m_removal_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
     # dl_ps_b = calc_dl_from_scalar_map(m_ps_b, bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False)
     # dl_inp_eb_b = calc_dl_from_scalar_map(m_inp_eb_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     # dl_inp_qu_b = calc_dl_from_scalar_map(m_inp_qu_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
-    path_dl_c = Path(f'pcn_dl/QU/c')
+    path_dl_c = Path(f'pcn_dl/QU_lon_lat_n/c')
     path_dl_c.mkdir(parents=True, exist_ok=True)
-    path_dl_cn = Path(f'pcn_dl/QU/cn')
+    path_dl_cn = Path(f'pcn_dl/QU_lon_lat_n/cn')
     path_dl_cn.mkdir(parents=True, exist_ok=True)
-    path_dl_pcn = Path(f'pcn_dl/QU/pcn')
+    path_dl_pcn = Path(f'pcn_dl/QU_lon_lat_n/pcn')
     path_dl_pcn.mkdir(parents=True, exist_ok=True)
-    path_dl_n = Path(f'pcn_dl/QU/n')
+    path_dl_n = Path(f'pcn_dl/QU_lon_lat_n/n')
     path_dl_n.mkdir(parents=True, exist_ok=True)
-    path_dl_removal = Path(f'pcn_dl/QU/removal_{threshold}sigma')
+    path_dl_removal = Path(f'pcn_dl/QU_lon_lat_n/removal_{threshold}sigma')
     path_dl_removal.mkdir(parents=True, exist_ok=True)
-    path_dl_ps = Path(f'pcn_dl/QU/ps_{threshold}sigma')
+    path_dl_ps = Path(f'pcn_dl/QU_lon_lat_n/ps_{threshold}sigma')
     path_dl_ps.mkdir(parents=True, exist_ok=True)
-    path_dl_inpaint_eb = Path(f'pcn_dl/QU/inpaint_eb_{threshold}sigma')
+    path_dl_inpaint_eb = Path(f'pcn_dl/QU_lon_lat_n/inpaint_eb_{threshold}sigma')
     path_dl_inpaint_eb.mkdir(parents=True, exist_ok=True)
 
     # path_dl_inpaint_qu = Path(f'pcn_dl/B/inpaint_qu_{threshold}sigma')
     # path_dl_inpaint_qu.mkdir(parents=True, exist_ok=True)
 
-    np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_b)
-    np.save(path_dl_cn / Path(f'{rlz_idx}.npy'), dl_cn_b)
-    np.save(path_dl_pcn / Path(f'{rlz_idx}.npy'), dl_pcn_b)
-    np.save(path_dl_n / Path(f'{rlz_idx}.npy'), dl_n_b)
+    # np.save(path_dl_c / Path(f'{rlz_idx}.npy'), dl_c_b)
+    # np.save(path_dl_cn / Path(f'{rlz_idx}.npy'), dl_cn_b)
+    # np.save(path_dl_pcn / Path(f'{rlz_idx}.npy'), dl_pcn_b)
+    # np.save(path_dl_n / Path(f'{rlz_idx}.npy'), dl_n_b)
+
     np.save(path_dl_removal / Path(f'{rlz_idx}.npy'), dl_removal_b)
 
     # np.save(path_dl_ps / Path(f'{rlz_idx}.npy'), dl_ps_b)
