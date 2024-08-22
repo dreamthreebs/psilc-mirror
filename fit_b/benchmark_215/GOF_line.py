@@ -11,7 +11,7 @@ factor = hp.nside2pixarea(nside=nside)
 df = pd.read_csv('./mask/215.csv')
 
 flux_idx = 0
-for flux_idx in range(1,2):
+for flux_idx in range(1,20):
     print(f'{flux_idx=}')
     flux_p = Fit_on_B.mJy_to_uKCMB(df.at[flux_idx, 'pflux']/factor, 215)
     
@@ -32,7 +32,7 @@ for flux_idx in range(1,2):
     # print(f'{P_list=}')
     
     for rlz_idx in range(1,500):
-        P = np.load(f'./fit_res/pcn_params/fit_b_1/idx_{flux_idx}/fit_P_{rlz_idx}.npy')
+        P = np.load(f'./fit_res/pcn_params/fit_qu_lon_lat/idx_{flux_idx}/fit_P_{rlz_idx}.npy')
         # print(f"{P=}")
         # phi = np.load(f'./params/0/fit_2/phi_{rlz_idx}.npy')
         P_list.append(P)

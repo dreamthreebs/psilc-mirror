@@ -25,7 +25,7 @@ class GetResidual:
         npix = hp.nside2npix(nside=self.nside)
         beam = self.beam
 
-        ps = np.load('./data/ps/ps.npy')
+        # ps = np.load('./data/ps/ps.npy')
 
         nstd = np.load('../../FGSim/NSTDNORTH/2048/215.npy')
         np.random.seed(seed=noise_seeds[rlz_idx])
@@ -33,19 +33,20 @@ class GetResidual:
         noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
         print(f"{np.std(noise[1])=}")
 
-        # cmb_iqu = np.load(f'../../fitdata/2048/CMB/215/{rlz_idx}.npy')
-        # cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
-        cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
-        np.random.seed(seed=cmb_seeds[rlz_idx])
-        # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
-        cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
+        # # cmb_iqu = np.load(f'../../fitdata/2048/CMB/215/{rlz_idx}.npy')
+        # # cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
+        # cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
+        # np.random.seed(seed=cmb_seeds[rlz_idx])
+        # # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
+        # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
 
-        pcn = noise + ps + cmb_iqu
-        cn = noise + cmb_iqu
+        # pcn = noise + ps + cmb_iqu
+        # cn = noise + cmb_iqu
+        m = noise
 
         # m = np.load('./1_8k.npy')
         # np.save('./1_6k_pcn.npy', m)
-        return pcn, cn
+        return m
 
 
 
@@ -56,12 +57,12 @@ class GetResidual:
         rlz_idx=0
         print(f'{rlz_idx=}')
 
-        m_pcn, m_cn = self.gen_map(rlz_idx=rlz_idx)
+        m_pcn = self.gen_map(rlz_idx=rlz_idx)
         m_pcn_q = m_pcn[1].copy()
         m_pcn_u = m_pcn[2].copy()
 
-        m_cn_q = m_cn[1].copy()
-        m_cn_u = m_cn[2].copy()
+        # m_cn_q = m_cn[1].copy()
+        # m_cn_u = m_cn[2].copy()
 
         de_ps_q = m_pcn_q.copy()
         de_ps_u = m_pcn_u.copy()
@@ -78,8 +79,8 @@ class GetResidual:
                 print(f'this point has hesse_err')
                 continue
 
-            pcn_p_amp = np.load(f'./fit_res/pcn_params/fit_qu/idx_{flux_idx}/fit_P_{rlz_idx}.npy')
-            pcn_phi = np.load(f'./fit_res/pcn_params/fit_qu/idx_{flux_idx}/fit_phi_{rlz_idx}.npy')
+            pcn_p_amp = np.load(f'./fit_res/pcn_params/fit_qu_n//idx_{flux_idx}/fit_P_{rlz_idx}.npy')
+            pcn_phi = np.load(f'./fit_res/pcn_params/fit_qu_n/idx_{flux_idx}/fit_phi_{rlz_idx}.npy')
 
             pcn_q_amp = pcn_p_amp * np.cos(pcn_phi)
             pcn_u_amp = pcn_p_amp * np.sin(pcn_phi)
@@ -140,7 +141,7 @@ class GetResidual:
         res_q = np.copy(de_ps_q)
         res_u = np.copy(de_ps_u)
 
-        path_for_res_map = Path(f'./fit_res/pcn_fit_qu/{threshold}sigma')
+        path_for_res_map = Path(f'./fit_res/pcn_fit_qu_n/{threshold}sigma')
         path_for_res_map.mkdir(parents=True, exist_ok=True)
         np.save(path_for_res_map / Path(f'map_q_{rlz_idx}.npy'), res_q)
         np.save(path_for_res_map / Path(f'map_u_{rlz_idx}.npy'), res_u)

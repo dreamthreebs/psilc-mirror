@@ -60,6 +60,10 @@ for rlz_idx in range(1,200):
         # continue
     n = np.load(f'./pcn_dl/B/n/{rlz_idx}.npy')
     n_qu = np.load(f'./pcn_dl/QU/n/{rlz_idx}.npy')
+    n_rmv = np.load(f'./pcn_dl/QU_n/removal_3sigma/{rlz_idx}.npy')
+    n_inp = np.load(f'./pcn_dl/INP_B_n/inpaint_eb_3sigma/{rlz_idx}.npy')
+    n_qu_mask = np.load(f'./pcn_dl/ACT/curl_yp_ps_n/{rlz_idx}.npy')
+    n_lon_lat = np.load(f'./pcn_dl/QU_lon_lat_n/removal_3sigma/{rlz_idx}.npy')
     rmv = np.load(f'./pcn_dl/B/removal_3sigma/{rlz_idx}.npy') - n
     rmv_qu = np.load(f'./pcn_dl/QU/removal_3sigma/{rlz_idx}.npy') - n_qu
     rmv_b_qu = np.load(f'./pcn_dl/QU_B_1/removal_3sigma/{rlz_idx}.npy') - n_qu
@@ -76,10 +80,22 @@ for rlz_idx in range(1,200):
     inp_qu = np.load(f'./pcn_dl/INP_QU_1/inpaint_qu_3sigma/{rlz_idx}.npy') - n_qu
     inp_eb = np.load(f'./pcn_dl/INP_B_1/inpaint_eb_3sigma/{rlz_idx}.npy') - n_qu
 
-    # plt.plot(ell_arr, rmv_qu, label=f'rmv {rlz_idx}')
-    # # plt.plot(ell_arr, n_qu, label=f'n {rlz_idx}')
-    # plt.semilogy()
-    # plt.legend()
+    plt.plot(ell_arr, c, label=f'c {rlz_idx}')
+    plt.plot(ell_arr, n_rmv, label=f'rmv n{rlz_idx}')
+    plt.plot(ell_arr, n_qu, label=f'n {rlz_idx}')
+    plt.plot(ell_arr, n_inp, label=f'inp n {rlz_idx}')
+    # plt.plot(ell_arr, n_ps_mask, label=f'ps mask n {rlz_idx}')
+    plt.plot(ell_arr, n_qu_mask, label=f'qu mask n {rlz_idx}')
+    plt.plot(ell_arr, n_lon_lat, label=f'rmv lon lat n {rlz_idx}')
+    plt.plot(ell_arr, np.abs(n_rmv - n_qu), label=f'rmv - n {rlz_idx}')
+    plt.plot(ell_arr, np.abs(n_lon_lat - n_qu), label=f'rmv lon lat - n {rlz_idx}')
+    plt.plot(ell_arr, np.abs(n_inp - n_qu), label=f'inp - n {rlz_idx}')
+    # plt.plot(ell_arr, np.abs(n_ps_mask - n_qu), label=f'ps mask - n {rlz_idx}')
+    plt.plot(ell_arr, np.abs(n_qu_mask - n_qu), label=f'qu mask - n {rlz_idx}')
+    plt.semilogy()
+    plt.legend()
+    plt.show()
+
 
     rmv_list.append(rmv)
     c_list.append(c)

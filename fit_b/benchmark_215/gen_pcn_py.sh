@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./pcn_run_b.py"
+original_file="./pcn_run_qu.py"
 
 # 复制文件的数量
-copies=500
+copies=200
 
 for i in $(seq 0 $copies); do
     # 创建新文件的名称

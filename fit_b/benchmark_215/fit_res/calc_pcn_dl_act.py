@@ -77,7 +77,7 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
     # m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
 
-    m_pcn, m_cn, m_c, m_n= gen_map(rlz_idx=rlz_idx)
+    _,_,_, m_pcn= gen_map(rlz_idx=rlz_idx)
 
     m_pcn_q = m_pcn[1].copy()
     m_pcn_u = m_pcn[2].copy()
@@ -85,7 +85,7 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     dl_qu = calc_dl_from_pol_map(m_q=m_pcn_q, m_u=m_pcn_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    path_dl_qu = Path(f'pcn_dl/ACT/curl_yp_ps')
+    path_dl_qu = Path(f'pcn_dl/ACT/curl_yp_ps_n')
     path_dl_qu.mkdir(parents=True, exist_ok=True)
 
     np.save(path_dl_qu / Path(f'{rlz_idx}.npy'), dl_qu)

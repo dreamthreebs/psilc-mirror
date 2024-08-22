@@ -708,7 +708,7 @@ def main():
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/3.npy')
-    m = np.load(f'./1_6k_pcn.npy')
+    m = np.load(f'./data/ps/')
     m_q = m[1].copy()
     m_u = m[2].copy()
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
@@ -724,7 +724,7 @@ def main():
     nside = 2048
     beam = 11
 
-    flux_idx = 0
+    flux_idx = 13
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
@@ -734,7 +734,7 @@ def main():
 
     # obj.calc_definite_fixed_cmb_cov()
     # obj.calc_covariance_matrix(mode='cmb+noise')
-    # obj.fit_all(cov_mode='cmb+noise')
+    obj.fit_all(cov_mode='cmb+noise')
 
     # obj.calc_covariance_matrix(mode='noise')
     # obj.fit_all(cov_mode='noise')

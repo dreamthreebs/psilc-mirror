@@ -102,7 +102,7 @@ class GetResidual:
             theta = np.arccos(cos_theta) # (n_rlz, n_pix_for_fit)
 
             profile = 1 / (2 * np.pi * self.sigma**2) * np.exp(- (theta)**2 / (2 * self.sigma**2))
-            P = (pcn_q_amp + 1j * pcn_u_amp) * self.nside2pixarea_factor * np.exp(2j * self.df_mask.at[flux_idx, 'lon'])
+            P = (pcn_q_amp + 1j * pcn_u_amp) * self.nside2pixarea_factor * np.exp(2j * np.deg2rad(fit_lon))
             lugwid_P = P * profile
             QU = lugwid_P * np.exp(-2j * phi_around)
             Q = QU.real

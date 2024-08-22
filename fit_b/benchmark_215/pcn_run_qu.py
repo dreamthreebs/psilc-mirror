@@ -31,7 +31,7 @@ cmb_seed = np.load('./seeds_cmb_2k.npy')
 
 def gen_map():
 
-    ps = np.load('./data/ps/ps.npy')
+    # ps = np.load('./data/ps/ps.npy')
 
     nstd = np.load('../../FGSim/NSTDNORTH/2048/215.npy')
     np.random.seed(seed=noise_seed[rlz_idx])
@@ -39,19 +39,20 @@ def gen_map():
     noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
     print(f"{np.std(noise[1])=}")
 
-    # cmb_iqu = np.load(f'../../fitdata/2048/CMB/215/{rlz_idx}.npy')
-    # cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
-    cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
-    np.random.seed(seed=cmb_seed[rlz_idx])
-    # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
-    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
+    # # cmb_iqu = np.load(f'../../fitdata/2048/CMB/215/{rlz_idx}.npy')
+    # # cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
+    # cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
+    # np.random.seed(seed=cmb_seed[rlz_idx])
+    # # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
+    # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
 
     # l = np.arange(lmax+1)
     # cls_out = hp.anafast(cmb_iqu, lmax=lmax)
 
 
-    m = noise + ps + cmb_iqu
+    # m = noise + ps + cmb_iqu
     # cn = noise + cmb_iqu
+    m = noise
 
     # m = np.load('./1_8k.npy')
     # np.save('./1_6k_pcn.npy', m)
@@ -91,7 +92,7 @@ def main():
         # obj.calc_covariance_matrix(mode='cmb+noise')
         num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
 
-        path_res = Path(f'./fit_res/pcn_params/fit_qu/idx_{flux_idx}')
+        path_res = Path(f'./fit_res/pcn_params/fit_qu_n/idx_{flux_idx}')
         path_res.mkdir(exist_ok=True, parents=True)
         print(f"{num_ps=}, {chi2dof=}, {obj.p_amp=}, {fit_P=}, {fit_P_err=}, {obj.phi=}, {fit_phi=}, {fit_phi_err=}")
         np.save(path_res / Path(f'chi2dof_{rlz_idx}.npy'), chi2dof)

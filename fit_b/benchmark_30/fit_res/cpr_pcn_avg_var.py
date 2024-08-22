@@ -77,8 +77,8 @@ for rlz_idx in range(1,200):
     # cn_qu = np.load(f'./pcn_dl/QU/cn/{rlz_idx}.npy') - n_qu
     pcn = np.load(f'./pcn_dl/QU/pcn/{rlz_idx}.npy') - n_qu
     # pcn_qu = np.load(f'./pcn_dl/QU/pcn/{rlz_idx}.npy') - n_qu
-    ps_mask = np.load(f'./pcn_dl/PS_MASK/ps_3sigma/{rlz_idx}.npy') - n_qu
-    qu_mask = np.load(f'./pcn_dl/ACT/curl_yp_ps/{rlz_idx}.npy') - n_qu
+    ps_mask = np.load(f'./pcn_dl/PS_MASK/ps_3sigma/{rlz_idx}.npy') - n_ps_mask
+    qu_mask = np.load(f'./pcn_dl/ACT/curl_yp_ps/{rlz_idx}.npy') - n_qu_mask
     # inp_qu = np.load(f'./pcn_dl/INP_QU_1/inpaint_qu_3sigma/{rlz_idx}.npy') - n_qu
     inp_eb = np.load(f'./pcn_dl/INP_B_1/inpaint_eb_3sigma/{rlz_idx}.npy') - n_inp
 
@@ -249,40 +249,40 @@ plt.ylim(-0.1,0.1)
 plt.legend()
 plt.title('residual power spectrum')
 
-# rmv_rres = (rmv_mean - cn_mean) / cn_mean
+# rmv_rres = (rmv_mean - c_mean) / c_mean
 # rmv_rres_pos = np.where(rmv_rres > 0, rmv_rres, np.nan)
 # rmv_rres_neg = np.where(rmv_rres < 0, np.abs(rmv_rres), np.nan)
 
-pcn_rres = (pcn_mean - cn_mean) / cn_mean
+pcn_rres = (pcn_mean - c_mean) / c_mean
 pcn_rres_pos = np.where(pcn_rres > 0, pcn_rres, np.nan)
 pcn_rres_neg = np.where(pcn_rres < 0, np.abs(pcn_rres), np.nan)
 
-rmv_qu_rres = (rmv_qu_mean - cn_mean) / cn_mean
+rmv_qu_rres = (rmv_qu_mean - c_mean) / c_mean
 rmv_qu_rres_pos = np.where(rmv_qu_rres > 0, rmv_qu_rres, np.nan)
 rmv_qu_rres_neg = np.where(rmv_qu_rres < 0, np.abs(rmv_qu_rres), np.nan)
 
-rmv_lon_lat_rres = (rmv_lon_lat_mean - cn_mean) / cn_mean
+rmv_lon_lat_rres = (rmv_lon_lat_mean - c_mean) / c_mean
 rmv_lon_lat_rres_pos = np.where(rmv_lon_lat_rres > 0, rmv_lon_lat_rres, np.nan)
 rmv_lon_lat_rres_neg = np.where(rmv_lon_lat_rres < 0, np.abs(rmv_lon_lat_rres), np.nan)
 
 
-# rmv_b_qu_rres = (rmv_b_qu_mean - cn_mean) / cn_mean
+# rmv_b_qu_rres = (rmv_b_qu_mean - c_mean) / c_mean
 # rmv_b_qu_rres_pos = np.where(rmv_b_qu_rres > 0, rmv_b_qu_rres, np.nan)
 # rmv_b_qu_rres_neg = np.where(rmv_b_qu_rres < 0, np.abs(rmv_b_qu_rres), np.nan)
 
-# inp_qu_rres = (inp_qu_mean - cn_mean) / cn_mean
+# inp_qu_rres = (inp_qu_mean - c_mean) / c_mean
 # inp_qu_rres_pos = np.where(inp_qu_rres > 0, inp_qu_rres, np.nan)
 # inp_qu_rres_neg = np.where(inp_qu_rres < 0, np.abs(inp_qu_rres), np.nan)
 
-ps_mask_rres = (ps_mask_mean - cn_mean) / cn_mean
+ps_mask_rres = (ps_mask_mean - c_mean) / c_mean
 ps_mask_rres_pos = np.where(ps_mask_rres > 0, ps_mask_rres, np.nan)
 ps_mask_rres_neg = np.where(ps_mask_rres < 0, np.abs(ps_mask_rres), np.nan)
 
-qu_mask_rres = (qu_mask_mean - cn_mean) / cn_mean
+qu_mask_rres = (qu_mask_mean - c_mean) / c_mean
 qu_mask_rres_pos = np.where(qu_mask_rres > 0, qu_mask_rres, np.nan)
 qu_mask_rres_neg = np.where(qu_mask_rres < 0, np.abs(qu_mask_rres), np.nan)
 
-inp_eb_rres = (inp_eb_mean - cn_mean) / cn_mean
+inp_eb_rres = (inp_eb_mean - c_mean) / c_mean
 inp_eb_rres_pos = np.where(inp_eb_rres > 0, inp_eb_rres, np.nan)
 inp_eb_rres_neg = np.where(inp_eb_rres < 0, np.abs(inp_eb_rres), np.nan)
 
@@ -327,15 +327,15 @@ plt.legend(loc='upper right')
 plt.title('relative residual power spectrum')
 
 plt.figure(5)
-pcn_rmse = np.sqrt(pcn_std**2 + (pcn_mean - cn_mean)**2)
+pcn_rmse = np.sqrt(pcn_std**2 + (pcn_mean - c_mean)**2)
 cn_rmse = np.sqrt(cn_std**2)
-rmv_qu_rmse = np.sqrt(rmv_qu_std**2 + (rmv_qu_mean - cn_mean)**2)
-rmv_lon_lat_rmse = np.sqrt(rmv_lon_lat_std**2 + (rmv_lon_lat_mean - cn_mean)**2)
-# rmv_qu_b_rmse = np.sqrt(rmv_b_qu_std**2 + (rmv_b_qu_mean - cn_mean)**2)
-inp_eb_rmse = np.sqrt(inp_eb_std**2 + (inp_eb_mean - cn_mean)**2)
-# inp_qu_rmse = np.sqrt(inp_qu_std**2 + (inp_qu_mean - cn_mean)**2)
-ps_mask_rmse = np.sqrt(ps_mask_std**2 + (ps_mask_mean - cn_mean)**2)
-qu_mask_rmse = np.sqrt(qu_mask_std**2 + (qu_mask_mean - cn_mean)**2)
+rmv_qu_rmse = np.sqrt(rmv_qu_std**2 + (rmv_qu_mean - c_mean)**2)
+rmv_lon_lat_rmse = np.sqrt(rmv_lon_lat_std**2 + (rmv_lon_lat_mean - c_mean)**2)
+# rmv_qu_b_rmse = np.sqrt(rmv_b_qu_std**2 + (rmv_b_qu_mean - c_mean)**2)
+inp_eb_rmse = np.sqrt(inp_eb_std**2 + (inp_eb_mean - c_mean)**2)
+# inp_qu_rmse = np.sqrt(inp_qu_std**2 + (inp_qu_mean - c_mean)**2)
+ps_mask_rmse = np.sqrt(ps_mask_std**2 + (ps_mask_mean - c_mean)**2)
+qu_mask_rmse = np.sqrt(qu_mask_std**2 + (qu_mask_mean - c_mean)**2)
 
 # pcn_rmse_ratio = np.sum(pcn_rmse[1:7] / cn_mean[1:7])
 # print(f'{pcn_rmse_ratio=}')
@@ -363,7 +363,7 @@ plt.ylabel('$D_\\ell^{BB}$')
 plt.loglog()
 # plt.ylim(-0.1,0.1)
 plt.legend()
-plt.title('rmse')
+plt.title('sqrt(bias**2 + std**2)')
 
 plt.show()
 

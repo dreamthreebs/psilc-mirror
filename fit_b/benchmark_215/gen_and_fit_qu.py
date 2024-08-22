@@ -83,7 +83,7 @@ def main():
     df_ps = pd.read_csv('../../pp_P/mask/ps_csv/215.csv')
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    flux_idx = 0
+    flux_idx = 13
     obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
