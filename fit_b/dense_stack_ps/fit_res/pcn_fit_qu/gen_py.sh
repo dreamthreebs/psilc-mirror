@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./calc_pcn_dl_qu.py"
+original_file="./convert_to_b.py"
 
 # 复制文件的数量
 copies=200
 
-for i in $(seq 0 $copies); do
+for i in $(seq 98 $copies); do
     # 创建新文件的名称
     new_file="run_$i.py"
 
@@ -14,7 +14,7 @@ for i in $(seq 0 $copies); do
     cp $original_file $new_file
 
     # 在第10行替换文本
-    sed -i "12s/rlz_idx=0/rlz_idx=$i/" $new_file
+    sed -i "6s/rlz_idx=0/rlz_idx=$i/" $new_file
 done
 
 

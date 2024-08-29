@@ -6,12 +6,12 @@ import time
 import pickle
 import os,sys
 import logging
-import gc
+import ipdb,gc
 
 from pathlib import Path
 from iminuit import Minuit
 from iminuit.cost import LeastSquares
-from fit_qu import FitPolPS
+from fit_qu_n import FitPolPS
 
 # logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s -%(name)s - %(message)s')
 logging.basicConfig(level=logging.WARNING)
@@ -31,7 +31,7 @@ cmb_seed = np.load('../benchmark_215/seeds_cmb_2k.npy')
 
 def gen_map():
 
-    # ps = np.load('./data/ps_67.npy')
+    # ps = np.load('./data/ps/ps.npy')
 
     nstd = np.load('../../FGSim/NSTDNORTH/2048/30.npy')
     np.random.seed(seed=noise_seed[rlz_idx])
@@ -84,29 +84,39 @@ def main():
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     for flux_idx in range(176):
-        obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+
+        lon_true = np.load(f'./fit_res/pcn_params/fit_qu_lon_lat/idx_{flux_idx}/lon_{rlz_idx}.npy')
+        lat_true = np.load(f'./fit_res/pcn_params/fit_qu_lon_lat/idx_{flux_idx}/lat_{rlz_idx}.npy')
+        # for noise debias
+        lon = np.load(f'./fit_res/pcn_params/fit_qu_lon_lat/idx_{flux_idx}/fit_lon_{rlz_idx}.npy')
+        lat = np.load(f'./fit_res/pcn_params/fit_qu_lon_lat/idx_{flux_idx}/fit_lat_{rlz_idx}.npy')
+
+        obj = FitPolPS(m_q=m_q, m_u=m_u, lon=lon, lat=lat, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
 
         logger.debug(f'{sys.getrefcount(m_q)-1=}')
         # obj.calc_definite_fixed_cmb_cov()
         # obj.calc_covariance_matrix(mode='cmb+noise')
         num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
 
-        path_res = Path(f'./fit_res/pcn_params/fit_qu_n/idx_{flux_idx}')
+        path_res = Path(f'./fit_res/pcn_params/fit_qu_lon_lat_n/idx_{flux_idx}')
         path_res.mkdir(exist_ok=True, parents=True)
-        print(f"{num_ps=}, {chi2dof=}, {obj.p_amp=}, {fit_P=}, {fit_P_err=}, {obj.phi=}, {fit_phi=}, {fit_phi_err=}")
+        print(f"{num_ps=}, {chi2dof=}, {obj.p_amp=}, {fit_P=}, {fit_P_err=}, {obj.phi=}, {fit_phi=}, {fit_phi_err=}, {lon=}, {lat=}, {lon_true=}, {lat_true=}")
         np.save(path_res / Path(f'chi2dof_{rlz_idx}.npy'), chi2dof)
-        np.save(path_res / Path(f'fit_P_{rlz_idx}.npy'), fit_P)
         np.save(path_res / Path(f'P_{rlz_idx}.npy'), obj.p_amp)
         np.save(path_res / Path(f'phi_{rlz_idx}.npy'), obj.phi)
+        np.save(path_res / Path(f'lon_{rlz_idx}.npy'), obj.lon)
+        np.save(path_res / Path(f'lat_{rlz_idx}.npy'), obj.lat)
+
+        np.save(path_res / Path(f'fit_P_{rlz_idx}.npy'), fit_P)
         np.save(path_res / Path(f'fit_err_P_{rlz_idx}.npy'), fit_P_err)
         np.save(path_res / Path(f'fit_phi_{rlz_idx}.npy'), fit_phi)
         np.save(path_res / Path(f'fit_err_phi_{rlz_idx}.npy'), fit_phi_err)
-
         del obj
         gc.collect()
 
-main()
 
+
+main()
 
 
 

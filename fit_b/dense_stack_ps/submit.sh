@@ -25,8 +25,8 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=32
-#SBATCH --mem=120GB
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=40GB
 #SBATCH --exclude=aliws005
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./pcn_run_qu.py"
+original_file="./pcn_run_qu_lon_lat_n.py"
 
 # 复制文件的数量
 copies=200

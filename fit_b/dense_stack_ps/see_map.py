@@ -21,13 +21,13 @@ def see_ps_map():
     flux_idx = 0
 
     m_ps = np.load('./data/ps_67.npy')
-    # hp.orthview(m_ps[1], rot=[100,50,0], half_sky=True)
-    # hp.orthview(m_ps[2], rot=[100,50,0], half_sky=True)
+    hp.orthview(m_ps[1], rot=[100,50,0], half_sky=True)
+    hp.orthview(m_ps[2], rot=[100,50,0], half_sky=True)
 
-    lon = np.rad2deg(df.at[flux_idx, "lon"])
-    lat = np.rad2deg(df.at[flux_idx, "lat"])
-    hp.gnomview(m_ps[1], rot=[lon,lat,0])
-    hp.gnomview(m_ps[2], rot=[lon,lat,0])
+    # lon = np.rad2deg(df.at[flux_idx, "lon"])
+    # lat = np.rad2deg(df.at[flux_idx, "lat"])
+    # hp.gnomview(m_ps[1], rot=[lon,lat,0])
+    # hp.gnomview(m_ps[2], rot=[lon,lat,0])
 
     plt.show()
 
@@ -46,5 +46,5 @@ def see_input_B_map():
     plt.show()
 
 
-# see_ps_map()
-see_input_B_map()
+see_ps_map()
+# see_input_B_map()
