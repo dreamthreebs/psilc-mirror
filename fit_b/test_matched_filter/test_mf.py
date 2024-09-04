@@ -63,8 +63,10 @@ def tegmark_mf():
     ps_out = hp.smoothing(ps, beam_window=Fl, pol=False)
     cn_out = hp.smoothing(cn, beam_window=Fl, pol=False)
     pcn_out = hp.smoothing(pcn, beam_window=Fl, pol=False)
+
     sigma = np.std(cn_out)
     snr = pcn_out / sigma
+
     print(f'{sigma=}')
     print(np.max(ps))
     print(np.max(ps_out))
