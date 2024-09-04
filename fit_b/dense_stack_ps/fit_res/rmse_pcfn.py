@@ -185,8 +185,9 @@ plt.legend()
 plt.title('RMSE')
 
 
-# path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240826')
-# plt.savefig(path_save / Path('30GHz_176ps_rmse.png'), dpi=300)
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240902')
+path_save.mkdir(exist_ok=True, parents=True)
+plt.savefig(path_save / Path('30GHz_176ps_rmse.png'), dpi=300)
 
 plt.show()
 

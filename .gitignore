@@ -7,6 +7,10 @@
 /**/*.pyc
 /**/run_*.py
 /**/submit_run_*.sh
+/**/fly_*.py
+/**/submit_fly_*.sh
+/**/hop_*.py
+/**/submit_hop_*.sh
 /**/submit_*.sh
 /**/run_pcn_*.py
 /**/run_pcfn_*.py

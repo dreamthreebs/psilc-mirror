@@ -43,7 +43,7 @@ date +%m-%d_%H-%M
 threshold=3
 number="0"
 # mrs_alm_inpainting -v ./input/pcn/2sigma/${number}.fits ./mask/pcn/2sigma/${number}.fits ./output/pcn/2sigma/${number}.fits
-mrs_alm_inpainting -v ./input_n/${number}.fits ./mask/mask.fits ./output_n/${number}.fits
+mrs_alm_inpainting -v ./input_pcfn/${number}.fits ./mask/mask_add_edge.fits ./output_pcfn/${number}.fits
 
 
 date +%m-%d_%H-%M

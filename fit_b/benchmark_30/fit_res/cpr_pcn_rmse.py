@@ -56,7 +56,7 @@ l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=l
 bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
 
-nsim = 200
+nsim = 201
 
 for rlz_idx in range(0,200):
     # if rlz_idx == 50:
@@ -64,14 +64,15 @@ for rlz_idx in range(0,200):
     # n = np.load(f'./pcn_dl/B/n/{rlz_idx}.npy')
     n_qu = np.load(f'./pcn_dl/QU/n/{rlz_idx}.npy')
     n_rmv = np.load(f'./pcn_dl/QU_n/removal_3sigma/{rlz_idx}.npy')
-    n_lon_lat = np.load(f'./pcn_dl/QU_lon_lat_n/removal_3sigma/{rlz_idx}.npy')
+    n_lon_lat = np.load(f'./pcn_dl/QU_edge/removal_3sigma_n/{rlz_idx}.npy')
     n_inp = np.load(f'./pcn_dl/INP_B_n/inpaint_eb_3sigma/{rlz_idx}.npy')
-    n_ps_mask = np.load(f'./pcn_dl/PS_MASK_n/ps_3sigma/{rlz_idx}.npy')
+    # n_ps_mask = np.load(f'./pcn_dl/PS_MASK_n/ps_3sigma/{rlz_idx}.npy')
+    n_ps_mask = np.load(f'./pcn_dl/INP_SMALL_B/inpaint_eb_3sigma_n/{rlz_idx}.npy')
     n_qu_mask = np.load(f'./pcn_dl/ACT/curl_yp_ps_n/{rlz_idx}.npy')
 
     # rmv = np.load(f'./pcn_dl/B/removal_3sigma/{rlz_idx}.npy') - n
     rmv_qu = np.load(f'./pcn_dl/QU/removal_3sigma/{rlz_idx}.npy') - n_rmv
-    rmv_lon_lat = np.load(f'./pcn_dl/QU_lon_lat/removal_3sigma/{rlz_idx}.npy') - n_lon_lat
+    rmv_lon_lat = np.load(f'./pcn_dl/QU_edge/removal_3sigma/{rlz_idx}.npy') - n_lon_lat
     # rmv_b_qu = np.load(f'./pcn_dl/QU_B/removal_3sigma/{rlz_idx}.npy') - n_qu
     # rmv1 = np.load(f'./pcn_dl/B/removal_10sigma/{rlz_idx}.npy')
     c = np.load(f'./pcn_dl/QU/c/{rlz_idx}.npy')
@@ -80,7 +81,8 @@ for rlz_idx in range(0,200):
     # cn_qu = np.load(f'./pcn_dl/QU/cn/{rlz_idx}.npy') - n_qu
     pcn = np.load(f'./pcn_dl/QU/pcn/{rlz_idx}.npy') - n_qu
     # pcn_qu = np.load(f'./pcn_dl/QU/pcn/{rlz_idx}.npy') - n_qu
-    ps_mask = np.load(f'./pcn_dl/PS_MASK/ps_3sigma/{rlz_idx}.npy') - n_ps_mask
+    # ps_mask = np.load(f'./pcn_dl/PS_MASK/ps_3sigma/{rlz_idx}.npy') - n_ps_mask
+    ps_mask = np.load(f'./pcn_dl/INP_SMALL_B/inpaint_eb_3sigma/{rlz_idx}.npy') - n_inp
     qu_mask = np.load(f'./pcn_dl/ACT/curl_yp_ps/{rlz_idx}.npy') - n_qu_mask
     # inp_qu = np.load(f'./pcn_dl/INP_QU_1/inpaint_qu_3sigma/{rlz_idx}.npy') - n_qu
     inp_eb = np.load(f'./pcn_dl/INP_B_1/inpaint_eb_3sigma/{rlz_idx}.npy') - n_inp
@@ -162,26 +164,29 @@ print(f'{inp_eb_rmse_ratio=}')
 print(f'{ps_mask_rmse_ratio=}')
 print(f'{qu_mask_rmse_ratio=}')
 
-plt.scatter(ell_arr, c_mean, label='true c', marker='.')
-plt.scatter(ell_arr, pcn_rmse, label='point source + CMB + noise / planck method', marker='.')
+plt.scatter(ell_arr, c_mean, label='input CMB power spectrum (not RMSE)', marker='.')
+plt.scatter(ell_arr, pcn_rmse, label='No point source treatment', marker='.')
 plt.scatter(ell_arr, cn_rmse, label='CMB + noise', marker='.')
-plt.scatter(ell_arr, rmv_qu_rmse, label='template fitting method with fixed lon lat', marker='.')
-plt.scatter(ell_arr, rmv_lon_lat_rmse, label='template fitting method with free lon lat', marker='.')
+plt.scatter(ell_arr, rmv_qu_rmse, label='Template fitting method with fixed lon lat', marker='.')
+# plt.scatter(ell_arr, rmv_lon_lat_rmse, label='Template fitting method with free lon lat', marker='.')
 # plt.scatter(ell_arr, rmv_qu_rmse, label='rmv b qu', marker='.')
-plt.scatter(ell_arr, inp_eb_rmse, label='Dou method ', marker='.')
+# plt.scatter(ell_arr, inp_eb_rmse, label='Recycling method + inpaint on B', marker='.')
 # plt.scatter(ell_arr, inp_qu_rmse, label='inp qu ', marker='.')
-# plt.scatter(ell_arr, ps_mask_rmse, label='ps mask ', marker='.')
-plt.scatter(ell_arr, qu_mask_rmse, label='ACT method ', marker='.')
+plt.scatter(ell_arr, ps_mask_rmse, label='Recycling method + inpaint on B(partial sky inpaint)', marker='.')
+plt.scatter(ell_arr, qu_mask_rmse, label='Apodized QU mask', marker='.')
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB}$')
 # plt.ylim(bottom=1e-10)
 plt.loglog()
 # plt.ylim(-0.1,0.1)
 plt.legend()
-plt.title('rmse')
+plt.title('RMSE')
 
 
-plt.savefig('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240507/30GHz_1.png', dpi=300)
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240902')
+path_save.mkdir(exist_ok=True, parents=True)
+plt.savefig(path_save / Path('pcn_30GHz_10ps_rmse.png'), dpi=300)
+
 
 plt.show()
 
