@@ -70,9 +70,9 @@ def calc_inv():
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/3.npy')
-    # m = gen_map()
+    m = gen_map()
     # np.save('./data/pcn.npy', m)
-    m = np.load('./data/pcn.npy')
+    # m = np.load('./data/pcn.npy')
 
     m_q = m[1].copy()
     m_u = m[2].copy()
@@ -90,11 +90,11 @@ def calc_inv():
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
 
-    obj.calc_definite_fixed_fg_cov()
-    obj.calc_covariance_matrix(mode='cmb+noise+fg')
+    # obj.calc_definite_fixed_fg_cov()
+    # obj.calc_covariance_matrix(mode='cmb+noise+fg')
 
-    # obj.calc_definite_fixed_cmb_cov()
-    # obj.calc_covariance_matrix(mode='cmb+noise')
+    obj.calc_definite_fixed_cmb_cov()
+    obj.calc_covariance_matrix(mode='cmb+noise')
     # obj.fit_all(cov_mode='cmb+noise')
 
     # obj.calc_covariance_matrix(mode='noise')

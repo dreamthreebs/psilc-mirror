@@ -67,57 +67,40 @@ def gen_map(lmax, component):
         return m_fg + noise + cmb_iqu
 
 
-m = gen_map(lmax=1000, component='c')
-m_b = hp.alm2map(hp.map2alm(m)[2], nside=nside) * mask
+m_c = gen_map(lmax=1000, component='c')
+m_n = gen_map(lmax=1000, component='n')
+m_f = gen_map(lmax=1000, component='f')
+m_cfn = gen_map(lmax=1000, component='cfn')
 
-print(f'component=c')
+
 print(f'method=cutqufitqu')
 print(f'eblc lmax=600')
 
 lmax = 600
-obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
-_,_, cln_b_2k = obj.run_eblc()
-slope = obj.return_slope()
-print(f'{slope=}')
+obj_c = EBLeakageCorrection(m=m_c, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
+_,_, cln_c = obj_c.run_eblc()
 
-print(f'eblc lmax=3*nside-1')
-# lmax = 3*nside-1
+obj_n = EBLeakageCorrection(m=m_n, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
+_,_, cln_n = obj_n.run_eblc()
 
-# lmax = 600
-# obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=2.26)
-# _,_, cln_b_6k = obj.run_eblc()
+obj_f = EBLeakageCorrection(m=m_f, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
+_,_, cln_f = obj_f.run_eblc()
 
-# lmax = 600
-# obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope=2.46)
-# _,_, cln_b_8k = obj.run_eblc()
-
-# lmax = 600
-# obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope=2.66)
-# _,_, cln_b_10k = obj.run_eblc()
-
-# lmax = 600
-# obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope=2.86)
-# _,_, cln_b_12k = obj.run_eblc()
-
-# lmax = 600
-# obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope=3.06)
-# _,_, cln_b_14k = obj.run_eblc()
+obj_cfn = EBLeakageCorrection(m=m_cfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
+_,_, cln_cfn = obj_cfn.run_eblc()
 
 
+hp.orthview(cln_c, rot=[100,50,0], title='c')
+hp.orthview(cln_n, rot=[100,50,0], title='n')
+hp.orthview(cln_f, rot=[100,50,0], title='f')
+hp.orthview(cln_cfn, rot=[100,50,0], title='cfn')
+hp.orthview(cln_cfn - cln_c - cln_n - cln_f, rot=[100,50,0], title='linear?')
+plt.show()
 
+path_data = Path('./data/check_bias')
+path_data.mkdir(exist_ok=True, parents=True)
+np.save(path_data / Path(f'cfn.npy'), cln_cfn)
+np.save(path_data / Path(f'c.npy'), cln_c)
+np.save(path_data / Path(f'f.npy'), cln_f)
+np.save(path_data / Path(f'n.npy'), cln_n)
 
-# hp.orthview(cln_b_2k, rot=[100,50,0], title='eblc 2k')
-# hp.orthview(cln_b_6k, rot=[100,50,0], title='eblc 6k')
-# hp.orthview(cln_b_6k-cln_b_2k, rot=[100,50,0], title='res')
-# plt.show()
-
-# path_data = Path('./data/check_bias')
-# path_data.mkdir(exist_ok=True, parents=True)
-
-# np.save(path_data / Path('no_leakage.npy'), m_b)
-# np.save(path_data / Path('eblc_cmb.npy'), cln_b_2k)
-# np.save(path_data / Path('eblc_226.npy'), cln_b_6k)
-# np.save(path_data / Path('eblc_246.npy'), cln_b_8k)
-# np.save(path_data / Path('eblc_266.npy'), cln_b_10k)
-# np.save(path_data / Path('eblc_286.npy'), cln_b_12k)
-# np.save(path_data / Path('eblc_306.npy'), cln_b_14k)

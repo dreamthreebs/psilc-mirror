@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./gen_and_fit.py"
+original_file="./gen_and_fit_qu.py"
 
 # 复制文件的数量
 copies=9

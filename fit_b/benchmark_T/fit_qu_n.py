@@ -63,7 +63,7 @@ class FitPolPS:
 
         return phi, sigma_phi
 
-    def __init__(self, m_q, m_u, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False):
+    def __init__(self, m_q, m_u, lon, lat, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False):
         self.m_q = m_q # sky maps (npix,)
         self.m_u = m_u # sky maps (npix,)
         self.freq = freq # frequency
@@ -116,6 +116,9 @@ class FitPolPS:
         _, self.phi_around = hp.pix2ang(nside=self.nside, ipix=self.ipix_fit)
         self.ndof = len(self.ipix_fit) * 2
 
+        self.lon = lon
+        self.lat = lat
+
         self.num_near_ps = 0
         self.flag_too_near = False
         self.flag_overlap = False
@@ -144,23 +147,6 @@ class FitPolPS:
         semi_def_cmb_cov = Path(f'semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}')
         semi_def_cmb_cov.mkdir(parents=True, exist_ok=True)
         np.save(semi_def_cmb_cov / Path(f'{self.flux_idx}.npy'), reconstructed_cov)
-
-    def calc_definite_fixed_fg_cov(self):
-        fg_cov_path = Path(f'./fg_qu_cov/{self.flux_idx}.npy')
-        # cmb_cov_path = Path(f'./exp_cov_QU.npy')
-        cov = np.load(fg_cov_path)
-        logger.debug(f'{cov=}')
-        eigenval, eigenvec = np.linalg.eigh(cov)
-        logger.debug(f'{eigenval=}')
-        eigenval[eigenval < 0] = 1e-6
-
-        reconstructed_cov = np.dot(eigenvec * eigenval, eigenvec.T)
-        reconstructed_eigenval,_ = np.linalg.eigh(reconstructed_cov)
-        logger.debug(f'{reconstructed_eigenval=}')
-        logger.debug(f'{np.max(np.abs(reconstructed_cov-cov))=}')
-        semi_def_fg_cov = Path(f'semi_def_fg_cov_{self.nside}/r_{self.radius_factor}')
-        semi_def_fg_cov.mkdir(parents=True, exist_ok=True)
-        np.save(semi_def_fg_cov / Path(f'{self.flux_idx}.npy'), reconstructed_cov)
 
     def calc_covariance_matrix(self, mode='cmb+noise'):
 
@@ -197,31 +183,6 @@ class FitPolPS:
             return None
 
         if mode == 'cmb+noise':
-            nstd_q2 = (self.nstd_q**2)[self.ipix_fit].copy()
-            nstd_u2 = (self.nstd_u**2)[self.ipix_fit].copy()
-            nstd2 = np.concatenate([nstd_q2, nstd_u2])
-            logger.debug(f'{nstd2.shape=}')
-            logger.debug(f'{cov=}')
-            for i in range(self.ndof):
-                cov[i,i] = cov[i,i] + nstd2[i]
-            logger.debug(f'{nstd2=}')
-            logger.debug(f'{cov=}')
-            # self.inv_cov = np.linalg.inv(cov)
-            self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
-
-            I_exp = cov @ self.inv_cov
-            print(f'{I_exp=}')
-            # self.inv_cov = np.linalg.pinv(cov)
-            path_inv_cov = Path(f'inv_cov_{self.nside}/r_{self.radius_factor}') / Path(mode)
-            path_inv_cov.mkdir(parents=True, exist_ok=True)
-            np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
-            return None
-
-        if mode == 'cmb+noise+fg':
-            fg_cov_path = Path(f'./semi_def_fg_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
-            fg_cov = np.load(fg_cov_path)
-            cov = cov + fg_cov
-
             nstd_q2 = (self.nstd_q**2)[self.ipix_fit].copy()
             nstd_u2 = (self.nstd_u**2)[self.ipix_fit].copy()
             nstd2 = np.concatenate([nstd_q2, nstd_u2])
@@ -776,7 +737,10 @@ def main():
     flux_idx = 0
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+    lon = np.load('./fit_res/pcn_params/fit_qu_lon_lat/idx_0/fit_lon_0.npy') # longitude of the point sources in rad
+    lat = np.load('./fit_res/pcn_params/fit_qu_lon_lat/idx_0/fit_lat_0.npy') # latitude of the point sources in rad
+
+    obj = FitPolPS(m_q=m_q, m_u=m_u, lon=lon, lat=lat, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     # obj.see_true_map(m_q=m_q, m_u=m_u, nside=nside, beam=beam)

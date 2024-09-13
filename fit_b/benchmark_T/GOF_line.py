@@ -13,15 +13,11 @@ df = pd.read_csv('./mask/30.csv')
 for flux_idx in range(0,10):
     print(f'{flux_idx=}')
     flux_p = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'pflux']/factor, 30)
-    flux_q = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'qflux']/factor, 30)
-    flux_u = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'uflux']/factor, 30)
     
     # Assuming data is loaded or generated here
     # data = np.random.normal(loc=0, scale=1, size=10000)  # Example data
     # data = np.load('./PSCMBNOISE/normalize_noise_1000/idx_1/norm_beam.npy')
     P_list = []
-    Q_list = []
-    U_list = []
     phi_list = []
     
     # pos_list = glob.glob(f'./params/0/fit_1/phi_*.npy')
@@ -34,20 +30,14 @@ for flux_idx in range(0,10):
     
     # print(f'{P_list=}')
     
-    for rlz_idx in range(0,200):
-        P = np.load(f'./fit_res/pcfn_params/fit_qu/idx_{flux_idx}/fit_P_{rlz_idx}.npy')
-        phi = np.load(f'./fit_res/pcfn_params/fit_qu/idx_{flux_idx}/fit_phi_{rlz_idx}.npy')
-
-        Q = P * np.cos(phi)
-        U = P * np.sin(phi)
+    for rlz_idx in range(0,500):
+        P = np.load(f'./fit_res/pcfn_params/fit_qu_no_const/idx_{flux_idx}/fit_P_{rlz_idx}.npy')
         # print(f"{P=}")
         # phi = np.load(f'./params/0/fit_2/phi_{rlz_idx}.npy')
         P_list.append(P)
-        Q_list.append(Q)
-        U_list.append(U)
         # phi_list.append(phi)
     
-    data = np.asarray(U_list)
+    data = np.asarray(P_list)
     print(f'{data.shape=}')
     
     # data_mean = np.mean(data, axis=0)
@@ -85,7 +75,7 @@ for flux_idx in range(0,10):
     plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:.2f}, std={std:.2f})')
     
     # mu_ref = np.sqrt(250**2 + 500**2)
-    mu_ref =  flux_u # 757.28
+    mu_ref =  flux_p # 757.28
     std_ref =  23 # 23.782
     
     scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0]

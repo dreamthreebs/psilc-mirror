@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./pcfn_run_qu.py"
+original_file="./pcfn_run_qu_addfg.py"
 
 # 复制文件的数量
 copies=200

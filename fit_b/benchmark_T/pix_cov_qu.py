@@ -133,20 +133,20 @@ def main_cn():
 
     ## test for cmb cov
 
-    Cl_TT,Cl_EE,Cl_BB,Cl_TE = test_cmb_cl(beam=beam, lmax=3*nside-1)
+    Cl_TT,Cl_EE,Cl_BB,Cl_TE = test_cmb_cl(beam=beam, lmax=1000)
 
-    # l = np.arange(lmax + 1)
-    # plt.loglog(l, l*(l+1)*Cl_BB/(2*np.pi))
-    # plt.loglog(l, l*(l+1)*Cl_TT/(2*np.pi))
-    # plt.loglog(l, l*(l+1)*Cl_EE/(2*np.pi))
-    # plt.show()
+    l = np.arange(lmax + 1)
+    plt.loglog(l, l*(l+1)*Cl_BB/(2*np.pi))
+    plt.loglog(l, l*(l+1)*Cl_TT/(2*np.pi))
+    plt.loglog(l, l*(l+1)*Cl_EE/(2*np.pi))
+    plt.show()
 
-    obj = CovCalculator(nside=nside, lmin=2, lmax=lmax, Cl_TT=Cl_TT, Cl_EE=Cl_EE, Cl_BB=Cl_BB, Cl_TE=Cl_TE, pixind=pixind, calc_opt='polarization', out_pol_opt='QU')
-    MP = obj.run_calc_cov()
-    path_test_class_cov = Path('./cmb_qu_cov')
-    path_test_class_cov.mkdir(exist_ok=True, parents=True)
-    # np.save(f'./test_class_cov/cmb.npy', MP)
-    np.save(f'./cmb_qu_cov/{flux_idx}.npy', MP)
+    # obj = CovCalculator(nside=nside, lmin=2, lmax=lmax, Cl_TT=Cl_TT, Cl_EE=Cl_EE, Cl_BB=Cl_BB, Cl_TE=Cl_TE, pixind=pixind, calc_opt='polarization', out_pol_opt='QU')
+    # MP = obj.run_calc_cov()
+    # path_test_class_cov = Path('./cmb_qu_cov')
+    # path_test_class_cov.mkdir(exist_ok=True, parents=True)
+    # # np.save(f'./test_class_cov/cmb.npy', MP)
+    # np.save(path_test_class_cov / Path(f'{flux_idx}.npy'), MP)
 
     ## test for noise cov
 
@@ -157,7 +157,7 @@ def main_cn():
     # path_test_class_cov.mkdir(exist_ok=True, parents=True)
     # np.save(f'./test_class_cov/noise.npy', MP)
 
-if __name__=='__main__':
+def main_fg():
     nside = 2048
     lmin = 2
     # lmax = 3 * nside - 1
@@ -181,7 +181,7 @@ if __name__=='__main__':
     path_test_class_cov = Path('./fg_qu_cov')
     path_test_class_cov.mkdir(exist_ok=True, parents=True)
     # np.save(f'./test_class_cov/cmb.npy', MP)
-    np.save(f'./fg_qu_cov/{flux_idx}.npy', MP)
+    np.save(Path(path_test_class_cov / f'{flux_idx}.npy'), MP)
 
     ## test for noise cov
 
@@ -192,6 +192,50 @@ if __name__=='__main__':
     # path_test_class_cov.mkdir(exist_ok=True, parents=True)
     # np.save(f'./test_class_cov/noise.npy', MP)
 
+def main_cf():
+    nside = 2048
+    lmin = 2
+    # lmax = 3 * nside - 1
+    lmax = 600
+    flux_idx=0
+    beam = 67
+    pixind = np.load(f'./pix_idx_qu/{flux_idx}.npy')
+
+    ## test for cmb cov
+
+    Cl_TT_FG,Cl_EE_FG,Cl_BB_FG,Cl_TE_FG = test_fg_cl()
+    Cl_TT_CMB,Cl_EE_CMB,Cl_BB_CMB,Cl_TE_CMB = test_cmb_cl(beam=beam, lmax=600)
+    Cl_TT = Cl_TT_CMB + Cl_TT_FG
+    Cl_EE = Cl_EE_CMB + Cl_EE_FG
+    Cl_BB = Cl_BB_CMB + Cl_BB_FG
+    Cl_TE = Cl_TE_CMB + Cl_TE_FG
+
+    # l = np.arange(lmax + 1)
+    # plt.loglog(l, l*(l+1)*Cl_BB/(2*np.pi))
+    # plt.loglog(l, l*(l+1)*Cl_TT/(2*np.pi))
+    # plt.loglog(l, l*(l+1)*Cl_EE/(2*np.pi))
+    # plt.show()
+
+    obj = CovCalculator(nside=nside, lmin=2, lmax=lmax, Cl_TT=Cl_TT, Cl_EE=Cl_EE, Cl_BB=Cl_BB, Cl_TE=Cl_TE, pixind=pixind, calc_opt='polarization', out_pol_opt='QU')
+    MP = obj.run_calc_cov()
+    path_test_class_cov = Path('./cmb_qu_cov')
+    path_test_class_cov.mkdir(exist_ok=True, parents=True)
+    # np.save(f'./test_class_cov/cmb.npy', MP)
+    np.save(Path(path_test_class_cov / f'{flux_idx}.npy'), MP)
+
+    ## test for noise cov
+
+    # Cl_NN = test_noise_cl(lmax=3*nside-1)
+    # obj = CovCalculator(nside=nside, lmin=2, lmax=3*nside-1, Cl_TT=Cl_NN, Cl_EE=None, Cl_BB=None, Cl_TE=None, pixind=pixind)
+    # MP = obj.run_calc_cov()
+    # path_test_class_cov = Path('./test_class_cov')
+    # path_test_class_cov.mkdir(exist_ok=True, parents=True)
+    # np.save(f'./test_class_cov/noise.npy', MP)
+
+
+
+if __name__=='__main__':
+    main_cf()
 
 
 

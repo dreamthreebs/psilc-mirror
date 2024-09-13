@@ -63,13 +63,13 @@ class FitPolPS:
 
         return phi, sigma_phi
 
-    def __init__(self, m_q, m_u, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False):
+    def __init__(self, m_q, m_u, lon_rad, lat_rad, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False):
         self.m_q = m_q # sky maps (npix,)
         self.m_u = m_u # sky maps (npix,)
         self.freq = freq # frequency
         self.df_mask = df_mask # pandas data frame of point sources in mask
-        self.lon_rad = df_mask.at[flux_idx, 'lon'] # longitude of the point sources in rad
-        self.lat_rad = df_mask.at[flux_idx, 'lat'] # latitude of the point sources in rad
+        self.lon_rad = lon_rad # longitude of the point sources in rad
+        self.lat_rad = lat_rad # latitude of the point sources in rad
         self.lon = np.rad2deg(self.lon_rad) # latitude of the point sources in degree
         self.lat = np.rad2deg(self.lat_rad) # latitude of the point sources in degree
         self.iflux = df_mask.at[flux_idx, 'iflux']
@@ -99,9 +99,10 @@ class FitPolPS:
         self.ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
 
         self.ipix_fit = hp.query_disc(nside=self.nside, vec=self.ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
-        path_pix_idx = Path(f'./pix_idx_qu')
-        path_pix_idx.mkdir(exist_ok=True, parents=True)
-        np.save(path_pix_idx / Path(f'{self.flux_idx}.npy'), self.ipix_fit)
+
+        # path_pix_idx = Path(f'./pix_idx_qu')
+        # path_pix_idx.mkdir(exist_ok=True, parents=True)
+        # np.save(path_pix_idx / Path(f'{self.flux_idx}.npy'), self.ipix_fit)
 
         ## if you want the ipix_fit to range from near point to far point, add the following code
         # self.vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=self.ipix_fit.astype(int))).astype(np.float64)
@@ -145,23 +146,6 @@ class FitPolPS:
         semi_def_cmb_cov.mkdir(parents=True, exist_ok=True)
         np.save(semi_def_cmb_cov / Path(f'{self.flux_idx}.npy'), reconstructed_cov)
 
-    def calc_definite_fixed_fg_cov(self):
-        fg_cov_path = Path(f'./fg_qu_cov/{self.flux_idx}.npy')
-        # cmb_cov_path = Path(f'./exp_cov_QU.npy')
-        cov = np.load(fg_cov_path)
-        logger.debug(f'{cov=}')
-        eigenval, eigenvec = np.linalg.eigh(cov)
-        logger.debug(f'{eigenval=}')
-        eigenval[eigenval < 0] = 1e-6
-
-        reconstructed_cov = np.dot(eigenvec * eigenval, eigenvec.T)
-        reconstructed_eigenval,_ = np.linalg.eigh(reconstructed_cov)
-        logger.debug(f'{reconstructed_eigenval=}')
-        logger.debug(f'{np.max(np.abs(reconstructed_cov-cov))=}')
-        semi_def_fg_cov = Path(f'semi_def_fg_cov_{self.nside}/r_{self.radius_factor}')
-        semi_def_fg_cov.mkdir(parents=True, exist_ok=True)
-        np.save(semi_def_fg_cov / Path(f'{self.flux_idx}.npy'), reconstructed_cov)
-
     def calc_covariance_matrix(self, mode='cmb+noise'):
 
         if mode == 'noise':
@@ -197,31 +181,6 @@ class FitPolPS:
             return None
 
         if mode == 'cmb+noise':
-            nstd_q2 = (self.nstd_q**2)[self.ipix_fit].copy()
-            nstd_u2 = (self.nstd_u**2)[self.ipix_fit].copy()
-            nstd2 = np.concatenate([nstd_q2, nstd_u2])
-            logger.debug(f'{nstd2.shape=}')
-            logger.debug(f'{cov=}')
-            for i in range(self.ndof):
-                cov[i,i] = cov[i,i] + nstd2[i]
-            logger.debug(f'{nstd2=}')
-            logger.debug(f'{cov=}')
-            # self.inv_cov = np.linalg.inv(cov)
-            self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
-
-            I_exp = cov @ self.inv_cov
-            print(f'{I_exp=}')
-            # self.inv_cov = np.linalg.pinv(cov)
-            path_inv_cov = Path(f'inv_cov_{self.nside}/r_{self.radius_factor}') / Path(mode)
-            path_inv_cov.mkdir(parents=True, exist_ok=True)
-            np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
-            return None
-
-        if mode == 'cmb+noise+fg':
-            fg_cov_path = Path(f'./semi_def_fg_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
-            fg_cov = np.load(fg_cov_path)
-            cov = cov + fg_cov
-
             nstd_q2 = (self.nstd_q**2)[self.ipix_fit].copy()
             nstd_u2 = (self.nstd_u**2)[self.ipix_fit].copy()
             nstd2 = np.concatenate([nstd_q2, nstd_u2])
@@ -446,7 +405,7 @@ class FitPolPS:
             # args is expected to be in the format:
             # norm_beam1, norm_beamN, const
         
-            num_ps = (len(args) - 2) // 2 # Determine the number of point sources based on the number of arguments
+            num_ps = (len(args) - 2) // 4 # Determine the number of point sources based on the number of arguments
         
             # Extract const
             c_u = args[-1]
@@ -455,9 +414,8 @@ class FitPolPS:
             # Process each point source
             thetas = []
             for i in range(num_ps):
-                q_amp, u_amp = args[i*2:i*2+2]
-                lon = self.fit_lon[i]
-                lat = self.fit_lat[i]
+                q_amp, u_amp, lon, lat = args[i*4:i*4+4]
+                logger.debug(f'{lon=}, {lat=}')
                 if np.isnan(lon): lon = self.fit_lon[i]+np.random.uniform(-0.01, 0.01)
                 if np.isnan(lat): lat = self.fit_lat[i]+np.random.uniform(-0.01, 0.01)
                 # print(f'{lon=},{lat=}')
@@ -508,13 +466,10 @@ class FitPolPS:
             return chi2dof, obj_minuit.values['q_amp'],obj_minuit.errors['q_amp'], obj_minuit.values['u_amp'], obj_minuit.errors['u_amp']
 
         def fit_1_ps():
-            params = (self.q_amp, self.u_amp, 0.0, 0.0)
-            self.fit_lon = (self.lon,)
-            self.fit_lat = (self.lat,)
-            logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
+            params = (self.q_amp, self.u_amp, self.lon, self.lat, 0.0, 0.0)
 
-            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","c_q", "c_u"), *params)
-            obj_minuit.limits = [(-50000,50000),(-50000,50000), (-500,500), (-500,500)]
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","lon_1", "lat_1", "c_q", "c_u"), *params)
+            obj_minuit.limits = [(-50000,50000),(-50000,50000), (0,360), (-90,90), (-500,500), (-500,500)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -526,7 +481,7 @@ class FitPolPS:
                 raise ValueError('hesse failed!')
 
             logger.info(f'one ps fitting is enough, hesse ok')
-            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'], obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'], obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1'], obj_minuit.values['lon_1'], obj_minuit.values['lat_1']
 
         def fit_2_ps():
             num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat) = self.find_nearby_ps(num_ps=1)
@@ -696,7 +651,7 @@ class FitPolPS:
 
             logger.info(f'begin point source fitting, first do one ps fitting...')
             # chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = test_fit()
-            chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
+            chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err, fit_lon, fit_lat= fit_1_ps()
             if np.abs(fit_q_amp) < self.sigma_threshold * fit_q_amp_err:
                 logger.info('there is no point sources on Q map')
             if np.abs(fit_u_amp) < self.sigma_threshold * fit_u_amp_err:
@@ -731,7 +686,7 @@ class FitPolPS:
             logger.info(f'{self.p_amp=}, {fit_P=}, {fit_P_err=}')
             logger.info(f'{self.phi=}, {fit_phi=}, {fit_phi_err=}')
             # return num_ps, chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err, fit_error_q, fit_error_u
-            return num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err
+            return num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err, fit_lon, fit_lat
 
         if mode == 'get_num_ps':
             num_ps, near = self.find_nearby_ps(num_ps=10)
@@ -757,7 +712,7 @@ def main():
     print(f'{nstd[1,0]=}')
     nstd_q = nstd[1].copy()
     nstd_u = nstd[2].copy()
-    ps = np.load('./data/ps/ps.npy')
+    # ps = np.load('./data/ps/ps.npy')
     # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
     # m = ps + noise
     m = np.load('./data/pcn.npy')
@@ -775,8 +730,11 @@ def main():
 
     flux_idx = 0
 
+    lon_rad = df_mask.at[flux_idx, 'lon'] # longitude of the point sources in rad
+    lat_rad = df_mask.at[flux_idx, 'lat'] # latitude of the point sources in rad
+
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+    obj = FitPolPS(m_q=m_q, m_u=m_u, lon_rad=lon_rad, lat_rad=lat_rad, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     # obj.see_true_map(m_q=m_q, m_u=m_u, nside=nside, beam=beam)

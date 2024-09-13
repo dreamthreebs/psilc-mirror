@@ -32,6 +32,7 @@ cmb_seed = np.load('../benchmark_215/seeds_cmb_2k.npy')
 def gen_map():
 
     ps = np.load('./data/ps/ps.npy')
+    fg = np.load('../../fitdata/2048/FG/30/fg.npy')
 
     nstd = np.load('../../FGSim/NSTDNORTH/2048/30.npy')
     np.random.seed(seed=noise_seed[rlz_idx])
@@ -49,16 +50,14 @@ def gen_map():
     # l = np.arange(lmax+1)
     # cls_out = hp.anafast(cmb_iqu, lmax=lmax)
 
-
-    m = noise + ps + cmb_iqu
-    # cn = noise + cmb_iqu
+    m = noise + ps + cmb_iqu + fg
 
     # m = np.load('./1_8k.npy')
     # np.save('./1_6k_pcn.npy', m)
     # np.save('./1_6k_cn.npy', cn)
     return m
 
-def calc_inv():
+def main():
     freq = 30
     lmax = 1999
     nside = 2048
@@ -70,9 +69,7 @@ def calc_inv():
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/3.npy')
-    # m = gen_map()
-    # np.save('./data/pcn.npy', m)
-    m = np.load('./data/pcn.npy')
+    m = gen_map()
 
     m_q = m[1].copy()
     m_u = m[2].copy()
@@ -85,26 +82,26 @@ def calc_inv():
     df_ps = pd.read_csv('../../pp_P/mask/ps_csv/30.csv')
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    flux_idx=0
-    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+    for flux_idx in range(10):
+        obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
 
-    logger.debug(f'{sys.getrefcount(m_q)-1=}')
+        logger.debug(f'{sys.getrefcount(m_q)-1=}')
+        # obj.calc_definite_fixed_cmb_cov()
+        # obj.calc_covariance_matrix(mode='cmb+noise')
+        num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise+fg')
 
-    obj.calc_definite_fixed_fg_cov()
-    obj.calc_covariance_matrix(mode='cmb+noise+fg')
+        path_res = Path(f'./fit_res/pcfn_params/fit_qu_fg/idx_{flux_idx}')
+        path_res.mkdir(exist_ok=True, parents=True)
+        print(f"{num_ps=}, {chi2dof=}, {obj.p_amp=}, {fit_P=}, {fit_P_err=}, {obj.phi=}, {fit_phi=}, {fit_phi_err=}")
+        np.save(path_res / Path(f'chi2dof_{rlz_idx}.npy'), chi2dof)
+        np.save(path_res / Path(f'fit_P_{rlz_idx}.npy'), fit_P)
+        np.save(path_res / Path(f'P_{rlz_idx}.npy'), obj.p_amp)
+        np.save(path_res / Path(f'phi_{rlz_idx}.npy'), obj.phi)
+        np.save(path_res / Path(f'fit_err_P_{rlz_idx}.npy'), fit_P_err)
+        np.save(path_res / Path(f'fit_phi_{rlz_idx}.npy'), fit_phi)
+        np.save(path_res / Path(f'fit_err_phi_{rlz_idx}.npy'), fit_phi_err)
 
-    # obj.calc_definite_fixed_cmb_cov()
-    # obj.calc_covariance_matrix(mode='cmb+noise')
-    # obj.fit_all(cov_mode='cmb+noise')
-
-    # obj.calc_covariance_matrix(mode='noise')
-    # obj.fit_all(cov_mode='noise')
-
-    # obj.fit_all(cov_mode='noise', mode='check_sigma')
-
-calc_inv()
-
-
+main()
 
 
 

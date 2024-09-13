@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./pix_cov_qu.py"
+original_file="./gen_and_fit_qu.py"
 
 # 复制文件的数量
-copies=9
+copies=28
 
 for i in $(seq 0 $copies); do
     # 创建新文件的名称
@@ -14,7 +14,7 @@ for i in $(seq 0 $copies); do
     cp $original_file $new_file
 
     # 在第10行替换文本
-    sed -i "165s/flux_idx=0/flux_idx=$i/" $new_file
+    sed -i "88s/flux_idx=0/flux_idx=$i/" $new_file
 done
 
 

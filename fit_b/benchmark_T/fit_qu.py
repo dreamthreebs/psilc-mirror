@@ -321,7 +321,9 @@ class FitPolPS:
         uflux_list = []
         for i in range(min(num_ps, len(index_near[0]))):
             index = index_near[0][i]
-            if index < self.df_mask.at[self.flux_idx, 'flux_idx']:
+            print(f'{index=}')
+            print(f'{self.df_mask.at[self.flux_idx, "flux_idx"]=}')
+            if index < self.df_mask.at[self.flux_idx, 'rank']:
                 lon = np.rad2deg(self.df_ps.at[index, 'lon'])
                 lat = np.rad2deg(self.df_ps.at[index, 'lat'])
                 pflux = self.flux2norm_beam(self.df_ps.at[index, 'pflux']) / self.nside2pixarea_factor
@@ -470,8 +472,8 @@ class FitPolPS:
                 P = (q_amp + 1j * u_amp) * np.exp(2j * np.deg2rad(lon)) * self.nside2pixarea_factor
                 lugwid_P = P * profile
                 QU = lugwid_P * np.exp(-2j * self.phi_around)
-                Q = QU.real + c_q
-                U = QU.imag + c_u
+                Q = QU.real
+                U = QU.imag
                 model = np.concatenate([Q,U])
 
                 thetas.append(model)
@@ -702,22 +704,22 @@ class FitPolPS:
             if np.abs(fit_u_amp) < self.sigma_threshold * fit_u_amp_err:
                 logger.info('there is no point sources on U map')
 
-            # if num_ps == 0:
-            #     chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
-            # elif num_ps == 1:
-            #     chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_ps()
-            # elif num_ps == 2:
-            #     chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_3_ps()
-            # elif num_ps == 3:
-            #     chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_4_ps()
-            # elif num_ps == 4:
-            #     chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_5_ps()
-            # elif num_ps == 5:
-            #     chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_6_ps()
-            # elif num_ps == 6:
-            #     chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_7_ps()
-            # elif num_ps == 7:
-            #     chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
+            if num_ps == 0:
+                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
+            elif num_ps == 1:
+                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_ps()
+            elif num_ps == 2:
+                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_3_ps()
+            elif num_ps == 3:
+                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_4_ps()
+            elif num_ps == 4:
+                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_5_ps()
+            elif num_ps == 5:
+                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_6_ps()
+            elif num_ps == 6:
+                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_7_ps()
+            elif num_ps == 7:
+                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
 
             fit_P, fit_P_err = FitPolPS.calculate_P_error(Q=fit_q_amp, U=fit_u_amp, sigma_Q=fit_q_amp_err, sigma_U=fit_u_amp_err)
             fit_phi, fit_phi_err = FitPolPS.calculate_phi_error(Q=fit_q_amp, U=fit_u_amp, sigma_Q=fit_q_amp_err, sigma_U=fit_u_amp_err)
@@ -760,7 +762,7 @@ def main():
     ps = np.load('./data/ps/ps.npy')
     # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
     # m = ps + noise
-    m = np.load('./data/pcn.npy')
+    m = np.load('./data/ps/ps.npy')
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/')
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/3.npy')
     # m = np.load(f'./1_6k_pcn.npy')
@@ -776,7 +778,7 @@ def main():
     flux_idx = 0
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     # obj.see_true_map(m_q=m_q, m_u=m_u, nside=nside, beam=beam)
