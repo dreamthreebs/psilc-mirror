@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./gen_input.py"
+original_file="./calc_pcfn_inp.py"
 
 # 复制文件的数量
 copies=200
@@ -16,6 +16,8 @@ for i in $(seq 0 $copies); do
     # 在第10行替换文本
     sed -i "12s/rlz_idx=0/rlz_idx=$i/" $new_file
 done
+
+
 
 
 

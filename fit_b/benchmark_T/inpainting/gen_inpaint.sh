@@ -8,7 +8,7 @@ copies=200
 
 for i in $(seq 0 $copies); do
     # 创建新文件的名称
-    new_file="q_inp_$i.sh"
+    new_file="run_inp_n_$i.sh"
 
     # 复制原始文件到新文件
     cp $original_file $new_file

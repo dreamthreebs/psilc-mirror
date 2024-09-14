@@ -30,12 +30,13 @@ for flux_idx in range(29):
     # hp.gnomview(mask, rot=[lon, lat, 0], title='after mask', xsize=fig_size)
     # plt.show()
 
-hp.orthview(mask*ori_mask, rot=[100,50, 0], title='mask', xsize=2000)
-plt.show()
+# hp.orthview(mask*ori_mask, rot=[100,50, 0], title='mask', xsize=2000)
+# plt.show()
 
 path_mask = Path('./mask')
 path_mask.mkdir(exist_ok=True, parents=True)
-hp.write_map(f'./mask/mask_add_edge.fits', mask*ori_mask, overwrite=True)
+# hp.write_map(f'./mask/mask_add_edge.fits', mask*ori_mask, overwrite=True)
+hp.write_map(f'./mask/mask.fits', mask, overwrite=True)
 
 
 

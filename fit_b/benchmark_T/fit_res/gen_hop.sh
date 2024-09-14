@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./gen_input.py"
+original_file="./calc_pcfn_qu.py"
 
 # 复制文件的数量
 copies=200
 
 for i in $(seq 0 $copies); do
     # 创建新文件的名称
-    new_file="run_$i.py"
+    new_file="hop_$i.py"
 
     # 复制原始文件到新文件
     cp $original_file $new_file

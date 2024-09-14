@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # m = hp.read_map('./mask.fits')
-m_input = hp.read_map('./mask_add_edge.fits')
+m_input = hp.read_map('./mask.fits')
 # m_output = hp.read_map('../output_inp_b/1.fits')
 
 df = pd.read_csv('../../mask/30.csv')
