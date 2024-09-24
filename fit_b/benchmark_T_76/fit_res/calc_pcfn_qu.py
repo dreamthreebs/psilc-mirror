@@ -5,6 +5,7 @@ import pandas as pd
 import pymaster as nmt
 
 from pathlib import Path
+from eblc_base_slope import EBLeakageCorrection
 
 lmax = 500
 l = np.arange(lmax+1)
@@ -88,15 +89,31 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
     # m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
 
-    # m_pcfn, m_cfn, m_cf, m_n= gen_map(rlz_idx=rlz_idx)
+    m_pcfn, m_cfn, m_cf, m_n= gen_map(rlz_idx=rlz_idx)
+
+    obj = EBLeakageCorrection(m=m_pcfn, lmax=3*nside-1, nside=nside, mask=bin_mask, post_mask=bin_mask)
+    _,_,cln_pcfn_b = obj.run_eblc()
+    slope_fg = obj.return_slope()
+
+    # dl_pcfn_b = calc_dl_from_scalar_map(cln_pcfn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
+    obj = EBLeakageCorrection(m=m_cfn, lmax=3*nside-1, nside=nside, mask=bin_mask, post_mask=bin_mask, slope_in=slope_fg)
+    _,_,cln_cfn_b = obj.run_eblc()
+    dl_cfn_b = calc_dl_from_scalar_map(cln_cfn_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
+
+    # obj = EBLeakageCorrection(m=m_n, lmax=3*nside-1, nside=nside, mask=bin_mask, post_mask=bin_mask, slope_in=slope_fg)
+    # _,_,cln_n_b = obj.run_eblc()
+    # dl_n_b = calc_dl_from_scalar_map(cln_n_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
 
     # m_pcfn_b = hp.alm2map(hp.map2alm(m_pcfn)[2], nside=nside) * bin_mask
     # m_cfn_b = hp.alm2map(hp.map2alm(m_cfn)[2], nside=nside) * bin_mask
     # m_cf_b = hp.alm2map(hp.map2alm(m_cf)[2], nside=nside) * bin_mask
     # m_n_b = hp.alm2map(hp.map2alm(m_n)[2], nside=nside) * bin_mask
 
-    m_removal_b = np.load(f'./pcfn_fit_qu/{threshold}sigma/B_eblc/{rlz_idx}.npy') * bin_mask
-    m_removal_b_n = np.load(f'./pcfn_fit_qu_n/{threshold}sigma/B_eblc/{rlz_idx}.npy') * bin_mask
+    # m_removal_b = np.load(f'./pcfn_fit_qu/3sigma/B_fg/{rlz_idx}.npy') * bin_mask
+    # m_removal_b_n = np.load(f'./pcfn_fit_qu_n/3sigma/B_fg/{rlz_idx}.npy') * bin_mask
 
     # m_ps_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_input/{rlz_idx}.fits') * bin_mask
     # m_inp_eb_b = hp.read_map(f'./inpaint_pcn/{threshold}sigma/EB/B_output/{rlz_idx}.fits') * bin_mask
@@ -120,8 +137,8 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # dl_cf_b = calc_dl_from_scalar_map(m_cf_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     # dl_n_b = calc_dl_from_scalar_map(m_n_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
-    dl_removal_b = calc_dl_from_scalar_map(m_removal_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_removal_b_n = calc_dl_from_scalar_map(m_removal_b_n, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_removal_b = calc_dl_from_scalar_map(m_removal_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_removal_b_n = calc_dl_from_scalar_map(m_removal_b_n, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
     # dl_ps_b = calc_dl_from_scalar_map(m_ps_b, bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False)
     # dl_inp_eb_b = calc_dl_from_scalar_map(m_inp_eb_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
@@ -129,17 +146,17 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     # path_dl_pcfn = Path(f'pcfn_dl/QU/pcfn')
     # path_dl_pcfn.mkdir(parents=True, exist_ok=True)
-    # path_dl_cfn = Path(f'pcfn_dl/QU/cfn')
-    # path_dl_cfn.mkdir(parents=True, exist_ok=True)
+    path_dl_cfn = Path(f'pcfn_dl/QU/cfn')
+    path_dl_cfn.mkdir(parents=True, exist_ok=True)
     # path_dl_cf = Path(f'pcfn_dl/QU/cf')
     # path_dl_cf.mkdir(parents=True, exist_ok=True)
     # path_dl_n = Path(f'pcfn_dl/QU/n')
     # path_dl_n.mkdir(parents=True, exist_ok=True)
 
-    path_dl_removal = Path(f'pcfn_dl/QU/removal_{threshold}sigma')
-    path_dl_removal.mkdir(parents=True, exist_ok=True)
-    path_dl_removal_n = Path(f'pcfn_dl/QU/removal_n_{threshold}sigma')
-    path_dl_removal_n.mkdir(parents=True, exist_ok=True)
+    # path_dl_removal = Path(f'pcfn_dl/QU_fg_slope/removal_{threshold}sigma')
+    # path_dl_removal.mkdir(parents=True, exist_ok=True)
+    # path_dl_removal_n = Path(f'pcfn_dl/QU_fg_slope/removal_n_{threshold}sigma')
+    # path_dl_removal_n.mkdir(parents=True, exist_ok=True)
 
 
     # path_dl_ps = Path(f'pcn_dl/QU/ps_{threshold}sigma')
@@ -151,12 +168,12 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # path_dl_inpaint_qu.mkdir(parents=True, exist_ok=True)
 
     # np.save(path_dl_pcfn / Path(f'{rlz_idx}.npy'), dl_pcfn_b)
-    # np.save(path_dl_cfn / Path(f'{rlz_idx}.npy'), dl_cfn_b)
+    np.save(path_dl_cfn / Path(f'{rlz_idx}.npy'), dl_cfn_b)
     # np.save(path_dl_cf / Path(f'{rlz_idx}.npy'), dl_cf_b)
     # np.save(path_dl_n / Path(f'{rlz_idx}.npy'), dl_n_b)
 
-    np.save(path_dl_removal / Path(f'{rlz_idx}.npy'), dl_removal_b)
-    np.save(path_dl_removal_n / Path(f'{rlz_idx}.npy'), dl_removal_b_n)
+    # np.save(path_dl_removal / Path(f'{rlz_idx}.npy'), dl_removal_b)
+    # np.save(path_dl_removal_n / Path(f'{rlz_idx}.npy'), dl_removal_b_n)
 
     # np.save(path_dl_ps / Path(f'{rlz_idx}.npy'), dl_ps_b)
     # np.save(path_dl_inpaint_eb / Path(f'{rlz_idx}.npy'), dl_inp_eb_b)

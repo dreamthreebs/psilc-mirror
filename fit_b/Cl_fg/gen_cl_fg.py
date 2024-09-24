@@ -15,16 +15,14 @@ hp.orthview(masked_fg[0], rot=[100,50,0], half_sky=True)
 plt.show()
 
 fsky = np.sum(apo_mask) / np.size(apo_mask)
-alm_T, alm_E, alm_B = hp.map2alm(fg, lmax=lmax)
+alm_T, alm_E, alm_B = hp.map2alm(fg, lmax=3*nside-1)
+m_B = hp.alm2map(alm_B, nside=nside)
+m_E = hp.alm2map(alm_E, nside=nside)
+m_T = hp.alm2map(alm_T, nside=nside)
 
-fg_T = hp.alm2map(alm_T, nside=nside) * apo_mask
-fg_E = hp.alm2map(alm_E, nside=nside) * apo_mask
-fg_B = hp.alm2map(alm_B, nside=nside) * apo_mask
-cl_fg_TT = hp.anafast(fg_T, lmax=lmax) / fsky
-cl_fg_EE = hp.anafast(fg_E, lmax=lmax) / fsky
-cl_fg_BB = hp.anafast(fg_B, lmax=lmax) / fsky
-
-
+cl_fg_TT = hp.anafast(m_T * apo_mask, lmax=3*nside-1)[0:lmax+1] / fsky
+cl_fg_EE = hp.anafast(m_E * apo_mask, lmax=3*nside-1)[0:lmax+1] / fsky
+cl_fg_BB = hp.anafast(m_B * apo_mask, lmax=3*nside-1)[0:lmax+1] / fsky
 
 cl_fg = hp.anafast(masked_fg, lmax=lmax)
 l = np.arange(lmax+1)
@@ -42,7 +40,7 @@ cl_fg_TT[0:2] = 0
 cl_fg_EE[0:2] = 0
 cl_fg_BB[0:2] = 0
 
-path_data = Path(f'./data')
+path_data = Path(f'./data_full_lmax3nside')
 path_data.mkdir(exist_ok=True, parents=True)
 np.save(path_data / Path('cl_fg_TT.npy'), cl_fg_TT)
 np.save(path_data / Path('cl_fg_EE.npy'), cl_fg_EE)

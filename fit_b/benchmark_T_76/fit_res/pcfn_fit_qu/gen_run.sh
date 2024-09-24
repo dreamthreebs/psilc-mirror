@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./do_eblc.py"
+original_file="./do_fg_eblc.py"
 
 # 复制文件的数量
 copies=200
