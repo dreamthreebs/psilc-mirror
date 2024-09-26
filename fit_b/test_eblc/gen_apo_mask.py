@@ -148,7 +148,7 @@ def test_fg_dl():
     plt.ylabel('$D_\\ell$')
     plt.show()
 
-test_fg_dl()
+# test_fg_dl()
 
 def test_cmb_dl():
     lmax = 1500
@@ -334,9 +334,9 @@ def check_bias_dl():
 
     # rmse_1 = np.sqrt(np.sum((dl_arr_1-true_arr) ** 2, axis=0) / nsim)
     plt.figure(1)
-    # plt.scatter(ell_arr, cfn_true_mean, label='cfn true', marker='.')
+    plt.scatter(ell_arr, cfn_true_mean, label='cfn true', marker='.')
     plt.scatter(ell_arr, c_true_mean, label='c true', marker='.')
-    # plt.scatter(ell_arr, cln_cfn_mean, label='cln cfn', marker='.')
+    plt.scatter(ell_arr, cln_cfn_mean, label='cln cfn', marker='.')
     plt.scatter(ell_arr, cln_c_mean, label='cln c', marker='.')
     plt.scatter(ell_arr, cln_c_slope_mean, label='cln c slope', marker='.')
 
@@ -367,7 +367,7 @@ def check_bias_dl():
 
     plt.show()
 
-# check_bias_dl()
+check_bias_dl()
 
 def check_factor():
     for i in range(200):

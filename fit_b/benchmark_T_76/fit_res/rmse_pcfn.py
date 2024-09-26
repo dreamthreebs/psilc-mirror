@@ -62,13 +62,16 @@ for rlz_idx in range(0,200):
         # continue
     # n = np.load(f'./pcn_dl/B/n/{rlz_idx}.npy')
     n_qu = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/n/{rlz_idx}.npy')
-    n_pcfn = np.load(f'./pcfn_dl/QU/n/{rlz_idx}.npy')
+    n_pcfn = np.load(f'./pcfn_dl/QU_cmb_slope/noise/{rlz_idx}.npy')
     n_rmv = np.load(f'./pcfn_dl/QU/removal_n_3sigma/{rlz_idx}.npy')
+    n_rmv = np.load(f'./pcfn_dl/QU_full/removal_n_3sigma/{rlz_idx}.npy')
     # n_lon_lat = np.load(f'./pcn_dl/QU_lon_lat_n/removal_3sigma/{rlz_idx}.npy')
     n_inp = np.load(f'./pcfn_dl/INP_B/inpaint_eb_3sigma_n/{rlz_idx}.npy')
-    n_ps_mask = np.load(f'./pcfn_dl/QU_fg_slope/removal_n_3sigma/{rlz_idx}.npy')
+    # n_ps_mask = np.load(f'./pcfn_dl/QU_fg_slope/removal_n_3sigma/{rlz_idx}.npy')
+    n_ps_mask = np.load(f'./pcfn_dl/QU/n/{rlz_idx}.npy')
     n_qu_mask = np.load(f'./pcfn_dl/ACT/curl_yp_ps_n/{rlz_idx}.npy')
     # rmv = np.load(f'./pcn_dl/QU/removal_3sigma/{rlz_idx}.npy') - n_rmv
+    rmv_qu = np.load(f'./pcfn_dl/QU/removal_3sigma/{rlz_idx}.npy') - n_rmv
     rmv_qu = np.load(f'./pcfn_dl/QU_full/removal_3sigma/{rlz_idx}.npy') - n_rmv
     # rmv_lon_lat = np.load(f'./pcn_dl/QU_lon_lat/removal_3sigma/{rlz_idx}.npy') - n_lon_lat
     # rmv_b_qu = np.load(f'./pcn_dl/QU_B/removal_3sigma/{rlz_idx}.npy') - n_qu
@@ -76,35 +79,44 @@ for rlz_idx in range(0,200):
     # c = np.load(f'./pcfn_dl/QU/c/{rlz_idx}.npy')
     cf = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/cf/{rlz_idx}.npy')
     # c_qu = np.load(f'./pcn_dl/QU/c/{rlz_idx}.npy')
-    cfn = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_qu
+    # cfn = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_qu
+    # cfn = np.load(f'./pcfn_dl/QU_cmb_slope/cfn/{rlz_idx}.npy') - n_pcfn
+    cfn = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_qu
     # cfn = np.load(f'./pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_pcfn
     # cn_qu = np.load(f'./pcn_dl/QU/cn/{rlz_idx}.npy') - n_qu
-    pcfn = np.load(f'./pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_pcfn
+    # pcfn = np.load(f'./pcfn_dl/QU_cmb_slope/cmb/{rlz_idx}.npy') - n_pcfn
+    pcfn = np.load(f'./pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_qu
+    # pcfn_1 = np.load(f'./pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_qu
     # pcfn_full = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_qu
     # pcn_qu = np.load(f'./pcn_dl/QU/pcn/{rlz_idx}.npy') - n_qu
-    ps_mask = np.load(f'./pcfn_dl/QU_fg_slope/removal_3sigma/{rlz_idx}.npy') - n_ps_mask
+    ps_mask = np.load(f'./pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_ps_mask
     qu_mask = np.load(f'./pcfn_dl/ACT/curl_yp_ps/{rlz_idx}.npy') - n_qu_mask
     # inp_qu = np.load(f'./pcn_dl/INP_QU_1/inpaint_qu_3sigma/{rlz_idx}.npy') - n_qu
     inp_eb = np.load(f'./pcfn_dl/INP_B/inpaint_eb_3sigma/{rlz_idx}.npy') - n_inp
 
-    # plt.plot(ell_arr, cf, label=f'cf {rlz_idx}')
+    # plt.plot(ell_arr, pcfn, label=f'cf {rlz_idx}')
+    # plt.plot(ell_arr, pcfn_1, label=f'cf {rlz_idx}')
+    # plt.plot(ell_arr, pcfn, label=f'pcfn {rlz_idx}')
+
     # plt.plot(ell_arr, n_rmv, label=f'rmv n{rlz_idx}')
     # plt.plot(ell_arr, n_pcfn, label=f'pcfn n{rlz_idx}')
     # plt.plot(ell_arr, n_qu, label=f'n {rlz_idx}')
     # plt.plot(ell_arr, rmv_qu, label=f'rmv_qu {rlz_idx}')
     # plt.plot(ell_arr, pcfn, label=f'pcfn {rlz_idx}')
     # plt.plot(ell_arr, cfn, label=f'cfn {rlz_idx}')
-    # # plt.plot(ell_arr, pcfn_full, label=f'pcfn full{rlz_idx}')
-    # # plt.plot(ell_arr, inp_eb, label=f'inp_eb {rlz_idx}')
-    # # plt.plot(ell_arr, n_inp, label=f'inp n {rlz_idx}')
-    # # plt.plot(ell_arr, n_ps_mask, label=f'ps mask n {rlz_idx}')
-    # # plt.plot(ell_arr, n_qu_mask, label=f'qu mask n {rlz_idx}')
-    # # plt.plot(ell_arr, n_lon_lat, label=f'rmv lon lat n {rlz_idx}')
-    # # plt.plot(ell_arr, np.abs(n_rmv - n_qu), label=f'rmv - n {rlz_idx}')
-    # # plt.plot(ell_arr, np.abs(n_lon_lat - n_qu), label=f'rmv lon lat - n {rlz_idx}')
-    # # plt.plot(ell_arr, np.abs(n_inp - n_qu), label=f'inp - n {rlz_idx}')
-    # # plt.plot(ell_arr, np.abs(n_ps_mask - n_qu), label=f'ps mask - n {rlz_idx}')
-    # # plt.plot(ell_arr, np.abs(n_qu_mask - n_qu), label=f'qu mask - n {rlz_idx}')
+
+    # plt.plot(ell_arr, pcfn_full, label=f'pcfn full{rlz_idx}')
+    # plt.plot(ell_arr, inp_eb, label=f'inp_eb {rlz_idx}')
+    # plt.plot(ell_arr, n_inp, label=f'inp n {rlz_idx}')
+    # plt.plot(ell_arr, n_ps_mask, label=f'ps mask n {rlz_idx}')
+    # plt.plot(ell_arr, n_qu_mask, label=f'qu mask n {rlz_idx}')
+    # plt.plot(ell_arr, n_lon_lat, label=f'rmv lon lat n {rlz_idx}')
+    # plt.plot(ell_arr, np.abs(n_rmv - n_qu), label=f'rmv - n {rlz_idx}')
+    # plt.plot(ell_arr, np.abs(n_lon_lat - n_qu), label=f'rmv lon lat - n {rlz_idx}')
+    # plt.plot(ell_arr, np.abs(n_inp - n_qu), label=f'inp - n {rlz_idx}')
+    # plt.plot(ell_arr, np.abs(n_ps_mask - n_qu), label=f'ps mask - n {rlz_idx}')
+    # plt.plot(ell_arr, np.abs(n_qu_mask - n_qu), label=f'qu mask - n {rlz_idx}')
+
     # plt.semilogy()
     # plt.legend()
     # plt.show()
@@ -129,7 +141,7 @@ for rlz_idx in range(0,200):
 
 # plt.show()
 
-nsim = 201
+nsim = 200
 # rmv_arr = np.array(rmv_list)
 # c_arr = np.array(c_list)
 cf_arr = np.array(cf_list)
@@ -192,7 +204,7 @@ plt.scatter(ell_arr, rmv_qu_rmse, label='Template fitting method with fixed lon 
 # plt.scatter(ell_arr, rmv_qu_rmse, label='rmv b qu', marker='.')
 plt.scatter(ell_arr, inp_eb_rmse, label='Recycling method + inpaint on B(partial sky inpaint)', marker='.')
 # plt.scatter(ell_arr, inp_qu_rmse, label='inp qu ', marker='.')
-# plt.scatter(ell_arr, ps_mask_rmse, label='no EB leakage, Template Fitting', marker='.')
+plt.scatter(ell_arr, ps_mask_rmse, label='no EB leakage, Template Fitting', marker='.')
 plt.scatter(ell_arr, qu_mask_rmse, label='Apodized QU mask', marker='.')
 
 # plt.scatter(ell_arr, pcfn_rmse_c, label='No point source treatment c', marker='.')
