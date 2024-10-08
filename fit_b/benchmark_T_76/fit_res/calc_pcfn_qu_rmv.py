@@ -45,9 +45,9 @@ def calc_dl_from_pol_map(m_q, m_u, bl, apo_mask, bin_dl, masked_on_input, purify
     return dl[3]
 
 def gen_fg_cl():
-    Cl_TT = np.load('../../Cl_fg/data/cl_fg_TT.npy')
-    Cl_EE = np.load('../../Cl_fg/data/cl_fg_EE.npy')
-    Cl_BB = np.load('../../Cl_fg/data/cl_fg_BB.npy')
+    Cl_TT = np.load('../../Cl_fg/data_old/cl_fg_TT.npy')
+    Cl_EE = np.load('../../Cl_fg/data_old/cl_fg_EE.npy')
+    Cl_BB = np.load('../../Cl_fg/data_old/cl_fg_BB.npy')
     Cl_TE = np.zeros_like(Cl_TT)
     return np.array([Cl_TT, Cl_EE, Cl_BB, Cl_TE])
 
@@ -90,24 +90,31 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
     # m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
 
-    # m_pcfn, _, _, m_n= gen_map(rlz_idx=rlz_idx)
+    _, m_pcfn, m_n, _= gen_map(rlz_idx=rlz_idx)
 
-    m_pcfn_q = np.load(f'./pcfn_fit_qu/3sigma/map_q_{rlz_idx}.npy') * bin_mask
-    m_pcfn_u = np.load(f'./pcfn_fit_qu/3sigma/map_u_{rlz_idx}.npy') * bin_mask
+    # m_pcfn_q = np.load(f'./pcfn_fit_qu/3sigma/map_q_{rlz_idx}.npy') * bin_mask
+    # m_pcfn_u = np.load(f'./pcfn_fit_qu/3sigma/map_u_{rlz_idx}.npy') * bin_mask
 
-    m_n_q = np.load(f'./pcfn_fit_qu_n/3sigma/map_q_{rlz_idx}.npy') * bin_mask
-    m_n_u = np.load(f'./pcfn_fit_qu_n/3sigma/map_u_{rlz_idx}.npy') * bin_mask
+    # m_n_q = np.load(f'./pcfn_fit_qu_n/3sigma/map_q_{rlz_idx}.npy') * bin_mask
+    # m_n_u = np.load(f'./pcfn_fit_qu_n/3sigma/map_u_{rlz_idx}.npy') * bin_mask
+
+    # m_pcfn_q = m_pcfn[1].copy() * bin_mask
+    # m_pcfn_u = m_pcfn[2].copy() * bin_mask
+
+    m_n_q = m_n[1].copy() * bin_mask
+    m_n_u = m_n[2].copy() * bin_mask
+
     print('begin calc dl...')
 
-    dl_qu = calc_dl_from_pol_map(m_q=m_pcfn_q, m_u=m_pcfn_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    dl_qu_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    # dl_qu = calc_dl_from_pol_map(m_q=m_pcfn_q, m_u=m_pcfn_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_qu_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    path_dl_qu = Path(f'pcfn_dl/RMV/rmv')
-    path_dl_qu_n = Path(f'pcfn_dl/RMV/rmv_n')
+    path_dl_qu = Path(f'pcfn_dl/RMV/cfn')
+    path_dl_qu_n = Path(f'pcfn_dl/RMV/cf')
     path_dl_qu.mkdir(parents=True, exist_ok=True)
     path_dl_qu_n.mkdir(parents=True, exist_ok=True)
 
-    np.save(path_dl_qu / Path(f'{rlz_idx}.npy'), dl_qu)
+    # np.save(path_dl_qu / Path(f'{rlz_idx}.npy'), dl_qu)
     np.save(path_dl_qu_n / Path(f'{rlz_idx}.npy'), dl_qu_n)
 
 

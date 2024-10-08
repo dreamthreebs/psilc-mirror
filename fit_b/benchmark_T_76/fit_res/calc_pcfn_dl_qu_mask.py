@@ -97,6 +97,7 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     m_n_q = m_n[1].copy()
     m_n_u = m_n[2].copy()
+
     print('begin calc dl...')
 
     dl_qu = calc_dl_from_pol_map(m_q=m_pcfn_q, m_u=m_pcfn_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)

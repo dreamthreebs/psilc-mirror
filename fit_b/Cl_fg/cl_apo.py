@@ -37,7 +37,7 @@ def calc_dl_from_scalar_map(scalar_map, bl, apo_mask, bin_dl, masked_on_input):
     return dl[0]
 
 def get_dl_pol():
-    apo_mask = nmt.mask_apodization(mask_in=bin_mask, aposize=8)
+    apo_mask = nmt.mask_apodization(mask_in=bin_mask, aposize=15)
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,2]
     l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=20, l_max=lmax, fold=0.2)
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
@@ -45,14 +45,14 @@ def get_dl_pol():
     
     dl_fg = calc_dl_from_pol_map(m_q=fg[1], m_u=fg[2], bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     
-    dl_data_path = Path('nmt_data/pol_2k_apo8')
+    dl_data_path = Path('nmt_data/pol_2k_apo15')
     dl_data_path.mkdir(exist_ok=True, parents=True)
     np.save(dl_data_path / Path('dl_fg.npy'), dl_fg)
 
 
 def get_dl_sca():
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,2]
-    apo_mask = nmt.mask_apodization(mask_in=bin_mask, aposize=8)
+    apo_mask = nmt.mask_apodization(mask_in=bin_mask, aposize=15)
     l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=20, l_max=lmax, fold=0.2)
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
@@ -61,15 +61,15 @@ def get_dl_sca():
 
     dl_fg = calc_dl_from_scalar_map(scalar_map=m_fg, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     
-    dl_data_path = Path('nmt_data/sca_2k_apo8')
+    dl_data_path = Path('nmt_data/sca_2k_apo15')
     dl_data_path.mkdir(exist_ok=True, parents=True)
     np.save(dl_data_path / Path('dl_fg.npy'), dl_fg)
 
 
-# get_dl_pol()
-# get_dl_sca()
+get_dl_pol()
+get_dl_sca()
 
-def check_fg_dl_lmax():
+def check_fg_dl():
     lmax = 2000
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,2]
     l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=20, l_max=lmax, fold=0.2)
@@ -101,40 +101,5 @@ def check_fg_dl_lmax():
     plt.legend()
     plt.show()
 
-# check_fg_dl_lmax()
 
-def check_fg_dl_apo():
-    lmax = 2000
-    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=7000, pol=True)[:,2]
-    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=20, l_max=lmax, fold=0.2)
-    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
-    ell_arr = bin_dl.get_effective_ells()
-
-    l = np.arange(lmax+1)
-    # cl_hp = np.load('./data_full_lmax3nside/cl_fg_BB.npy')
-
-    dl_pol = np.load('./nmt_data/pol_2k/dl_fg.npy')
-    dl_sca = np.load('./nmt_data/sca_2k/dl_fg.npy')
-
-    plt.loglog(ell_arr, dl_pol, label='pol apo 5')
-    plt.loglog(ell_arr, dl_sca, label='sca apo 5')
-    # plt.loglog(l, l*(l+1)*cl_hp/bl[:lmax+1]**2/(2*np.pi), label='healpy')
-
-    dl_pol = np.load('./nmt_data/pol_2k_apo8/dl_fg.npy')
-    dl_sca = np.load('./nmt_data/sca_2k_apo8/dl_fg.npy')
-    plt.loglog(ell_arr, dl_pol, label='pol apo 8')
-    plt.loglog(ell_arr, dl_sca, label='sca apo 8')
-    # plt.loglog(l, l*(l+1)*cl_hp/bl[:lmax+1]**2/(2*np.pi), label='healpy')
-
-    dl_pol = np.load('./nmt_data/pol_2k_apo15/dl_fg.npy')
-    dl_sca = np.load('./nmt_data/sca_2k_apo15/dl_fg.npy')
-    plt.loglog(ell_arr, dl_pol, label='pol')
-    plt.loglog(ell_arr, dl_sca, label='sca')
-    # plt.loglog(l, l*(l+1)*cl_hp/bl[:lmax+1]**2/(2*np.pi), label='healpy')
-
-    plt.legend()
-    plt.show()
-
-check_fg_dl_apo()
-
-
+# check_fg_dl()

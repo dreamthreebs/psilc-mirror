@@ -62,30 +62,31 @@ for rlz_idx in range(0,200):
         # continue
     # n = np.load(f'./pcn_dl/B/n/{rlz_idx}.npy')
     n_qu = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/n/{rlz_idx}.npy')
-    n_pcfn = np.load(f'./pcfn_dl/RMV/n/{rlz_idx}.npy')
-    n_rmv = np.load(f'./pcfn_dl/RMV/rmv_n/{rlz_idx}.npy')
+    n_pcfn = np.load(f'./pcfn_dl/QU_cmb_slope/noise/{rlz_idx}.npy')
+    n_rmv = np.load(f'./pcfn_dl/QU/removal_n_3sigma/{rlz_idx}.npy')
+    n_rmv = np.load(f'./pcfn_dl/QU_full/removal_n_3sigma/{rlz_idx}.npy')
     # n_lon_lat = np.load(f'./pcn_dl/QU_lon_lat_n/removal_3sigma/{rlz_idx}.npy')
     n_inp = np.load(f'./pcfn_dl/INP_B/inpaint_eb_3sigma_n/{rlz_idx}.npy')
     # n_ps_mask = np.load(f'./pcfn_dl/QU_fg_slope/removal_n_3sigma/{rlz_idx}.npy')
     n_ps_mask = np.load(f'./pcfn_dl/QU/n/{rlz_idx}.npy')
     n_qu_mask = np.load(f'./pcfn_dl/ACT/curl_yp_ps_n/{rlz_idx}.npy')
     # rmv = np.load(f'./pcn_dl/QU/removal_3sigma/{rlz_idx}.npy') - n_rmv
-    rmv_qu = np.load(f'./pcfn_dl/RMV/rmv/{rlz_idx}.npy') - n_rmv
+    # rmv_qu = np.load(f'./pcfn_dl/QU/removal_3sigma/{rlz_idx}.npy') - n_rmv
+    rmv_qu = np.load(f'./pcfn_dl/QU_full/removal_3sigma/{rlz_idx}.npy') - n_rmv
     # rmv_lon_lat = np.load(f'./pcn_dl/QU_lon_lat/removal_3sigma/{rlz_idx}.npy') - n_lon_lat
     # rmv_b_qu = np.load(f'./pcn_dl/QU_B/removal_3sigma/{rlz_idx}.npy') - n_qu
     # rmv1 = np.load(f'./pcn_dl/B/removal_10sigma/{rlz_idx}.npy')
     # c = np.load(f'./pcfn_dl/QU/c/{rlz_idx}.npy')
-    # cf = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/cf/{rlz_idx}.npy')
-    cf = np.load(f'./pcfn_dl/RMV/cf/{rlz_idx}.npy')
+    cf = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/cf/{rlz_idx}.npy')
     # c_qu = np.load(f'./pcn_dl/QU/c/{rlz_idx}.npy')
     # cfn = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_qu
-    cfn = np.load(f'./pcfn_dl/RMV/cfn/{rlz_idx}.npy') - n_pcfn
-    # cfn = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_qu
+    # cfn = np.load(f'./pcfn_dl/QU_cmb_slope/cfn/{rlz_idx}.npy') - n_pcfn
+    cfn = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_qu
     # cfn = np.load(f'./pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_pcfn
     # cn_qu = np.load(f'./pcn_dl/QU/cn/{rlz_idx}.npy') - n_qu
     # pcfn = np.load(f'./pcfn_dl/QU_cmb_slope/cmb/{rlz_idx}.npy') - n_pcfn
-    pcfn = np.load(f'./pcfn_dl/RMV/pcfn/{rlz_idx}.npy') - n_pcfn
-    # pcfn_1 = np.load(f'./pcfn_dl/RMV/pcfn_bin/{rlz_idx}.npy') - n_pcfn
+    pcfn = np.load(f'./pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_qu
+    # pcfn_1 = np.load(f'./pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_qu
     # pcfn_full = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_qu
     # pcn_qu = np.load(f'./pcn_dl/QU/pcn/{rlz_idx}.npy') - n_qu
     ps_mask = np.load(f'./pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_ps_mask
@@ -93,9 +94,9 @@ for rlz_idx in range(0,200):
     # inp_qu = np.load(f'./pcn_dl/INP_QU_1/inpaint_qu_3sigma/{rlz_idx}.npy') - n_qu
     inp_eb = np.load(f'./pcfn_dl/INP_B/inpaint_eb_3sigma/{rlz_idx}.npy') - n_inp
 
+    # plt.plot(ell_arr, pcfn, label=f'cf {rlz_idx}')
+    # plt.plot(ell_arr, pcfn_1, label=f'cf {rlz_idx}')
     # plt.plot(ell_arr, pcfn, label=f'pcfn {rlz_idx}')
-    # plt.plot(ell_arr, cfn, label=f'cfn {rlz_idx}')
-    # plt.plot(ell_arr, cf, label=f'cf {rlz_idx}')
 
     # plt.plot(ell_arr, n_rmv, label=f'rmv n{rlz_idx}')
     # plt.plot(ell_arr, n_pcfn, label=f'pcfn n{rlz_idx}')
@@ -195,48 +196,41 @@ print(f'{inp_eb_rmse_ratio=}')
 # print(f'{ps_mask_rmse_ratio=}')
 print(f'{qu_mask_rmse_ratio=}')
 
-plt.figure(1)
-plt.scatter(ell_arr, cf_mean, label='input CMB + FG power spectrum (True value, not RMSE)', marker='.')
-plt.scatter(ell_arr, pcfn_rmse, label='PS + FG + CMB + NOISE (Baseline)', marker='.')
-# plt.scatter(ell_arr, cfn_rmse, label='FG + CMB + NOISE', marker='.')
-plt.scatter(ell_arr, rmv_qu_rmse, label='Template fitting method with fixed lon lat', marker='.')
+plt.scatter(ell_arr, cf_mean, label='input CMB + FG power spectrum (not RMSE)', marker='.')
+plt.scatter(ell_arr, pcfn_rmse, label='76 point sources full sky SHT', marker='.')
+plt.scatter(ell_arr, cfn_rmse, label='26 point sources full sky SHT', marker='.')
+plt.scatter(ell_arr, rmv_qu_rmse, label='Template fitting method with fixed lon lat full sky SHT', marker='.')
 # plt.scatter(ell_arr, rmv_lon_lat_rmse, label='template fitting method with free lon lat', marker='.')
 # plt.scatter(ell_arr, rmv_qu_rmse, label='rmv b qu', marker='.')
-plt.scatter(ell_arr, inp_eb_rmse, label='Recycling method + inpaint on B', marker='.')
+plt.scatter(ell_arr, inp_eb_rmse, label='Recycling method + inpaint on B(partial sky inpaint)', marker='.')
 # plt.scatter(ell_arr, inp_qu_rmse, label='inp qu ', marker='.')
-# plt.scatter(ell_arr, ps_mask_rmse, label='no EB leakage, Template Fitting', marker='.')
-plt.scatter(ell_arr, qu_mask_rmse, label='Mask point sources holes on QU', marker='.')
+plt.scatter(ell_arr, ps_mask_rmse, label='CMB + noise + FG full sky SHT', marker='.')
+plt.scatter(ell_arr, qu_mask_rmse, label='Apodized QU mask', marker='.')
+
+# plt.scatter(ell_arr, pcfn_rmse_c, label='No point source treatment c', marker='.')
+# plt.scatter(ell_arr, cfn_rmse_c, label='CMB + noise + FG c', marker='.')
+# plt.scatter(ell_arr, cf_rmse_c, label='CMB + FG', marker='.')
+# plt.scatter(ell_arr, rmv_qu_rmse_c, label='Template fitting method with fixed lon lat c', marker='.')
+# # plt.scatter(ell_arr, rmv_lon_lat_rmse, label='template fitting method with free lon lat', marker='.')
+# # plt.scatter(ell_arr, rmv_qu_rmse, label='rmv b qu', marker='.')
+# plt.scatter(ell_arr, inp_eb_rmse_c, label='Recycling method + inpaint on B c', marker='.')
+# # plt.scatter(ell_arr, inp_qu_rmse, label='inp qu ', marker='.')
+# # plt.scatter(ell_arr, ps_mask_rmse, label='ps mask ', marker='.')
+# plt.scatter(ell_arr, qu_mask_rmse_c, label='Apodized QU mask c', marker='.')
+
 
 plt.xlabel('$\\ell$')
-plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
+plt.ylabel('$D_\\ell^{BB}$')
 # plt.ylim(bottom=1e-10)
 plt.loglog()
 # plt.ylim(-0.1,0.1)
 plt.legend()
 plt.title('RMSE')
 
-path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240930')
+
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240918')
 path_save.mkdir(exist_ok=True, parents=True)
-plt.savefig(path_save / Path('30GHz_76ps_rmse.png'), dpi=300)
-
-
-plt.figure(2)
-plt.scatter(ell_arr, pcfn_rmse/rmv_qu_rmse, label='PS + FG + CMB + NOISE (Baseline) / Template fitting method')
-plt.scatter(ell_arr, inp_eb_rmse/rmv_qu_rmse, label='Recycling method + inpaint on B / Template fitting method')
-plt.scatter(ell_arr, qu_mask_rmse/rmv_qu_rmse, label='Mask point sources holes on QU / Template fitting method')
-plt.loglog()
-plt.legend()
-plt.xlabel('$\\ell$')
-plt.ylabel('$D_\\ell^{BB}$ ratio')
-plt.title('comparison between different methods')
-
-path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240930')
-path_save.mkdir(exist_ok=True, parents=True)
-plt.savefig(path_save / Path('cpr_results.png'), dpi=300)
-
-print(f'{np.mean(pcfn_rmse/rmv_qu_rmse)=}')
-print(f'{np.mean(inp_eb_rmse/rmv_qu_rmse)=}')
-print(f'{np.mean(qu_mask_rmse/rmv_qu_rmse)=}')
+plt.savefig(path_save / Path('pcfn_30GHz_76ps_rmse.png'), dpi=300)
 
 plt.show()
 

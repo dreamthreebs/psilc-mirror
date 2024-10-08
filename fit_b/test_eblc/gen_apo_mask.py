@@ -148,7 +148,7 @@ def test_fg_dl():
     plt.ylabel('$D_\\ell$')
     plt.show()
 
-# test_fg_dl()
+test_fg_dl()
 
 def test_cmb_dl():
     lmax = 1500
@@ -367,7 +367,7 @@ def check_bias_dl():
 
     plt.show()
 
-check_bias_dl()
+# check_bias_dl()
 
 def check_factor():
     for i in range(200):

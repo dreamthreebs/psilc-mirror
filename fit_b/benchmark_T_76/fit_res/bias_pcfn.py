@@ -22,6 +22,7 @@ print(f'{freq=}, {beam=}')
 # rmv1_list = []
 # c_list = []
 cf_list = []
+cf_full_list = []
 cfn_list = []
 pcfn_list = []
 rmv_qu_list = []
@@ -58,10 +59,12 @@ for rlz_idx in range(0,200):
     pcfn = np.load(f'./pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_qu
     cfn = np.load(f'./pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_qu
     cf = np.load(f'./pcfn_dl/QU/cf/{rlz_idx}.npy')
+    cf_full = np.load(f'./pcfn_dl/RMV/cf/{rlz_idx}.npy')
     rmv_qu = np.load(f'./pcfn_dl/QU_cmb_slope/cmb/{rlz_idx}.npy') - n_rc
     qu_mask = np.load(f'./pcfn_dl/QU_cmb_slope/cfn/{rlz_idx}.npy') - n_rc
 
-    # plt.plot(ell_arr, pcfn_full, label=f'pcfn full{rlz_idx}')
+    # plt.plot(ell_arr, cf, label=f'cf {rlz_idx}')
+    # plt.plot(ell_arr, cf1, label=f'cf1 full{rlz_idx}')
     # plt.plot(ell_arr, inp_eb, label=f'inp_eb {rlz_idx}')
     # plt.plot(ell_arr, n_inp, label=f'inp n {rlz_idx}')
     # plt.plot(ell_arr, n_ps_mask, label=f'ps mask n {rlz_idx}')
@@ -80,6 +83,7 @@ for rlz_idx in range(0,200):
     # rmv_list.append(rmv)
     # c_list.append(c)
     cf_list.append(cf)
+    cf_full_list.append(cf_full)
     cfn_list.append(cfn)
     pcfn_list.append(pcfn)
 
@@ -101,6 +105,7 @@ nsim = 200
 # rmv_arr = np.array(rmv_list)
 # c_arr = np.array(c_list)
 cf_arr = np.array(cf_list)
+cf_full_arr = np.array(cf_full_list)
 cfn_arr = np.array(cfn_list)
 pcfn_arr = np.array(pcfn_list)
 
@@ -128,14 +133,16 @@ pcfn_mean = np.mean(pcfn_arr, axis=0)
 cfn_mean = np.mean(cfn_arr, axis=0)
 rmv_qu_mean = np.mean(rmv_qu_arr, axis=0)
 cf_mean = np.mean(cf_arr, axis=0)
+cf_full_mean = np.mean(cf_full_arr, axis=0)
 qu_mask_mean = np.mean(qu_mask_arr, axis=0)
 
-plt.scatter(ell_arr, cf_mean, label='CMB + FG', marker='.')
-plt.scatter(ell_arr, pcfn_mean, label='CMB + FG + PS + NOISE', marker='.')
-plt.scatter(ell_arr, cfn_mean, label='CMB + FG + NOISE', marker='.')
+plt.figure(1)
+plt.scatter(ell_arr, cf_mean, label='CMB + FG full sky SHT', marker='.')
+plt.scatter(ell_arr, cf_full_mean, label='CMB + FG apo qu mask', marker='.')
+plt.scatter(ell_arr, pcfn_mean, label='CMB + FG + PS + NOISE full sky SHT', marker='.')
+plt.scatter(ell_arr, cfn_mean, label='CMB + FG + NOISE full sky SHT', marker='.')
 plt.scatter(ell_arr, rmv_qu_mean, label='pcfn recycling', marker='.')
 plt.scatter(ell_arr, qu_mask_mean, label='cfn recycling', marker='.')
-
 
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB}$')
@@ -145,6 +152,12 @@ plt.loglog()
 plt.legend()
 plt.title('mean')
 
+plt.figure(2)
+plt.scatter(ell_arr, np.abs(cf_mean-cf_full_mean)/cf_mean, label='relative error', marker='.')
+plt.xlabel('$\\ell$')
+plt.ylabel('(qu mask - full SHT) / full SHT')
+plt.loglog()
+plt.legend()
 
 # path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240918')
 # path_save.mkdir(exist_ok=True, parents=True)
