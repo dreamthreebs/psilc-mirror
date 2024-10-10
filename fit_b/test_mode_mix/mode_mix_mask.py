@@ -124,7 +124,7 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     return bins_edges[:-1], bins_edges[1:]
 
 def get_fg():
-    cls_fg = np.load('./data/cl_fg/cl_fg_1010.npy')
+    cls_fg = np.load('./data/cl_fg/cl_fg_10010.npy')
     np.random.seed(seed=fg_seeds[rlz_idx])
     fg_rlz = hp.synfast(cls_fg, nside=nside, new=True, fwhm=np.deg2rad(beam)/60)
     return fg_rlz
@@ -148,6 +148,12 @@ def calc_dl_from_pol_map(m_q, m_u, apo_mask, bin_dl, masked_on_input, purify_b):
     dl = nmt.compute_full_master(pol_field, pol_field, bin_dl)
     return dl[3]
 
+def calc_dl_from_pol_map_no_beam(m_q, m_u, apo_mask, bin_dl, masked_on_input, purify_b):
+    pol_field = nmt.NmtField(apo_mask, [m_q, m_u], masked_on_input=masked_on_input, purify_b=purify_b)
+    dl = nmt.compute_full_master(pol_field, pol_field, bin_dl)
+    return dl[3]
+
+
 def test_mode_mix():
     # l_min_edges, l_max_edges = generate_bins(l_min_start=4, delta_l_min=20, l_max=lmax, fold=0.3)
     # bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True) # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=20, is_Dell=True)
@@ -159,17 +165,19 @@ def test_mode_mix():
 
     m = get_fg()
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=500, pol=True)[:,2]
-    debeam_m = hp.alm2map(hp.almxfl(hp.map2alm(m, lmax=500)[2], fl=1/bl), nside=nside)
-    dl = calc_dl_from_scalar_map_no_beam(scalar_map=debeam_m, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # debeam_m_b = hp.alm2map(hp.almxfl(hp.map2alm(m, lmax=500)[2], fl=1/bl), nside=nside)
+    debeam_m = hp.alm2map([hp.almxfl(hp.map2alm(m, lmax=500)[i], fl=1/bl) for i in range(3)], nside=nside)
+    # dl = calc_dl_from_scalar_map_no_beam(scalar_map=debeam_m_b, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl = calc_dl_from_pol_map_no_beam(m_q=debeam_m[1], m_u=debeam_m[2], apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
     cl_no_mask = hp.anafast(m, lmax=lmax)[2] / bl**2
 
-    cls_fg = np.load('./data/cl_fg/cl_fg_1010.npy')
+    cls_fg = np.load('./data/cl_fg/cl_fg_10010.npy')
     dl_true = bin_dl.bin_cell(cls_fg[2,:lmax+1])
     dl_no_mask = bin_dl.bin_cell(cl_no_mask)
     print(f'{dl_true=}')
 
-    path_dl_rlz = Path('./data/dls_mask_1010')
+    path_dl_rlz = Path('./data/dls_mask_qu_10010')
     path_dl_rlz.mkdir(exist_ok=True, parents=True)
     np.save(path_dl_rlz / Path(f'full_{rlz_idx}.npy'), dl_no_mask)
     np.save(path_dl_rlz / Path(f'partial_{rlz_idx}.npy'), dl)
@@ -252,51 +260,58 @@ def cpr_mode_mix():
     bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=20, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
-    cls_fg = np.load('./data/cl_fg/cl_fg_1010.npy')
+    cls_fg = np.load('./data/cl_fg/cl_fg_10010.npy')
     dl_true = bin_dl.bin_cell(cls_fg[2,:lmax+1])
 
-    dl_full_list = []
-    dl_partial_list = []
+    # dl_full_list = []
+    # dl_partial_list = []
     dl_no_beam_full_list = []
     dl_no_beam_partial_list = []
-    dl_mask_list = []
+    # dl_mask_list = []
+    dl_mask_qu_list = []
     for i in range(200):
-        dl_full = np.load(f'./data/dls_beam_1010/full_{i}.npy')
-        dl_partial = np.load(f'./data/dls_beam_1010/partial_{i}.npy')
-        dl_no_beam_full = np.load(f'./data/dls_fg_1010/full_{i}.npy')
-        dl_no_beam_partial = np.load(f'./data/dls_fg_1010/partial_{i}.npy')
-        dl_mask = np.load(f'./data/dls_mask_1010/partial_{i}.npy')
+        # dl_full = np.load(f'./data/dls_beam_1010/full_{i}.npy')
+        # dl_partial = np.load(f'./data/dls_beam_1010/partial_{i}.npy')
+        dl_no_beam_full = np.load(f'./data/dls_fg_10010/full_{i}.npy')
+        dl_no_beam_partial = np.load(f'./data/dls_fg_10010/partial_{i}.npy')
+        # dl_mask = np.load(f'./data/dls_mask_1010/partial_{i}.npy')
+        dl_mask_qu = np.load(f'./data/dls_mask_qu_10010/partial_{i}.npy')
         # print(f'{dl_full=}')
         # print(f'{dl_partial=}')
 
-        dl_full_list.append(dl_full)
-        dl_partial_list.append(dl_partial)
+        # dl_full_list.append(dl_full)
+        # dl_partial_list.append(dl_partial)
         dl_no_beam_full_list.append(dl_no_beam_full)
         dl_no_beam_partial_list.append(dl_no_beam_partial)
-        dl_mask_list.append(dl_mask)
+        # dl_mask_list.append(dl_mask)
+        dl_mask_qu_list.append(dl_mask_qu)
 
-    dl_full_arr = np.array(dl_full_list)
-    dl_partial_arr = np.array(dl_partial_list)
+    # dl_full_arr = np.array(dl_full_list)
+    # dl_partial_arr = np.array(dl_partial_list)
     dl_no_beam_full_arr = np.array(dl_no_beam_full_list)
     dl_no_beam_partial_arr = np.array(dl_no_beam_partial_list)
-    dl_mask_arr = np.array(dl_mask_list)
+    # dl_mask_arr = np.array(dl_mask_list)
+    dl_mask_qu_arr = np.array(dl_mask_qu_list)
 
-    dl_full_mean = np.mean(dl_full_arr, axis=0)
-    dl_partial_mean = np.mean(dl_partial_arr, axis=0)
+    # dl_full_mean = np.mean(dl_full_arr, axis=0)
+    # dl_partial_mean = np.mean(dl_partial_arr, axis=0)
     dl_no_beam_full_mean = np.mean(dl_no_beam_full_arr, axis=0)
     dl_no_beam_partial_mean = np.mean(dl_no_beam_partial_arr, axis=0)
-    dl_mask_mean = np.mean(dl_mask_arr, axis=0)
+    # dl_mask_mean = np.mean(dl_mask_arr, axis=0)
+    dl_mask_qu_mean = np.mean(dl_mask_qu_arr, axis=0)
 
     plt.figure(1)
     # plt.plot(l*(l+1)*cls_cmb[0,:lmax+1]/(2*np.pi), label='input')
     plt.plot(ell_arr, dl_true, label='input')
-    plt.plot(ell_arr, dl_partial_mean, label='partial sky Namaster')
-    plt.plot(ell_arr, dl_full_mean, label='full sky Namaster')
+    # plt.plot(ell_arr, dl_partial_mean, label='partial sky Namaster')
+    # plt.plot(ell_arr, dl_full_mean, label='full sky Namaster')
     plt.plot(ell_arr, dl_no_beam_partial_mean, label='partial sky Namaster no beam')
     plt.plot(ell_arr, dl_no_beam_full_mean, label='full sky Namaster no beam')
-    plt.plot(ell_arr, dl_mask_mean, label='debeam mask')
+    # plt.plot(ell_arr, dl_mask_mean, label='debeam mask')
+    plt.plot(ell_arr, dl_mask_qu_mean, label='debeam mask qu')
 
-    plt.semilogy()
+    # plt.semilogy()
+    plt.loglog()
 
     plt.legend()
     plt.title('power spectrum')
@@ -305,12 +320,15 @@ def cpr_mode_mix():
     plt.ylim(1e-5,1e5)
 
     plt.figure(2)
-    plt.plot(ell_arr, np.abs(dl_partial_mean - dl_true)/dl_true, label='partial relative error')
-    plt.plot(ell_arr, np.abs(dl_full_mean - dl_true)/dl_true, label='full relative error')
+    # plt.plot(ell_arr, np.abs(dl_partial_mean - dl_true)/dl_true, label='partial relative error')
+    # plt.plot(ell_arr, np.abs(dl_full_mean - dl_true)/dl_true, label='full relative error')
     plt.plot(ell_arr, np.abs(dl_no_beam_partial_mean - dl_true)/dl_true, label='partial relative error no beam')
     plt.plot(ell_arr, np.abs(dl_no_beam_full_mean - dl_true)/dl_true, label='full relative error no beam')
+    # plt.plot(ell_arr, np.abs(dl_mask_mean - dl_true)/dl_true, label='debeam error')
+    plt.plot(ell_arr, np.abs(dl_mask_qu_mean - dl_true)/dl_true, label='debeam error qu')
     plt.legend()
     # plt.semilogy()
+    plt.loglog()
     plt.ylim(0,1)
     plt.title('power spectrum')
     plt.xlabel('$\\ell$')
