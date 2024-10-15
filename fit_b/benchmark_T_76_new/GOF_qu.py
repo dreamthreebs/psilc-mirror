@@ -45,10 +45,10 @@ for flux_idx in range(0,10):
         Q_list.append(Q)
         U_list.append(U)
         # phi_list.append(phi)
-    
+
     data = np.asarray(Q_list)
     print(f'{data.shape=}')
-    
+
     # data_mean = np.mean(data, axis=0)
     # data_std = np.std(data, axis=0)
     # print(f'{data_mean=}')

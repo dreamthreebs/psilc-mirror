@@ -35,8 +35,8 @@ for flux_idx in range(0,10):
     # print(f'{P_list=}')
     
     for rlz_idx in range(0,200):
-        P = np.load(f'./fit_res/pcfn_params/fit_qu_no_const_n/idx_{flux_idx}/fit_P_{rlz_idx}.npy')
-        phi = np.load(f'./fit_res/pcfn_params/fit_qu_no_const_n/idx_{flux_idx}/fit_phi_{rlz_idx}.npy')
+        P = np.load(f'./fit_res/pcfn_params/fit_qu_no_const/idx_{flux_idx}/fit_P_{rlz_idx}.npy')
+        phi = np.load(f'./fit_res/pcfn_params/fit_qu_no_const/idx_{flux_idx}/fit_phi_{rlz_idx}.npy')
         # print(f"{P=}")
         # phi = np.load(f'./params/0/fit_2/phi_{rlz_idx}.npy')
         Q = P * np.cos(phi)

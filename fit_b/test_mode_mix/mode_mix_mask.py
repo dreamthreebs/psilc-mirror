@@ -260,7 +260,14 @@ def cpr_mode_mix():
     bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=20, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
+    bin_mask = np.load('../../src/mask/north/BINMASKG1024.npy')
+    apo_mask = nmt.mask_apodization(mask_in=bin_mask, aposize=5)
+
     cls_fg = np.load('./data/cl_fg/cl_fg_10010.npy')
+    mp = get_fg()
+    f2p = nmt.NmtField(mask=apo_mask, maps=[mp[1], mp[2]], purify_b=True)
+    w22p = nmt.NmtWorkspace.from_fields(f2p, f2p, bin_dl)
+    dl_th_pure = w22p.decouple_cell(w22p.couple_cell([cls_fg[0], 0*cls_fg[0], 0*cls_fg[0], cls_fg[2]]))[3]
     dl_true = bin_dl.bin_cell(cls_fg[2,:lmax+1])
 
     # dl_full_list = []
@@ -302,13 +309,14 @@ def cpr_mode_mix():
 
     plt.figure(1)
     # plt.plot(l*(l+1)*cls_cmb[0,:lmax+1]/(2*np.pi), label='input')
-    plt.plot(ell_arr, dl_true, label='input')
+    plt.plot(ell_arr, dl_true, label='input bin cell')
+    plt.plot(ell_arr, dl_th_pure, label='input namaster')
     # plt.plot(ell_arr, dl_partial_mean, label='partial sky Namaster')
     # plt.plot(ell_arr, dl_full_mean, label='full sky Namaster')
-    plt.plot(ell_arr, dl_no_beam_partial_mean, label='partial sky Namaster no beam')
-    plt.plot(ell_arr, dl_no_beam_full_mean, label='full sky Namaster no beam')
+    plt.plot(ell_arr, dl_no_beam_partial_mean, label='namaster calculation mean(200 rlz)')
+    # plt.plot(ell_arr, dl_no_beam_full_mean, label='full sky Namaster no beam')
     # plt.plot(ell_arr, dl_mask_mean, label='debeam mask')
-    plt.plot(ell_arr, dl_mask_qu_mean, label='debeam mask qu')
+    # plt.plot(ell_arr, dl_mask_qu_mean, label='debeam mask qu')
 
     # plt.semilogy()
     plt.loglog()
@@ -319,21 +327,22 @@ def cpr_mode_mix():
     plt.ylabel('$D_\\ell^{BB}$')
     plt.ylim(1e-5,1e5)
 
-    plt.figure(2)
-    # plt.plot(ell_arr, np.abs(dl_partial_mean - dl_true)/dl_true, label='partial relative error')
-    # plt.plot(ell_arr, np.abs(dl_full_mean - dl_true)/dl_true, label='full relative error')
-    plt.plot(ell_arr, np.abs(dl_no_beam_partial_mean - dl_true)/dl_true, label='partial relative error no beam')
-    plt.plot(ell_arr, np.abs(dl_no_beam_full_mean - dl_true)/dl_true, label='full relative error no beam')
-    # plt.plot(ell_arr, np.abs(dl_mask_mean - dl_true)/dl_true, label='debeam error')
-    plt.plot(ell_arr, np.abs(dl_mask_qu_mean - dl_true)/dl_true, label='debeam error qu')
-    plt.legend()
-    # plt.semilogy()
-    plt.loglog()
-    plt.ylim(0,1)
-    plt.title('power spectrum')
-    plt.xlabel('$\\ell$')
-    plt.ylabel('abs(exp-true)/true')
+    # plt.figure(2)
+    # # plt.plot(ell_arr, np.abs(dl_partial_mean - dl_true)/dl_true, label='partial relative error')
+    # # plt.plot(ell_arr, np.abs(dl_full_mean - dl_true)/dl_true, label='full relative error')
+    # plt.plot(ell_arr, np.abs(dl_no_beam_partial_mean - dl_true)/dl_true, label='partial relative error no beam')
+    # plt.plot(ell_arr, np.abs(dl_no_beam_full_mean - dl_true)/dl_true, label='full relative error no beam')
+    # # plt.plot(ell_arr, np.abs(dl_mask_mean - dl_true)/dl_true, label='debeam error')
+    # plt.plot(ell_arr, np.abs(dl_mask_qu_mean - dl_true)/dl_true, label='debeam error qu')
+    # plt.legend()
+    # # plt.semilogy()
+    # plt.loglog()
+    # plt.ylim(0,1)
+    # plt.title('power spectrum')
+    # plt.xlabel('$\\ell$')
+    # plt.ylabel('abs(exp-true)/true')
 
+    plt.savefig('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240930/debeam.png', dpi=300)
 
     plt.show()
 

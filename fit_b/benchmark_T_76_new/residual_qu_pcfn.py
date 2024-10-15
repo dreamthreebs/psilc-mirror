@@ -23,9 +23,10 @@ class GetResidual:
 
     def gen_map(self, rlz_idx):
         def gen_fg_cl():
-            Cl_TT = np.load('../Cl_fg/data/cl_fg_TT.npy')
-            Cl_EE = np.load('../Cl_fg/data/cl_fg_EE.npy')
-            Cl_BB = np.load('../Cl_fg/data/cl_fg_BB.npy')
+            cl_fg = np.load('../Cl_fg/data_1010/cl_fg.npy')
+            Cl_TT = cl_fg[0]
+            Cl_EE = cl_fg[1]
+            Cl_BB = cl_fg[2]
             Cl_TE = np.zeros_like(Cl_TT)
             return np.array([Cl_TT, Cl_EE, Cl_BB, Cl_TE])
 
@@ -33,7 +34,7 @@ class GetResidual:
         npix = hp.nside2npix(nside=self.nside)
         beam = self.beam
 
-        # ps = np.load('./data/ps/ps.npy')
+        ps = np.load('./data/ps/ps.npy')
 
         nstd = np.load('../../FGSim/NSTDNORTH/2048/30.npy')
         np.random.seed(seed=noise_seeds[rlz_idx])
@@ -41,16 +42,16 @@ class GetResidual:
         noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
         print(f"{np.std(noise[1])=}")
 
-        # # cmb_iqu = np.load(f'../../fitdata/2048/CMB/215/{rlz_idx}.npy')
-        # # cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
-        # cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
-        # np.random.seed(seed=cmb_seeds[rlz_idx])
-        # # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
-        # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
+        # cmb_iqu = np.load(f'../../fitdata/2048/CMB/215/{rlz_idx}.npy')
+        # cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
+        cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
+        np.random.seed(seed=cmb_seeds[rlz_idx])
+        # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
+        cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
 
-        # cls_fg = gen_fg_cl()
-        # np.random.seed(seed=fg_seed[rlz_idx])
-        # fg_iqu = hp.synfast(cls_fg, nside=nside, fwhm=0, new=True, lmax=600)
+        cls_fg = gen_fg_cl()
+        np.random.seed(seed=fg_seed[rlz_idx])
+        fg_iqu = hp.synfast(cls_fg, nside=nside, fwhm=0, new=True, lmax=600)
 
         # pcfn = noise + ps + cmb_iqu + fg_iqu
         # cfn = noise + cmb_iqu + fg_iqu

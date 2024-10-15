@@ -110,10 +110,13 @@ def test_cmb_cl(beam, lmax):
     return Cl_TT, Cl_EE, Cl_BB, Cl_TE
 
 def test_fg_cl():
-    Cl_TT = np.load('../Cl_fg/data/cl_fg_TT.npy')
-    Cl_EE = np.load('../Cl_fg/data/cl_fg_EE.npy')
-    Cl_BB = np.load('../Cl_fg/data/cl_fg_BB.npy')
+    cl_fg = np.load('../Cl_fg/data_1010/cl_fg.npy')
+    print(f'{cl_fg.shape=}')
+    Cl_TT = cl_fg[0]
+    Cl_EE = cl_fg[1]
+    Cl_BB = cl_fg[2]
     Cl_TE = np.zeros_like(Cl_TT)
+
     return Cl_TT, Cl_EE, Cl_BB, Cl_TE
 
 def test_noise_cl(lmax):
@@ -196,7 +199,7 @@ def main_cf():
     nside = 2048
     lmin = 2
     # lmax = 3 * nside - 1
-    lmax = 600
+    lmax = 800
     flux_idx=0
     beam = 67
     pixind = np.load(f'./pix_idx_qu/{flux_idx}.npy')
@@ -204,16 +207,18 @@ def main_cf():
     ## test for cmb cov
 
     Cl_TT_FG,Cl_EE_FG,Cl_BB_FG,Cl_TE_FG = test_fg_cl()
-    Cl_TT_CMB,Cl_EE_CMB,Cl_BB_CMB,Cl_TE_CMB = test_cmb_cl(beam=beam, lmax=600)
+    Cl_TT_CMB,Cl_EE_CMB,Cl_BB_CMB,Cl_TE_CMB = test_cmb_cl(beam=beam, lmax=800)
+
     Cl_TT = Cl_TT_CMB + Cl_TT_FG
     Cl_EE = Cl_EE_CMB + Cl_EE_FG
     Cl_BB = Cl_BB_CMB + Cl_BB_FG
     Cl_TE = Cl_TE_CMB + Cl_TE_FG
 
     # l = np.arange(lmax + 1)
-    # plt.loglog(l, l*(l+1)*Cl_BB/(2*np.pi))
-    # plt.loglog(l, l*(l+1)*Cl_TT/(2*np.pi))
-    # plt.loglog(l, l*(l+1)*Cl_EE/(2*np.pi))
+    # plt.loglog(l, l*(l+1)*Cl_BB/(2*np.pi), label='BB')
+    # plt.loglog(l, l*(l+1)*Cl_TT/(2*np.pi), label='TT')
+    # plt.loglog(l, l*(l+1)*Cl_EE/(2*np.pi), label='EE')
+    # plt.legend()
     # plt.show()
 
     obj = CovCalculator(nside=nside, lmin=2, lmax=lmax, Cl_TT=Cl_TT, Cl_EE=Cl_EE, Cl_BB=Cl_BB, Cl_TE=Cl_TE, pixind=pixind, calc_opt='polarization', out_pol_opt='QU')

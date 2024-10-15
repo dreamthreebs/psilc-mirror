@@ -146,12 +146,12 @@ def test_mode_mix():
     dl = calc_dl_from_pol_map(m_q=m[1]*bin_mask, m_u=m[2]*bin_mask, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     cl_no_mask = hp.anafast(m, lmax=lmax)[2]
 
-    cls_fg = np.load('./data/cl_fg/cl_fg_110.npy')
+    cls_fg = np.load('./data/cl_fg/cl_fg_10010.npy')
     dl_true = bin_dl.bin_cell(cls_fg[2,:lmax+1])
     dl_no_mask = bin_dl.bin_cell(cl_no_mask)
     print(f'{dl_true=}')
 
-    path_dl_rlz = Path('./data/dls_fg_110')
+    path_dl_rlz = Path('./data/dls_fg_10010')
     path_dl_rlz.mkdir(exist_ok=True, parents=True)
     np.save(path_dl_rlz / Path(f'full_{rlz_idx}.npy'), dl_no_mask)
     np.save(path_dl_rlz / Path(f'partial_{rlz_idx}.npy'), dl)
@@ -167,7 +167,7 @@ def test_mode_mix():
     # plt.ylabel('$D_\\ell^{TT}$')
     # plt.show()
 
-# test_mode_mix()
+test_mode_mix()
 
 def check_mode_mix():
 
@@ -301,5 +301,5 @@ def check_mode_mix_all():
     # plt.savefig(path_save / Path('mean.png'), dpi=300)
 
 
-check_mode_mix_all()
+# check_mode_mix_all()
 
