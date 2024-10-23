@@ -42,7 +42,7 @@ class FitPointSource:
         uK_CMB = intensity_W_m2_sr_Hz / dBdT * 1e6 # Convert to uK_CMB, taking the inverse of dB/dT
         return uK_CMB
 
-    def __init__(self, m, freq, nstd, flux_idx, df_mask, df_ps, cl_cmb, lon, lat, iflux, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False):
+    def __init__(self, m, freq, nstd, flux_idx, df_mask, df_ps, lon, lat, iflux, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False):
         self.m = m # sky maps (npix,)
         self.freq = freq # frequency
         self.lon = lon # longitude
@@ -52,7 +52,6 @@ class FitPointSource:
         self.flux_idx = flux_idx # index in df_mask
         self.df_ps = df_ps # pandas data frame of all point sources
         self.nstd = nstd # noise standard deviation
-        self.cl_cmb = cl_cmb # power spectrum of CMB
         self.lmax = lmax # maximum multipole
         self.nside = nside # resolution of healpy maps
         self.radius_factor = radius_factor # disc radius of fitting region
@@ -68,6 +67,9 @@ class FitPointSource:
         self.ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
 
         self.ipix_fit = hp.query_disc(nside=self.nside, vec=self.ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
+        path_pix_idx = Path('./pix_idx')
+        path_pix_idx.mkdir(exist_ok=True, parents=True)
+        np.save(path_pix_idx / Path(f'{self.flux_idx}.npy'), self.ipix_fit)
 
         ## if you want the ipix_fit to range from near point to far point, add the following code
         # self.vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=self.ipix_fit.astype(int))).astype(np.float64)
@@ -87,66 +89,9 @@ class FitPointSource:
         logger.info(f'{lmax=}, {nside=}')
         logger.info(f'{freq=}, {beam=}, {flux_idx=}, {radius_factor=}, {lon=}, {lat=}, ndof={self.ndof}')
 
-
-    def calc_C_theta_itp_func(self):
-        def calc_C_theta_itp(x, lmax, cl):
-            Pl = np.zeros(lmax+1)
-            for l in range(lmax+1):
-                Pl[l] = Legendre.basis(l)(x)
-            ell = np.arange(lmax+1)
-            sum_val = 1 / (4 * np.pi) * np.sum((2 * ell + 1) * cl * Pl)
-            return sum_val
-
-        cos_theta_list = np.linspace(0.99, 1, 10000)
-        C_theta_list = []
-        time0 = time.time()
-        for cos_theta in cos_theta_list:
-            logger.debug(f'{cos_theta=}')
-            C_theta = calc_C_theta_itp(x=cos_theta, lmax=self.lmax, cl=self.cl_cmb[0:self.lmax+1])
-            C_theta_list.append(C_theta)
-        logger.debug(f'{C_theta_list=}')
-        timecov = time.time()-time0
-        logger.debug(f'{timecov=}')
-
-        self.cs = CubicSpline(cos_theta_list, C_theta_list)
-        if not os.path.exists('./cs'):
-            os.makedirs('./cs')
-        with open('./cs/cs.pkl', 'wb') as f:
-            pickle.dump(self.cs, f)
-        return self.cs
-
-    def calc_cmb_cov(self):
-        if not hasattr(self, "cs"):
-            with open('./cs/cs.pkl', 'rb') as f:
-                self.cs = pickle.load(f)
-            logger.info('cs is ok')
-
-        ipix_fit = self.ipix_fit
-        nside = self.nside
-        n_cov = self.ndof
-
-        cov = np.zeros((n_cov, n_cov))
-        logger.debug(f'{cov.shape=}')
-
-        time0 = time.time()
-
-        vec = np.asarray(hp.pix2vec(nside=self.nside, ipix=ipix_fit))
-        cos_theta = vec.T@vec
-        cos_theta = np.clip(cos_theta, -1, 1)
-        logger.debug(f'{cos_theta.shape=}')
-        cov = self.cs(cos_theta)
-        logger.debug(f'{cov.shape=}')
-
-        timecov = time.time()-time0
-        logger.debug(f'{timecov=}')
-        logger.debug(f'{cov=}')
-        save_path = f'./cmb_cov_{self.nside}/r_{self.radius_factor}'
-        Path(save_path).mkdir(parents=True, exist_ok=True)
-        np.save(Path(save_path) / Path(f'{self.flux_idx}.npy'), cov)
-
     def calc_definite_fixed_cmb_cov(self):
 
-        cmb_cov_path = Path(f'./cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+        cmb_cov_path = Path(f'./cmb_fg_cov') / Path(f'{self.flux_idx}.npy')
         cov = np.load(cmb_cov_path)
         logger.debug(f'{cov=}')
         eigenval, eigenvec = np.linalg.eigh(cov)
@@ -157,7 +102,7 @@ class FitPointSource:
         reconstructed_eigenval,_ = np.linalg.eigh(reconstructed_cov)
         logger.debug(f'{reconstructed_eigenval=}')
         logger.debug(f'{np.max(np.abs(reconstructed_cov-cov))=}')
-        semi_def_cmb_cov = Path(f'semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}')
+        semi_def_cmb_cov = Path(f'semi_def_cmb_cov_{self.nside}')
         semi_def_cmb_cov.mkdir(parents=True, exist_ok=True)
         np.save(semi_def_cmb_cov / Path(f'{self.flux_idx}.npy'), reconstructed_cov)
 
@@ -176,7 +121,7 @@ class FitPointSource:
             np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
 
-        cmb_cov_path = Path(f'./semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+        cmb_cov_path = Path(f'./semi_def_cmb_cov_{self.nside}') / Path(f'{self.flux_idx}.npy')
         logger.info(f'{cmb_cov_path=}')
 
         cov = np.load(cmb_cov_path)
@@ -205,7 +150,6 @@ class FitPointSource:
             path_inv_cov.mkdir(parents=True, exist_ok=True)
             np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
-
 
     def flux2norm_beam(self, flux):
         # from mJy to muK_CMB to norm_beam
@@ -283,7 +227,7 @@ class FitPointSource:
         iflux_list = []
         for i in range(min(num_ps, len(index_near[0]))):
             index = index_near[0][i]
-            if index < self.df_mask.at[self.flux_idx, 'flux_idx']:
+            if index < self.df_mask.at[self.flux_idx, 'rank']:
                 lon = np.rad2deg(self.df_ps.at[index, 'lon'])
                 lat = np.rad2deg(self.df_ps.at[index, 'lat'])
                 iflux = self.flux2norm_beam(self.df_ps.at[index, 'iflux'])
@@ -652,16 +596,19 @@ class FitPointSource:
         if mode == 'check_sigma':
             calc_error()
 
-def gen_map():
+def gen_map(freq, beam):
     noise_seed = np.load('../../fit_b/seeds_noise_2k.npy')
     cmb_seed = np.load('../../fit_b/seeds_cmb_2k.npy')
 
     rlz_idx = 0
-    beam = 67
     nside = 2048
     npix = hp.nside2npix(nside)
-    ps = np.load('../../fitdata/2048/PS/30/ps.npy')
-    nstd = np.load('../../FGSim/NSTDNORTH/2048/30.npy')
+
+    ps = np.load(f'../../fitdata/2048/PS/{freq}/ps.npy')
+
+    fg = np.load(f'../../fitdata/2048/FG/{freq}/fg.npy')
+
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
     np.random.seed(seed=noise_seed[rlz_idx])
     # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
     noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
@@ -674,16 +621,21 @@ def gen_map():
     # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
     cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
 
-    pcn = noise + ps + cmb_iqu
-    return pcn
+    pcfn = noise + ps + cmb_iqu + fg
+    # pcfn = noise + ps
+    return pcfn
 
 
 def main():
-    freq = 30
+    freq = 215
+    lmax = 2500
+    nside = 2048
+    beam = 11
+
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')[0]
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/0.npy')[0]
-    m = gen_map()[0]
+    m = gen_map(freq=freq, beam=beam)[0]
     # m = np.load(f'../../fit_b/benchmark_30/data/pcn.npy')[0]
     # m = np.load(f'../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/0.npy')[0]
     logger.debug(f'{sys.getrefcount(m)-1=}')
@@ -693,32 +645,18 @@ def main():
     nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')[0]
     df_mask = pd.read_csv(f'../mask/mask_csv/{freq}.csv')
     df_ps = pd.read_csv(f'../mask/ps_csv/{freq}.csv')
-    lmax = 1999
-    nside = 2048
-    beam = 67
+
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
-    # m = np.load('../../inpaintingdata/CMB8/40.npy')[0]
-    # cl1 = hp.anafast(m, lmax=lmax)
-    cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')[:lmax+1,0]
-    # l = np.arange(lmax+1)
-
-    # plt.plot(l*(l+1)*cl_cmb/(2*np.pi))
-    cl_cmb = cl_cmb * bl**2
-
-    # plt.plot(l*(l+1)*cl_cmb/(2*np.pi))
-    # plt.plot(l*(l+1)*cl1/(2*np.pi), label='cl1')
-    # plt.show()
-
     flux_idx = 1
     lon = np.rad2deg(df_mask.at[flux_idx, 'lon'])
     lat = np.rad2deg(df_mask.at[flux_idx, 'lat'])
     iflux = df_mask.at[flux_idx, 'iflux']
 
     logger.debug(f'{sys.getrefcount(m)-1=}')
-    obj = FitPointSource(m=m, freq=freq, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, cl_cmb=cl_cmb, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+    obj = FitPointSource(m=m, freq=freq, nstd=nstd, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lon=lon, lat=lat, iflux=iflux, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
 
     logger.debug(f'{sys.getrefcount(m)-1=}')
-    obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
+    # obj.see_true_map(m=m, lon=lon, lat=lat, nside=nside, beam=beam)
 
     # obj.calc_covariance_matrix(mode='noise', cmb_cov_fold='../cmb_cov_calc/cov')
 
@@ -727,8 +665,8 @@ def main():
     # obj.calc_precise_C_theta()
 
     # obj.calc_cmb_cov()
-    # obj.calc_definite_fixed_cmb_cov()
-    # obj.calc_covariance_matrix(mode='cmb+noise')
+    obj.calc_definite_fixed_cmb_cov()
+    obj.calc_covariance_matrix(mode='cmb+noise')
     # obj.calc_covariance_matrix(mode='noise')
 
     obj.fit_all(cov_mode='cmb+noise')
@@ -738,6 +676,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
 
