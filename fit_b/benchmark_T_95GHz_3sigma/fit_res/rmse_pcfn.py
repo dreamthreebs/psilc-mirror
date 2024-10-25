@@ -55,6 +55,7 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
 l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
 bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
+print(f'{ell_arr=}')
 
 for rlz_idx in range(0,200):
     # if rlz_idx == 50:
@@ -168,16 +169,16 @@ inp_eb_arr = np.array(inp_eb_list)
 # inp_eb_rmse_c = np.sqrt(np.sum((inp_eb_arr-c_arr) ** 2, axis=0) / nsim)
 # qu_mask_rmse_c = np.sqrt(np.sum((qu_mask_arr-c_arr) ** 2, axis=0) / nsim)
 
-pcfn_rmse = np.sqrt(np.sum((pcfn_arr-cf_arr) ** 2, axis=0) / nsim)
+pcfn_rmse = np.sqrt(np.sum((pcfn_arr-cf_arr) ** 2, axis=0) / nsim)[:13]
 print(f'{pcfn_rmse.shape=}')
-# cfn_rmse = np.sqrt(np.sum((cfn_arr-cf_arr) ** 2, axis=0) / nsim)[:8]
-rmv_qu_rmse = np.sqrt(np.sum((rmv_qu_arr-cf_arr) ** 2, axis=0) / nsim)
+# cfn_rmse = np.sqrt(np.sum((cfn_arr-cf_arr) ** 2, axis=0) / nsim)[:13]
+rmv_qu_rmse = np.sqrt(np.sum((rmv_qu_arr-cf_arr) ** 2, axis=0) / nsim)[:13]
 # rmv_lon_lat_rmse = np.sqrt(np.sum((rmv_lon_lat_arr-c_arr) ** 2, axis=0) / nsim)
-inp_eb_rmse = np.sqrt(np.sum((inp_eb_arr-cf_arr) ** 2, axis=0) / nsim)
+inp_eb_rmse = np.sqrt(np.sum((inp_eb_arr-cf_arr) ** 2, axis=0) / nsim)[:13]
 # ps_mask_rmse = np.sqrt(np.sum((ps_mask_arr-cf_arr) ** 2, axis=0) / nsim)
-qu_mask_rmse = np.sqrt(np.sum((qu_mask_arr-cf_arr) ** 2, axis=0) / nsim)
+qu_mask_rmse = np.sqrt(np.sum((qu_mask_arr-cf_arr) ** 2, axis=0) / nsim)[:13]
 
-cf_mean = np.mean(cf_arr, axis=0)
+cf_mean = np.mean(cf_arr, axis=0)[:13]
 print(f'{ell_arr[1:7]=}')
 pcfn_rmse_ratio = np.sum(pcfn_rmse[1:7] / cf_mean[1:7])
 # cfn_rmse_ratio = np.sum(cfn_rmse[1:7] / cf_mean[1:7])
@@ -194,9 +195,9 @@ print(f'{inp_eb_rmse_ratio=}')
 # print(f'{ps_mask_rmse_ratio=}')
 print(f'{qu_mask_rmse_ratio=}')
 
-ell_arr = ell_arr
+ell_arr = ell_arr[:13]
 plt.figure(1)
-plt.scatter(ell_arr, cf_mean, label='input CMB + FG power spectrum (True value, not RMSE)', marker='.')
+plt.scatter(ell_arr, cf_mean, label='input CMB + FG power spectrum (True value, not RMSE)', marker='.', color='black')
 plt.scatter(ell_arr, pcfn_rmse, label='PS + FG + CMB + NOISE (Baseline)', marker='.')
 # plt.scatter(ell_arr, cfn_rmse, label='FG + CMB + NOISE', marker='.')
 plt.scatter(ell_arr, rmv_qu_rmse, label='Template fitting method with fixed lon lat', marker='.')
@@ -208,7 +209,7 @@ plt.scatter(ell_arr, inp_eb_rmse, label='Recycling method + inpaint on B', marke
 plt.scatter(ell_arr, qu_mask_rmse, label='Mask point sources holes on QU', marker='.')
 
 plt.xlabel('$\\ell$')
-plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
+plt.ylabel('$\\Delta D_\\ell^{BB} [\mu K^2]$')
 # plt.ylim(bottom=1e-10)
 plt.loglog()
 # plt.ylim(-0.1,0.1)
@@ -227,12 +228,12 @@ plt.scatter(ell_arr, qu_mask_rmse/rmv_qu_rmse, marker='.', label='Mask point sou
 plt.loglog()
 plt.legend()
 plt.xlabel('$\\ell$')
-plt.ylabel('$D_\\ell^{BB}$ ratio')
+plt.ylabel('$\\Delta D_\\ell^{BB}$ ratio')
 plt.title('comparison between different methods')
 
 path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241024')
 path_save.mkdir(exist_ok=True, parents=True)
-plt.savefig(path_save / Path('cpr_results.png'), dpi=300)
+plt.savefig(path_save / Path('cpr_results_95GHz_62ps.png'), dpi=300)
 
 print(f'{np.mean(pcfn_rmse/rmv_qu_rmse)=}')
 print(f'{np.mean(inp_eb_rmse/rmv_qu_rmse)=}')

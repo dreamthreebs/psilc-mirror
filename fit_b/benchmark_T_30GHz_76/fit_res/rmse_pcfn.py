@@ -197,8 +197,8 @@ print(f'{qu_mask_rmse_ratio=}')
 
 ell_arr = ell_arr[:8]
 plt.figure(1)
-# plt.scatter(ell_arr, cf_mean, label='input CMB + FG power spectrum (True value, not RMSE)', marker='.')
-plt.scatter(ell_arr, pcfn_rmse, label='PS + FG + CMB + NOISE (Baseline)', marker='.', color='black')
+plt.scatter(ell_arr, cf_mean, label='input CMB + FG power spectrum (True value, not RMSE)', marker='.', color='black')
+plt.scatter(ell_arr, pcfn_rmse, label='PS + FG + CMB + NOISE (Baseline)', marker='.')
 # plt.scatter(ell_arr, cfn_rmse, label='FG + CMB + NOISE', marker='.')
 plt.scatter(ell_arr, rmv_qu_rmse, label='Template fitting method with fixed lon lat', marker='.')
 # plt.scatter(ell_arr, rmv_lon_lat_rmse, label='template fitting method with free lon lat', marker='.')
@@ -222,7 +222,7 @@ plt.savefig(path_save / Path('30GHz_76ps_rmse.png'), dpi=300)
 
 
 plt.figure(2)
-plt.scatter(ell_arr, pcfn_rmse/rmv_qu_rmse, marker='.', label='PS + FG + CMB + NOISE (Baseline) / Template fitting method',color='black')
+plt.scatter(ell_arr, pcfn_rmse/rmv_qu_rmse, marker='.', label='PS + FG + CMB + NOISE (Baseline) / Template fitting method')
 plt.scatter(ell_arr, inp_eb_rmse/rmv_qu_rmse, marker='.', label='Recycling method + inpaint on B / Template fitting method')
 plt.scatter(ell_arr, qu_mask_rmse/rmv_qu_rmse, marker='.', label='Mask point sources holes on QU / Template fitting method')
 plt.loglog()
@@ -233,7 +233,7 @@ plt.title('comparison between different methods')
 
 path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241014')
 path_save.mkdir(exist_ok=True, parents=True)
-plt.savefig(path_save / Path('cpr_results.png'), dpi=300)
+plt.savefig(path_save / Path('cpr_results_30GHz_76ps.png'), dpi=300)
 
 print(f'{np.mean(pcfn_rmse/rmv_qu_rmse)=}')
 print(f'{np.mean(inp_eb_rmse/rmv_qu_rmse)=}')
