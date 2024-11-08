@@ -114,10 +114,10 @@ def test_mf():
 
     obj_mf = MatchedFilter(nside, lmax, beam, cl_tot=cl_cn)
 
-    # obj_mf.calc_wl(normalize=True)
-    # obj_mf.check_all_cl()
+    obj_mf.calc_wl(normalize=True)
+    obj_mf.check_all_cl()
 
-    obj_mf.run_mf(m_obs=pcn, m_tot=cn)
+    # obj_mf.run_mf(m_obs=pcn, m_tot=cn)
 
 if __name__ == "__main__":
 

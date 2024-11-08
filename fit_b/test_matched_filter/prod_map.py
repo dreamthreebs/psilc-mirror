@@ -7,6 +7,7 @@ from pathlib import Path
 nside = 1024
 npix = hp.nside2npix(nside)
 beam = 11
+freq = 215
 rlz_idx = 0
 
 noise_seeds = np.load('../benchmark_215/seeds_noise_2k.npy')
@@ -33,7 +34,7 @@ def gen_ps_map():
 gen_ps_map()
 
 def gen_cn_map():
-    nstd = np.load('../../FGSim/NSTDNORTH/1024/215.npy')
+    nstd = np.load(f'../../FGSim/NSTDNORTH/1024/{freq}.npy')
     np.random.seed(seed=noise_seeds[rlz_idx])
     noise = nstd[0] * np.random.normal(loc=0, scale=1, size=npix)
     print(f"{np.std(noise)=}")

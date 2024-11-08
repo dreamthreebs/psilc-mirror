@@ -47,7 +47,7 @@ double P2lz(double l, double z, double *PLZ){
 	}
 }
 
-// Calculate the corss product of two vectors; input ri, rj; output r;
+// Calculate the cross product of two vectors; input ri, rj; output r;
 void CrossProd(double *ri, double *rj, double *r)
 {
 	*(r+0) = *(ri+1)*(*(rj+2))-*(ri+2)*(*(rj+1));
