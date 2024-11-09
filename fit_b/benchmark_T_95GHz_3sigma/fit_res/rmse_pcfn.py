@@ -65,7 +65,7 @@ for rlz_idx in range(0,200):
     n_pcfn = np.load(f'./pcfn_dl/RMV/n/{rlz_idx}.npy')
     n_rmv = np.load(f'./pcfn_dl/RMV/rmv_n/{rlz_idx}.npy')
     # n_lon_lat = np.load(f'./pcn_dl/QU_lon_lat_n/removal_3sigma/{rlz_idx}.npy')
-    n_inp = np.load(f'./pcfn_dl/RMV/inp_n/{rlz_idx}.npy')
+    n_inp = np.load(f'./pcfn_dl/RMV/inp_m2_n/{rlz_idx}.npy')
     # n_ps_mask = np.load(f'./pcfn_dl/QU_fg_slope/removal_n_3sigma/{rlz_idx}.npy')
     # n_ps_mask = np.load(f'./pcfn_dl/RMV/n/{rlz_idx}.npy')
     n_qu_mask = np.load(f'./pcfn_dl/RMV/apo_n/{rlz_idx}.npy')
@@ -91,7 +91,7 @@ for rlz_idx in range(0,200):
     # ps_mask = np.load(f'./pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_ps_mask
     qu_mask = np.load(f'./pcfn_dl/RMV/apo/{rlz_idx}.npy') - n_qu_mask
     # inp_qu = np.load(f'./pcn_dl/INP_QU_1/inpaint_qu_3sigma/{rlz_idx}.npy') - n_qu
-    inp_eb = np.load(f'./pcfn_dl/RMV/inp/{rlz_idx}.npy') - n_inp
+    inp_eb = np.load(f'./pcfn_dl/RMV/inp_m2/{rlz_idx}.npy') - n_inp
 
     # plt.plot(ell_arr, pcfn, label=f'pcfn {rlz_idx}')
     # # plt.plot(ell_arr, cfn, label=f'cfn {rlz_idx}')
@@ -216,7 +216,7 @@ plt.loglog()
 plt.legend()
 plt.title('RMSE')
 
-path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241024')
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241109')
 path_save.mkdir(exist_ok=True, parents=True)
 plt.savefig(path_save / Path('95GHz_62ps_rmse.png'), dpi=300)
 
@@ -231,7 +231,7 @@ plt.xlabel('$\\ell$')
 plt.ylabel('$\\Delta D_\\ell^{BB}$ ratio')
 plt.title('comparison between different methods')
 
-path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241024')
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241109')
 path_save.mkdir(exist_ok=True, parents=True)
 plt.savefig(path_save / Path('cpr_results_95GHz_62ps.png'), dpi=300)
 

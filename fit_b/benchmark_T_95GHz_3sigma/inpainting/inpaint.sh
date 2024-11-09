@@ -27,7 +27,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=120GB
-#SBATCH --exclude=aliws005
+#SBATCH --exclude=aliws[005-020]
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 
@@ -42,11 +42,11 @@
 date +%m-%d_%H-%M
 threshold=3
 number="0"
-mkdir -p output
-mkdir -p output_n
+mkdir -p output_m2
+mkdir -p output_m2_n
 # mrs_alm_inpainting -v ./input/pcn/2sigma/${number}.fits ./mask/pcn/2sigma/${number}.fits ./output/pcn/2sigma/${number}.fits
-mrs_alm_inpainting -v ./input/${number}.fits ./mask/mask.fits ./output/${number}.fits
-mrs_alm_inpainting -v ./input_n/${number}.fits ./mask/mask.fits ./output_n/${number}.fits
+mrs_alm_inpainting -v -m 2 -l 1000 ./input_m2/${number}.fits ./mask/mask1d8.fits ./output_m2/${number}.fits
+mrs_alm_inpainting -v -m 2 -l 1000 ./input_m2_n/${number}.fits ./mask/mask1d8.fits ./output_m2_n/${number}.fits
 
 
 date +%m-%d_%H-%M
