@@ -15,14 +15,15 @@ ori_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.
 mask = np.ones(hp.nside2npix(nside))
 
 # mask = np.copy(ori_mask)
+print(f'{len(df)=}')
 
-for flux_idx in range(76):
+for flux_idx in range(len(df)):
     print(f'{flux_idx=}')
     lon = np.rad2deg(df.at[flux_idx, 'lon'])
     lat = np.rad2deg(df.at[flux_idx, 'lat'])
 
     ctr_vec = hp.ang2vec(theta=lon, phi=lat, lonlat=True)
-    ipix_mask = hp.query_disc(nside=nside, vec=ctr_vec, radius=1.5 * np.deg2rad(beam) / 60)
+    ipix_mask = hp.query_disc(nside=nside, vec=ctr_vec, radius=1.8 * np.deg2rad(beam) / 60)
     mask[ipix_mask] = 0
 
     # fig_size=200
@@ -36,7 +37,9 @@ for flux_idx in range(76):
 path_mask = Path('./mask')
 path_mask.mkdir(exist_ok=True, parents=True)
 # hp.write_map(f'./mask/mask_add_edge.fits', mask*ori_mask, overwrite=True)
-hp.write_map(f'./mask/mask.fits', mask*ori_mask, overwrite=True)
+# hp.write_map(f'./mask/mask.fits', mask*ori_mask, overwrite=True)
+# hp.write_map(f'./mask/mask_only_edge.fits', ori_mask, overwrite=True)
+# hp.write_map(f'./mask/mask1d8.fits', mask*ori_mask, overwrite=True)
 
 
 

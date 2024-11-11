@@ -103,16 +103,16 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
-    m_inp_eb_b = hp.read_map(f'../inpainting/output/{rlz_idx}.fits') * bin_mask
-    m_inp_eb_b_n = hp.read_map(f'../inpainting/output_n/{rlz_idx}.fits') * bin_mask
+    m_inp_eb_b = hp.read_map(f'../inpainting/output_m2/{rlz_idx}.fits') * bin_mask
+    m_inp_eb_b_n = hp.read_map(f'../inpainting/output_m2_n/{rlz_idx}.fits') * bin_mask
 
     dl_inp_eb_b = calc_dl_from_scalar_map(m_inp_eb_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     dl_inp_eb_b_n = calc_dl_from_scalar_map(m_inp_eb_b_n, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
     print('begin calc dl...')
 
-    path_dl_qu = Path(f'pcfn_dl/RMV/inp')
-    path_dl_qu_n = Path(f'pcfn_dl/RMV/inp_n')
+    path_dl_qu = Path(f'pcfn_dl/RMV/inp_m2')
+    path_dl_qu_n = Path(f'pcfn_dl/RMV/inp_m2_n')
     path_dl_qu.mkdir(parents=True, exist_ok=True)
     path_dl_qu_n.mkdir(parents=True, exist_ok=True)
 

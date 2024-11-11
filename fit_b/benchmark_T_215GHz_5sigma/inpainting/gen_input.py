@@ -67,20 +67,22 @@ m_pcfn, m_n = gen_map(lmax=lmax, freq=freq, beam=beam)
 # path_m.mkdir(exist_ok=True, parents=True)
 
 # hp.write_map(path_m / Path(f'{rlz_idx}.npy'), m_b)
-slope_in = np.load(f'./eblc_slope/{rlz_idx}.npy')
-mask = hp.read_map(f'./mask/mask.fits')
+# slope_in = np.load(f'./eblc_slope/{rlz_idx}.npy')
+# mask = hp.read_map(f'./mask/mask.fits')
+mask = hp.read_map(f'./mask/mask_only_edge.fits')
 
-obj = EBLeakageCorrection(m_pcfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope_in)
+obj = EBLeakageCorrection(m_pcfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
 _,_,cln_b_pcfn = obj.run_eblc()
+slope_in = obj.return_slope()
 
 obj = EBLeakageCorrection(m_n, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope_in)
 _,_,cln_b_n = obj.run_eblc()
 
-path_input = Path('./input')
+path_input = Path('./input_m2')
 path_input.mkdir(exist_ok=True, parents=True)
 hp.write_map(path_input / Path(f'{rlz_idx}.fits'), cln_b_pcfn, overwrite=True)
 
-path_input = Path('./input_n')
+path_input = Path('./input_m2_n')
 path_input.mkdir(exist_ok=True, parents=True)
 hp.write_map(path_input / Path(f'{rlz_idx}.fits'), cln_b_n, overwrite=True)
 

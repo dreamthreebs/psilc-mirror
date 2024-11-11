@@ -93,12 +93,12 @@ for rlz_idx in range(0,200):
     # inp_qu = np.load(f'./pcn_dl/INP_QU_1/inpaint_qu_3sigma/{rlz_idx}.npy') - n_qu
     inp_eb = np.load(f'./pcfn_dl/RMV/inp/{rlz_idx}.npy') - n_inp
 
-    plt.plot(ell_arr, pcfn, label=f'pcfn {rlz_idx}')
-    # plt.plot(ell_arr, cfn, label=f'cfn {rlz_idx}')
-    plt.plot(ell_arr, inp_eb, label=f'inp {rlz_idx}')
-    plt.plot(ell_arr, cf, label=f'cf {rlz_idx}')
-    plt.plot(ell_arr, n_pcfn, label=f'n_pcfn {rlz_idx}')
-    plt.plot(ell_arr, n_inp, label=f'n_inp {rlz_idx}')
+    # plt.plot(ell_arr, pcfn, label=f'pcfn {rlz_idx}')
+    # # plt.plot(ell_arr, cfn, label=f'cfn {rlz_idx}')
+    # plt.plot(ell_arr, inp_eb, label=f'inp {rlz_idx}')
+    # plt.plot(ell_arr, cf, label=f'cf {rlz_idx}')
+    # plt.plot(ell_arr, n_pcfn, label=f'n_pcfn {rlz_idx}')
+    # plt.plot(ell_arr, n_inp, label=f'n_inp {rlz_idx}')
 
 
     # plt.plot(ell_arr, pcfn_full, label=f'pcfn full{rlz_idx}')
@@ -113,9 +113,9 @@ for rlz_idx in range(0,200):
     # plt.plot(ell_arr, np.abs(n_ps_mask - n_qu), label=f'ps mask - n {rlz_idx}')
     # plt.plot(ell_arr, np.abs(n_qu_mask - n_qu), label=f'qu mask - n {rlz_idx}')
 
-    plt.semilogy()
-    plt.legend()
-    plt.show()
+    # plt.semilogy()
+    # plt.legend()
+    # plt.show()
 
     # rmv_list.append(rmv)
     # c_list.append(c)
@@ -166,16 +166,16 @@ inp_eb_arr = np.array(inp_eb_list)
 # inp_eb_rmse_c = np.sqrt(np.sum((inp_eb_arr-c_arr) ** 2, axis=0) / nsim)
 # qu_mask_rmse_c = np.sqrt(np.sum((qu_mask_arr-c_arr) ** 2, axis=0) / nsim)
 
-pcfn_rmse = np.sqrt(np.sum((pcfn_arr-cf_arr) ** 2, axis=0) / nsim)[:13]
+pcfn_rmse = np.sqrt(np.sum((pcfn_arr-cf_arr) ** 2, axis=0) / nsim)[:8]
 print(f'{pcfn_rmse.shape=}')
-# cfn_rmse = np.sqrt(np.sum((cfn_arr-cf_arr) ** 2, axis=0) / nsim)[:13]
-rmv_qu_rmse = np.sqrt(np.sum((rmv_qu_arr-cf_arr) ** 2, axis=0) / nsim)[:13]
+# cfn_rmse = np.sqrt(np.sum((cfn_arr-cf_arr) ** 2, axis=0) / nsim)[:8]
+rmv_qu_rmse = np.sqrt(np.sum((rmv_qu_arr-cf_arr) ** 2, axis=0) / nsim)[:8]
 # rmv_lon_lat_rmse = np.sqrt(np.sum((rmv_lon_lat_arr-c_arr) ** 2, axis=0) / nsim)
-inp_eb_rmse = np.sqrt(np.sum((inp_eb_arr-cf_arr) ** 2, axis=0) / nsim)[:13]
+inp_eb_rmse = np.sqrt(np.sum((inp_eb_arr-cf_arr) ** 2, axis=0) / nsim)[:8]
 # ps_mask_rmse = np.sqrt(np.sum((ps_mask_arr-cf_arr) ** 2, axis=0) / nsim)
-qu_mask_rmse = np.sqrt(np.sum((qu_mask_arr-cf_arr) ** 2, axis=0) / nsim)[:13]
+qu_mask_rmse = np.sqrt(np.sum((qu_mask_arr-cf_arr) ** 2, axis=0) / nsim)[:8]
 
-cf_mean = np.mean(cf_arr, axis=0)[:13]
+cf_mean = np.mean(cf_arr, axis=0)[:8]
 print(f'{ell_arr[1:7]=}')
 pcfn_rmse_ratio = np.sum(pcfn_rmse[1:7] / cf_mean[1:7])
 # cfn_rmse_ratio = np.sum(cfn_rmse[1:7] / cf_mean[1:7])
@@ -192,7 +192,7 @@ print(f'{inp_eb_rmse_ratio=}')
 # print(f'{ps_mask_rmse_ratio=}')
 print(f'{qu_mask_rmse_ratio=}')
 
-ell_arr = ell_arr[:13]
+ell_arr = ell_arr[:8]
 plt.figure(1)
 plt.scatter(ell_arr, cf_mean, label='input CMB + FG power spectrum (True value, not RMSE)', marker='.', color='black')
 plt.scatter(ell_arr, pcfn_rmse, label='PS + FG + CMB + NOISE (Baseline)', marker='.')
@@ -213,9 +213,9 @@ plt.loglog()
 plt.legend()
 plt.title('RMSE')
 
-path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241026')
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241110')
 path_save.mkdir(exist_ok=True, parents=True)
-plt.savefig(path_save / Path('95GHz_21ps_rmse.png'), dpi=300)
+plt.savefig(path_save / Path('30GHz_29ps_rmse.png'), dpi=300)
 
 
 plt.figure(2)
@@ -228,9 +228,9 @@ plt.xlabel('$\\ell$')
 plt.ylabel('$\\Delta D_\\ell^{BB}$ ratio')
 plt.title('comparison between different methods')
 
-path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241026')
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241110')
 path_save.mkdir(exist_ok=True, parents=True)
-plt.savefig(path_save / Path('cpr_results_95GHz_21ps.png'), dpi=300)
+plt.savefig(path_save / Path('cpr_results_30GHz_29ps.png'), dpi=300)
 
 print(f'{np.mean(pcfn_rmse/rmv_qu_rmse)=}')
 print(f'{np.mean(inp_eb_rmse/rmv_qu_rmse)=}')

@@ -105,8 +105,8 @@ class MatchedFilter:
 
 def test_mf():
     nside = 1024
-    lmax = 2500
-    beam = 11
+    lmax = 800
+    beam = 67
 
     pcn = np.load('./data/pcn.npy')
     cn = np.load('./data/cn.npy')

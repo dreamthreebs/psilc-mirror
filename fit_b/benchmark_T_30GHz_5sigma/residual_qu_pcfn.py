@@ -56,11 +56,11 @@ class GetResidual:
         np.random.seed(seed=fg_seed[rlz_idx])
         fg_iqu = hp.synfast(cls_fg, nside=nside, fwhm=0, new=True, lmax=self.lmax)
 
-        # pcfn = noise + ps + cmb_iqu + fg_iqu
-        # cfn = noise + cmb_iqu + fg_iqu
+        pcfn = noise + ps + cmb_iqu + fg_iqu
+        cfn = noise + cmb_iqu + fg_iqu
 
-        pcfn = noise
-        cfn = noise
+        # pcfn = noise
+        # cfn = noise
 
         # m = np.load('./1_8k.npy')
         # np.save('./1_6k_pcn.npy', m)
@@ -95,8 +95,8 @@ class GetResidual:
                 print(f'this point has hesse_err')
                 continue
 
-            pcn_p_amp = np.load(f'./fit_res/pcfn_params/fit_qu_no_const_n/idx_{flux_idx}/fit_P_{rlz_idx}.npy')
-            pcn_phi = np.load(f'./fit_res/pcfn_params/fit_qu_no_const_n/idx_{flux_idx}/fit_phi_{rlz_idx}.npy')
+            pcn_p_amp = np.load(f'./fit_res/pcfn_params/fit_qu_no_const/idx_{flux_idx}/fit_P_{rlz_idx}.npy')
+            pcn_phi = np.load(f'./fit_res/pcfn_params/fit_qu_no_const/idx_{flux_idx}/fit_phi_{rlz_idx}.npy')
 
             pcn_q_amp = pcn_p_amp * np.cos(pcn_phi)
             pcn_u_amp = pcn_p_amp * np.sin(pcn_phi)
@@ -157,7 +157,7 @@ class GetResidual:
         res_q = np.copy(de_ps_q)
         res_u = np.copy(de_ps_u)
 
-        path_for_res_map = Path(f'./fit_res/pcfn_fit_qu_n/{threshold}sigma')
+        path_for_res_map = Path(f'./fit_res/pcfn_fit_qu/{threshold}sigma')
         path_for_res_map.mkdir(parents=True, exist_ok=True)
         np.save(path_for_res_map / Path(f'map_q_{rlz_idx}.npy'), res_q)
         np.save(path_for_res_map / Path(f'map_u_{rlz_idx}.npy'), res_u)

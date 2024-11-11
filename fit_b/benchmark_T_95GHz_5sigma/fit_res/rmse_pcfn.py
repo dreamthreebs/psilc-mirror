@@ -216,7 +216,7 @@ plt.loglog()
 plt.legend()
 plt.title('RMSE')
 
-path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241106')
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241109')
 path_save.mkdir(exist_ok=True, parents=True)
 plt.savefig(path_save / Path('95GHz_21ps_rmse.png'), dpi=300)
 
@@ -231,7 +231,7 @@ plt.xlabel('$\\ell$')
 plt.ylabel('$\\Delta D_\\ell^{BB}$ ratio')
 plt.title('comparison between different methods')
 
-path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241106')
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241109')
 path_save.mkdir(exist_ok=True, parents=True)
 plt.savefig(path_save / Path('cpr_results_95GHz_21ps.png'), dpi=300)
 

@@ -14,6 +14,7 @@
 /**/submit_*.sh
 /**/run_pcn_*.py
 /**/run_pcfn_*.py
+/**/run_inp__*.py
 /**/submit_pcn_*.sh
 /**/submit_pcfn_*.sh
 /**/*.so

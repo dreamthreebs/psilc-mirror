@@ -17,6 +17,7 @@ ori_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.
 mask = np.ones(hp.nside2npix(nside))
 
 # mask = np.copy(ori_mask)
+print(f'{len(df)=}')
 
 for flux_idx in range(len(df)):
     print(f'{flux_idx=}')
@@ -38,7 +39,9 @@ for flux_idx in range(len(df)):
 path_mask = Path('./mask')
 path_mask.mkdir(exist_ok=True, parents=True)
 # hp.write_map(f'./mask/mask_add_edge.fits', mask*ori_mask, overwrite=True)
-hp.write_map(f'./mask/mask.fits', mask*ori_mask, overwrite=True)
+# hp.write_map(f'./mask/mask.fits', mask*ori_mask, overwrite=True)
+# hp.write_map(f'./mask/mask_only_edge.fits', ori_mask, overwrite=True)
+# hp.write_map(f'./mask/mask1d8.fits', mask*ori_mask, overwrite=True)
 
 
 

@@ -65,7 +65,7 @@ for rlz_idx in range(0,200):
     n_pcfn = np.load(f'./pcfn_dl/RMV/n/{rlz_idx}.npy')
     n_rmv = np.load(f'./pcfn_dl/RMV/rmv_n/{rlz_idx}.npy')
     # n_lon_lat = np.load(f'./pcn_dl/QU_lon_lat_n/removal_3sigma/{rlz_idx}.npy')
-    n_inp = np.load(f'./pcfn_dl/RMV/inp_n/{rlz_idx}.npy')
+    n_inp = np.load(f'./pcfn_dl/RMV/inp_m2_n/{rlz_idx}.npy')
     # n_ps_mask = np.load(f'./pcfn_dl/QU_fg_slope/removal_n_3sigma/{rlz_idx}.npy')
     # n_ps_mask = np.load(f'./pcfn_dl/RMV/n/{rlz_idx}.npy')
     n_qu_mask = np.load(f'./pcfn_dl/RMV/apo_n/{rlz_idx}.npy')
@@ -84,18 +84,22 @@ for rlz_idx in range(0,200):
     # cfn = np.load(f'./pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_pcfn
     # cn_qu = np.load(f'./pcn_dl/QU/cn/{rlz_idx}.npy') - n_qu
     # pcfn = np.load(f'./pcfn_dl/QU_cmb_slope/cmb/{rlz_idx}.npy') - n_pcfn
-    pcfn = np.load(f'./pcfn_dl/RMV/pcfn/{rlz_idx}.npy') - n_pcfn
+    pcfn = np.load(f'./pcfn_dl/RMV/pcfn/{rlz_idx}.npy')
     # pcfn_1 = np.load(f'./pcfn_dl/RMV/pcfn_bin/{rlz_idx}.npy') - n_pcfn
     # pcfn_full = np.load(f'../../benchmark_T/fit_res/pcfn_dl/QU/pcfn/{rlz_idx}.npy') - n_qu
     # pcn_qu = np.load(f'./pcn_dl/QU/pcn/{rlz_idx}.npy') - n_qu
     # ps_mask = np.load(f'./pcfn_dl/QU/cfn/{rlz_idx}.npy') - n_ps_mask
     qu_mask = np.load(f'./pcfn_dl/RMV/apo/{rlz_idx}.npy') - n_qu_mask
     # inp_qu = np.load(f'./pcn_dl/INP_QU_1/inpaint_qu_3sigma/{rlz_idx}.npy') - n_qu
-    inp_eb = np.load(f'./pcfn_dl/RMV/inp/{rlz_idx}.npy') - n_inp
+    inp_eb = np.load(f'./pcfn_dl/RMV/inp_m2/{rlz_idx}.npy')
 
-    # plt.plot(ell_arr, pcfn, label=f'pcfn {rlz_idx}')
-    # # plt.plot(ell_arr, cfn, label=f'cfn {rlz_idx}')
-    # plt.plot(ell_arr, cf, label=f'cf {rlz_idx}')
+    plt.plot(ell_arr, pcfn, label=f'pcfn {rlz_idx}')
+    # plt.plot(ell_arr, cfn, label=f'cfn {rlz_idx}')
+    plt.plot(ell_arr, cf, label=f'cf {rlz_idx}')
+    plt.plot(ell_arr, inp_eb, label=f'inp {rlz_idx}')
+    plt.plot(ell_arr, pcfn, label=f'pcfn {rlz_idx}')
+    plt.plot(ell_arr, n_inp, label=f'n inp {rlz_idx}')
+    plt.plot(ell_arr, n_rmv, label=f'n rmv {rlz_idx}')
 
     # plt.plot(ell_arr, n_rmv, label=f'rmv n{rlz_idx}')
     # plt.plot(ell_arr, n_pcfn, label=f'pcfn n{rlz_idx}')
@@ -116,9 +120,9 @@ for rlz_idx in range(0,200):
     # plt.plot(ell_arr, np.abs(n_ps_mask - n_qu), label=f'ps mask - n {rlz_idx}')
     # plt.plot(ell_arr, np.abs(n_qu_mask - n_qu), label=f'qu mask - n {rlz_idx}')
 
-    # plt.semilogy()
-    # plt.legend()
-    # plt.show()
+    plt.semilogy()
+    plt.legend()
+    plt.show()
 
     # rmv_list.append(rmv)
     # c_list.append(c)
@@ -216,7 +220,7 @@ plt.loglog()
 plt.legend()
 plt.title('RMSE')
 
-path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241028')
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241111')
 path_save.mkdir(exist_ok=True, parents=True)
 plt.savefig(path_save / Path('215GHz_184ps_rmse.png'), dpi=300)
 
@@ -231,7 +235,7 @@ plt.xlabel('$\\ell$')
 plt.ylabel('$\\Delta D_\\ell^{BB}$ ratio')
 plt.title('comparison between different methods')
 
-path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241028')
+path_save = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20241111')
 path_save.mkdir(exist_ok=True, parents=True)
 plt.savefig(path_save / Path('cpr_results_215GHz_184ps.png'), dpi=300)
 

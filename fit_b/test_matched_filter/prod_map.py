@@ -6,8 +6,8 @@ from pathlib import Path
 
 nside = 1024
 npix = hp.nside2npix(nside)
-beam = 11
-freq = 215
+beam = 67
+freq = 30
 rlz_idx = 0
 
 noise_seeds = np.load('../benchmark_215/seeds_noise_2k.npy')
