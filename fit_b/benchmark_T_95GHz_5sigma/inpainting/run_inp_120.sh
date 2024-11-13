@@ -41,7 +41,7 @@
 
 date +%m-%d_%H-%M
 threshold=3
-number="0"
+number="120"
 pcfn_dir="test_out"
 n_dir="test_out_n"
 mkdir -p ${pcfn_dir}
