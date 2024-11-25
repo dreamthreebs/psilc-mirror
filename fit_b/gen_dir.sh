@@ -1,5 +1,5 @@
-old_fold="benchmark_T_95GHz_5sigma"
-new_fold="benchmark_T_30GHz_3sigma"
+old_fold="benchmark_T_95GHz_3sigma"
+new_fold="PowerSpectrumTest_95_GHz"
 mkdir -p ./$new_fold
 mkdir -p ./$new_fold/inpainting
 mkdir -p ./$new_fold/fit_res
