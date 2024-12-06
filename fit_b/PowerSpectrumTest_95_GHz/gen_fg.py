@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from pathlib import Path
 
-lmax = 1000
+lmax = 1300
 nside = 2048
 freq = 95
 beam = 30
@@ -121,10 +121,10 @@ def debeam_full_b():
     # plt.loglog(l*(l+1)*cl_fg_b*bl**2/(2*np.pi) / fsky, label='first debeam full sky B map, add apo mask, estimate power, then multiply beam on power spectrum level ')
     # plt.loglog(l*(l+1)*cl_full_fg_b/bl**2/(2*np.pi) / fsky, label='first get full sky B map, no debeam, add apo mask, estimate power, then debeam on power spectrum level')
 
-    plt.legend()
-    plt.xlabel("$\\ell$")
-    plt.ylabel("$D_\\ell^{BB}$")
-    plt.show()
+    # plt.legend()
+    # plt.xlabel("$\\ell$")
+    # plt.ylabel("$D_\\ell^{BB}$")
+    # plt.show()
 
     cl_fg = np.array([cl_fg_t, cl_fg_e, cl_fg_b])
     path_data = Path(f'./data/debeam_full_b')
@@ -280,12 +280,12 @@ def check_fg():
 
 def check_cl():
     # full_b = np.load('./data/full_b/cl_fg.npy')
-    no_debeam_full_b = np.load('./data/no_debeam_full_b/cl_fg.npy')
-    no_debeam_full_qu = np.load('./data/no_debeam_full_qu/cl_fg.npy')
+    # no_debeam_full_b = np.load('./data/no_debeam_full_b/cl_fg.npy')
+    # no_debeam_full_qu = np.load('./data/no_debeam_full_qu/cl_fg.npy')
     debeam_full_b = np.load('./data/debeam_full_b/cl_fg.npy')
-    debeam_full_qu = np.load('./data/debeam_full_qu/cl_fg.npy')
+    # debeam_full_qu = np.load('./data/debeam_full_qu/cl_fg.npy')
 
-    cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy').T[:,:np.size(debeam_full_qu, axis=1)]
+    cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy').T[:,:np.size(debeam_full_b, axis=1)]
     l = np.arange(np.size(cl_cmb, axis=1))
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=np.size(cl_cmb, axis=1)-1)
     plt.semilogy(l*(l+1)*cl_cmb[2]/(2*np.pi), label='CMB')
@@ -331,14 +331,14 @@ def check_cl():
     plt.show()
 
 
-full_b()
-no_debeam_full_b()
-no_debeam_full_qu()
+# full_b()
+# no_debeam_full_b()
+# no_debeam_full_qu()
 debeam_full_b()
-debeam_full_qu()
+# debeam_full_qu()
 
 # check_fg()
-# check_cl()
+check_cl()
 
 
 

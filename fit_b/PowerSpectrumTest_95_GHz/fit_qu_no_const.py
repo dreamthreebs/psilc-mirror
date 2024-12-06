@@ -63,7 +63,7 @@ class FitPolPS:
 
         return phi, sigma_phi
 
-    def __init__(self, m_q, m_u, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False):
+    def __init__(self, m_q, m_u, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False, cov_path='./cmb_qu_cov', cov_precise_path=None):
         self.m_q = m_q # sky maps (npix,)
         self.m_u = m_u # sky maps (npix,)
         self.freq = freq # frequency
@@ -86,6 +86,11 @@ class FitPolPS:
         self.beam = beam # in arcmin
         self.epsilon = epsilon # if CMB covariance matrix is not semi-positive, add this to cross term
         self.nside2pixarea_factor = hp.nside2pixarea(nside=self.nside)
+        self.cov_path = Path(cov_path)
+        if cov_precise_path is not None:
+            self.cov_precise_path = Path(cov_precise_path)
+        else:
+            self.cov_precise_path = None
 
         self.i_amp = self.flux2norm_beam(self.iflux) / self.nside2pixarea_factor
         self.q_amp = self.flux2norm_beam(self.qflux) / self.nside2pixarea_factor
@@ -129,7 +134,12 @@ class FitPolPS:
 
     def calc_definite_fixed_cmb_cov(self):
 
-        cmb_cov_path = Path(f'./cmb_qu_cov/{self.flux_idx}.npy')
+        # cmb_cov_path = Path(f'./cmb_qu_cov/{self.flux_idx}.npy')
+        if self.cov_precise_path is not None:
+            cmb_cov_path = self.cov_precise_path
+        else:
+            cmb_cov_path = self.cov_path / Path(f'{self.flux_idx}.npy')
+
         # cmb_cov_path = Path(f'./exp_cov_QU.npy')
         cov = np.load(cmb_cov_path)
         logger.debug(f'{cov=}')
@@ -141,6 +151,10 @@ class FitPolPS:
         reconstructed_eigenval,_ = np.linalg.eigh(reconstructed_cov)
         logger.debug(f'{reconstructed_eigenval=}')
         logger.debug(f'{np.max(np.abs(reconstructed_cov-cov))=}')
+
+        if self.cov_precise_path is not None:
+            pass
+
         semi_def_cmb_cov = Path(f'semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}')
         semi_def_cmb_cov.mkdir(parents=True, exist_ok=True)
         np.save(semi_def_cmb_cov / Path(f'{self.flux_idx}.npy'), reconstructed_cov)
@@ -181,7 +195,11 @@ class FitPolPS:
             np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
 
+        if self.cov_precise_path is not None:
+            pass
+
         cmb_cov_path = Path(f'./semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+
         logger.info(f'{cmb_cov_path=}')
 
         cov = np.load(cmb_cov_path)
@@ -220,6 +238,23 @@ class FitPolPS:
         if mode == 'cmb+noise+fg':
             fg_cov_path = Path(f'./semi_def_fg_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
             fg_cov = np.load(fg_cov_path)
+            cov = cov + fg_cov
+
+            nstd_q2 = (self.nstd_q**2)[self.ipix_fit].copy()
+            nstd_u2 = (self.nstd_u**2)[self.ipix_fit].copy()
+            nstd2 = np.concatenate([nstd_q2, nstd_u2])
+            logger.debug(f'{nstd2.shape=}')
+            logger.debug(f'{cov=}')
+            for i in range(self.ndof):
+                cov[i,i] = cov[i,i] + nstd2[i]
+            logger.debug(f'{nstd2=}')
+            logger.debug(f'{cov=}')
+            # self.inv_cov = np.linalg.inv(cov)
+            self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
+
+            I_exp = cov @ self.inv_cov
+            print(f'{I_exp=}')
+            # self.inv_cov = np.linalg.pinv(cov)
             cov = cov + fg_cov
 
             nstd_q2 = (self.nstd_q**2)[self.ipix_fit].copy()
@@ -778,23 +813,6 @@ def gen_map(beam, freq, lmax):
 
     m = noise + ps + cmb_iqu + fg
     # m = noise
-
-    # path_fg = Path(f'./data/fg')
-    # path_cmb = Path(f'./data/cmb')
-    # path_noise = Path(f'./data/noise')
-    # path_pcfn = Path(f'./data/pcfn')
-    # path_fg.mkdir(exist_ok=True, parents=True)
-    # path_cmb.mkdir(exist_ok=True, parents=True)
-    # path_noise.mkdir(exist_ok=True, parents=True)
-    # path_pcfn.mkdir(exist_ok=True, parents=True)
-
-    # np.save(path_fg / Path(f'{rlz_idx}.npy'), fg_iqu)
-    # np.save(path_cmb / Path(f'{rlz_idx}.npy'), cmb_iqu)
-    # np.save(path_noise / Path(f'{rlz_idx}.npy'), noise)
-    # np.save(path_pcfn / Path(f'{rlz_idx}.npy'), m)
-
-    return m
-
 
 def main():
     freq = 215
