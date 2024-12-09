@@ -83,12 +83,12 @@ def plot_th_cf(map_type):
         i = 1
         # plt.loglog(l*(l+1)*cl_th_fg[i]/bl[i]**2/(2*np.pi), label=f'fg, {i=}')
         # plt.loglog(l*(l+1)*cl_th_cmb[i]/bl[i]**2/(2*np.pi), label=f'cmb, {i=}')
-        plt.loglog(l*(l+1)*(cl_th_cmb[i]+cl_th_fg[i])/bl[i]**2/(2*np.pi), label=f'cmb+fg input')
+        plt.loglog(l*(l+1)*(cl_th_cmb[i]+cl_th_fg[i])/bl[i]**2/(2*np.pi), label=f'cmb+fg input EE')
         # plt.legend()
         # plt.show()
     elif map_type == "BB":
         i = 2
-        plt.loglog(l*(l+1)*(cl_th_cmb[i]+cl_th_fg[i])/bl[i]**2/(2*np.pi), label=f'cmb+fg input')
+        plt.loglog(l*(l+1)*(cl_th_cmb[i]+cl_th_fg[i])/bl[i]**2/(2*np.pi), label=f'cmb+fg input BB')
 
 # Part 3: see how power spectrum change with diffrent band power
 
@@ -222,12 +222,10 @@ def interp_dl():
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
-    dl_cfn = calc_dl_from_pol_map(m_q=cfn[1].copy(), m_u=cfn[2].copy(), bl=bl, apo_mask=ori_apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_cfn = calc_dl_from_pol_map(m_q=pcfn[1].copy(), m_u=pcfn[2].copy(), bl=bl, apo_mask=ori_apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     dl_n = calc_dl_from_pol_map(m_q=n[1].copy(), m_u=n[2].copy(), bl=bl, apo_mask=ori_apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
 
-    # ell_arr = np.load('./result/ell_arr_10_0.1.npy')
-    # band_power = np.load('./result/cfn_10_0.1.npy')[0] - np.load('./result/n_10_0.1.npy')[0]
     lmax_cov = 600
 
     l, dl_interp_e = interp_band_power(ell_arr=ell_arr, band_power=dl_cfn[0]-dl_n[0], lmax_cov=lmax_cov)
@@ -236,7 +234,7 @@ def interp_dl():
     cl_interp_e = dl2cl(dl_interp_e)
     cl_interp_b = dl2cl(dl_interp_b)
 
-    path_cl_interp = Path('./cl_interp')
+    path_cl_interp = Path('./cl_interp_pcfn')
     path_cl_interp.mkdir(exist_ok=True, parents=True)
     np.save(path_cl_interp / Path(f'e.npy'), cl_interp_e)
     np.save(path_cl_interp / Path(f'b.npy'), cl_interp_b)
@@ -246,16 +244,35 @@ def interp_dl():
     # plt.loglog(l, cl_interp, label='cl interpolation')
     # plt.show()
 
+def check_interp_dl():
+    cl_interp_e = np.load('./cl_interp/e.npy')
+    cl_interp_b = np.load('./cl_interp/b.npy')
+    l = np.arange(len(cl_interp_b))
+    plot_th_cf(map_type='EE')
+    plt.loglog(l*(l+1)*cl_interp_e/(2*np.pi), label='cl interpolate EE')
+    plot_th_cf(map_type='BB')
+    plt.loglog(l*(l+1)*cl_interp_b/(2*np.pi), label='cl interpolate BB')
+    plt.legend()
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$D_\\ell [\\mu K^2]$')
+    plt.show()
+
+
 def fit_my_ps():
+    cl_fg = gen_fg_cl()
+    cl_cmb = gen_cmb_cl(beam=beam, lmax=lmax)
+
+    cl_tot = cl_fg + cl_cmb
+
     lmax_cov = 600
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax_cov)
     pcfn, cfn, cf, n = gen_map(rlz_idx=rlz_idx)
-    cl_interp_e = np.load('./cl_interp/e.npy')
-    cl_interp_b = np.load('./cl_interp/b.npy')
+    cl_interp_e = np.load('./cl_interp_pcfn/e.npy')
+    cl_interp_b = np.load('./cl_interp_pcfn/b.npy')
 
     flux_idx = 0
     pix_ind = np.load(f'./pix_idx_qu/{flux_idx}.npy')
-    obj_cov = CovCalculator(nside=nside, lmin=2, lmax=lmax_cov, Cl_TT=np.zeros_like(cl_interp_e), Cl_EE=cl_interp_e*bl**2, Cl_BB=cl_interp_b*bl**2, Cl_TE=np.zeros_like(cl_interp_e), pixind=pix_ind, calc_opt='polarization', out_pol_opt='QU')
+    obj_cov = CovCalculator(nside=nside, lmin=2, lmax=lmax_cov, Cl_TT=cl_tot[0], Cl_EE=cl_interp_e*bl**2, Cl_BB=cl_interp_b*bl**2, Cl_TE=cl_tot[3], pixind=pix_ind, calc_opt='polarization', out_pol_opt='QU')
     MP = obj_cov.run_calc_cov()
 
     path_cov = Path('./cmb_qu_cov')
@@ -271,10 +288,47 @@ def fit_my_ps():
 
     num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
 
-    path_res = Path('./parameter/estimate')
+    path_res = Path('./parameter/estimate_pcfn')
     path_res.mkdir(exist_ok=True, parents=True)
     np.save(path_res / Path(f'fit_P_{rlz_idx}.npy'), fit_P)
     np.save(path_res / Path(f'fit_phi_{rlz_idx}.npy'), fit_phi)
+
+def interp_ps_dl():
+
+    pcfn, cfn, cf, n = gen_map(rlz_idx=rlz_idx)
+    mask = np.load('./ps_mask/81_ps_mask.npy')
+
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
+    l_min_edges, l_max_edges = generate_bins(l_min_start=20, delta_l_min=10, l_max=lmax+1, fold=0.1)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    dl_cfn = calc_dl_from_pol_map(m_q=pcfn[1].copy(), m_u=pcfn[2].copy(), bl=bl, apo_mask=mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_n = calc_dl_from_pol_map(m_q=n[1].copy(), m_u=n[2].copy(), bl=bl, apo_mask=mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+
+    lmax_cov = 600
+
+    l, dl_interp_e = interp_band_power(ell_arr=ell_arr, band_power=dl_cfn[0]-dl_n[0], lmax_cov=lmax_cov)
+    l, dl_interp_b = interp_band_power(ell_arr=ell_arr, band_power=dl_cfn[3]-dl_n[3], lmax_cov=lmax_cov)
+    cl_interp_e = dl2cl(dl_interp_e)
+    cl_interp_b = dl2cl(dl_interp_b)
+
+    path_cl_interp = Path('./cl_interp_ps')
+    path_cl_interp.mkdir(exist_ok=True, parents=True)
+    np.save(path_cl_interp / Path(f'e.npy'), cl_interp_e)
+    np.save(path_cl_interp / Path(f'b.npy'), cl_interp_b)
+
+
+    plot_th_cf(map_type='EE')
+    plt.loglog(l, dl_interp_e, label='dl interpolation, EE')
+    plot_th_cf(map_type='BB')
+    plt.loglog(l, dl_interp_b, label='dl interpolation, BB')
+    plt.legend()
+
+    plt.xlabel('$\\ell$')
+    plt.ylabel('$D_\\ell [\\mu K^2]$')
+    plt.show()
+
 
 
 if __name__ == "__main__":
@@ -282,7 +336,9 @@ if __name__ == "__main__":
     # check_estimated_cl()
     # interp_dl_example()
     # interp_dl()
+    # check_interp_dl()
     fit_my_ps()
+    # interp_ps_dl()
 
 
 

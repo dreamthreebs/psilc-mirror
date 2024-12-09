@@ -602,10 +602,10 @@ def do_th_fit():
 
     obj = FitPolPS(m_q=pcfn[1], m_u=pcfn[2], freq=freq, nstd_q=nstd[1], nstd_u=nstd[2], flux_idx=0, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam)
 
-    obj.calc_definite_fixed_cmb_cov()
-    obj.calc_covariance_matrix(mode='cmb+noise')
+    # obj.calc_definite_fixed_cmb_cov()
+    # obj.calc_covariance_matrix(mode='cmb+noise')
     num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
-    path_res = Path('./parameter/th')
+    path_res = Path('./parameter/th_have_all')
     path_res.mkdir(exist_ok=True, parents=True)
     np.save(path_res / Path(f'fit_P_{rlz_idx}.npy'), fit_P)
     np.save(path_res / Path(f'fit_phi_{rlz_idx}.npy'), fit_phi)
@@ -896,7 +896,7 @@ if __name__=='__main__':
     # calc_th_cov()
     # calc_cmb_cov()
     # calc_ps_cov()
-    # do_th_fit()
+    do_th_fit()
     # do_cmb_fit()
     # do_ps_fit()
 
@@ -906,7 +906,7 @@ if __name__=='__main__':
     # calc_b_cov()
     # do_b_fit()
 
-    test_cl()
+    # test_cl()
     # test_cfn()
     # test_th_cov()
 
