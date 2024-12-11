@@ -1,5 +1,5 @@
-old_fold="./215GHz"
-new_fold="./270GHz"
+old_fold="./270GHz"
+new_fold="./155GHz"
 mkdir -p ./$new_fold
 
 mkdir -p ./$new_fold/inpainting

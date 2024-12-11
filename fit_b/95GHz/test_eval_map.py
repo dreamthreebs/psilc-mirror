@@ -68,7 +68,7 @@ def gen_cmb_cl(beam, lmax):
     return np.asarray([Cl_TT, Cl_EE, Cl_BB, Cl_TE])
 
 # Part 2: see theoretical power spectrum
-def plot_th_cf(map_type):
+def plot_th_cf(map_type, with_beam=True):
     # Dl theoretical cmb + foreground
 
     # cfn = np.load(f'./cfn.npy')
@@ -81,14 +81,19 @@ def plot_th_cf(map_type):
 
     if map_type == "EE":
         i = 1
-        # plt.loglog(l*(l+1)*cl_th_fg[i]/bl[i]**2/(2*np.pi), label=f'fg, {i=}')
-        # plt.loglog(l*(l+1)*cl_th_cmb[i]/bl[i]**2/(2*np.pi), label=f'cmb, {i=}')
-        plt.loglog(l*(l+1)*(cl_th_cmb[i]+cl_th_fg[i])/bl[i]**2/(2*np.pi), label=f'cmb+fg input EE')
-        # plt.legend()
-        # plt.show()
     elif map_type == "BB":
         i = 2
-        plt.loglog(l*(l+1)*(cl_th_cmb[i]+cl_th_fg[i])/bl[i]**2/(2*np.pi), label=f'cmb+fg input BB')
+
+    if with_beam:
+        # plt.loglog(l*(l+1)*cl_th_fg[i]/bl[i]**2/(2*np.pi), label=f'fg, {i=}')
+        # plt.loglog(l*(l+1)*cl_th_cmb[i]/bl[i]**2/(2*np.pi), label=f'cmb, {i=}')
+        plt.loglog(l*(l+1)*(cl_th_cmb[i]+cl_th_fg[i])/bl[i]**2/(2*np.pi), label=f'cmb+fg input {map_type}')
+        # plt.loglog(l*(l+1)*(cl_th_cmb[i]+cl_th_fg[i])/(2*np.pi), label=f'cmb+fg no beam {map_type}')
+    else:
+        # plt.loglog(l*(l+1)*cl_th_fg[i]/(2*np.pi), label=f'fg, {i=}')
+        # plt.loglog(l*(l+1)*cl_th_cmb[i]/(2*np.pi), label=f'cmb, {i=}')
+        plt.loglog(l*(l+1)*(cl_th_cmb[i]+cl_th_fg[i])/(2*np.pi), label=f'cmb+fg input {map_type}')
+
 
 # Part 3: see how power spectrum change with diffrent band power
 
@@ -248,13 +253,15 @@ def check_interp_dl():
     cl_interp_e = np.load('./cl_interp/e.npy')
     cl_interp_b = np.load('./cl_interp/b.npy')
     l = np.arange(len(cl_interp_b))
-    plot_th_cf(map_type='EE')
-    plt.loglog(l*(l+1)*cl_interp_e/(2*np.pi), label='cl interpolate EE')
-    plot_th_cf(map_type='BB')
-    plt.loglog(l*(l+1)*cl_interp_b/(2*np.pi), label='cl interpolate BB')
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=np.size(cl_interp_e)-1)
+    plot_th_cf(map_type='EE', with_beam=False)
+    plt.loglog(l*(l+1)*cl_interp_e * bl**2/(2*np.pi), label='interp EE')
+    plot_th_cf(map_type='BB', with_beam=False)
+    plt.loglog(l*(l+1)*cl_interp_b * bl**2/(2*np.pi), label='interp BB')
     plt.legend()
     plt.xlabel('$\\ell$')
     plt.ylabel('$D_\\ell [\\mu K^2]$')
+    plt.title(f'Power spectrum @ {freq}GHz (with beam convolved)')
     plt.show()
 
 
@@ -336,8 +343,8 @@ if __name__ == "__main__":
     # check_estimated_cl()
     # interp_dl_example()
     # interp_dl()
-    # check_interp_dl()
-    fit_my_ps()
+    check_interp_dl()
+    # fit_my_ps()
     # interp_ps_dl()
 
 

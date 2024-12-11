@@ -36,8 +36,8 @@ for flux_idx in range(0,10):
     # print(f'{P_list=}')
     
     for rlz_idx in range(0,200):
-        P = np.load(f'./parameter/estimate_pcfn/fit_P_{rlz_idx}.npy')
-        phi = np.load(f'./parameter/estimate_pcfn/fit_phi_{rlz_idx}.npy')
+        P = np.load(f'./parameter/th_have_all/fit_P_{rlz_idx}.npy')
+        phi = np.load(f'./parameter/th_have_all/fit_phi_{rlz_idx}.npy')
         # print(f"{P=}")
         # phi = np.load(f'./params/0/fit_2/phi_{rlz_idx}.npy')
         Q = P * np.cos(phi)
@@ -47,7 +47,7 @@ for flux_idx in range(0,10):
         U_list.append(U)
         # phi_list.append(phi)
 
-    data = np.asarray(U_list)
+    data = np.asarray(Q_list)
     print(f'{data.shape=}')
 
     # data_mean = np.mean(data, axis=0)
@@ -85,7 +85,7 @@ for flux_idx in range(0,10):
     plt.plot(x, scaled_pdf, 'r--', linewidth=2, label=f'Fit (mu={mu:.2f}, std={std:.2f})')
     
     # mu_ref = np.sqrt(250**2 + 500**2)
-    mu_ref = flux_u # 757.28
+    mu_ref = flux_q # 757.28
     std_ref =  23 # 23.782
     
     scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0]

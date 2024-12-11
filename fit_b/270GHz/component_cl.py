@@ -20,7 +20,22 @@ cmb_seeds = np.load('../seeds_cmb_2k.npy')
 fg_seeds = np.load('../seeds_fg_2k.npy')
 rlz_idx = 0
 
+freq_idx = 7
+
 # Part 1: Utils
+def see_numerical_lmax():
+    lmax = 3*nside - 1
+    beam = 11
+    npix = hp.nside2npix(nside)
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax)
+    map_depth = df_info.at[freq_idx, 'mapdepth']
+    nl = (map_depth*np.ones_like(bl))**2 / 3437.728**2
+    noise = hp.synfast(nl, fwhm=np.deg2rad(beam)/60, nside=nside)
+    cl_noise = hp.anafast(noise)
+    plt.loglog(cl_noise, label=f'{beam=}')
+    plt.legend()
+    plt.show()
+
 def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     bins_edges = []
     l_min = l_min_start  # starting l_min
@@ -90,7 +105,7 @@ def gen_ps_fg_map():
     l = np.arange(lmax+1)
     dl_c = l * (l+1) * cmb_cl / (2 * np.pi)
 
-    map_depth = df_info.at[0, 'mapdepth']
+    map_depth = df_info.at[freq_idx, 'mapdepth']
     nl = (map_depth/bl)**2 / 3437.728**2
     dl_n = l * (l+1) * nl / (2 * np.pi)
 
@@ -284,13 +299,12 @@ def check_interp_cl():
     plt.legend()
     plt.show()
 
-def gen_interp_cov():
+def gen_interp_cov(lmax_cov):
     cl_fg = gen_fg_cl()
     cl_cmb = gen_cmb_cl(beam=beam, lmax=lmax)
 
     cl_tot = cl_fg + cl_cmb
 
-    lmax_cov = 400
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax_cov)
     pcfn, cfn, cf, n = gen_map(rlz_idx=rlz_idx)
     cl_interp_e = np.load('./component_dl/cl_interp_pcfn/e.npy')
@@ -305,8 +319,7 @@ def gen_interp_cov():
     path_cov.mkdir(exist_ok=True, parents=True)
     np.save(Path(path_cov / f'{flux_idx}.npy'), MP)
 
-def fit_my_ps():
-    lmax_cov = 400
+def fit_my_ps(lmax_cov):
     pcfn, cfn, cf, n = gen_map(rlz_idx=rlz_idx)
     nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
     obj = FitPolPS(m_q=pcfn[1], m_u=pcfn[2], freq=freq, nstd_q=nstd[1], nstd_u=nstd[2], flux_idx=0, df_mask=df, df_ps=df, lmax=lmax_cov, nside=nside, radius_factor=1.5, beam=beam, cov_path='./cmb_qu_cov_interp')
@@ -322,6 +335,8 @@ def fit_my_ps():
     np.save(path_res / Path(f'fit_phi_{rlz_idx}.npy'), fit_phi)
 
 if __name__ == "__main__":
+
+    # see_numerical_lmax()
     # gen_ps_fg_map()
     # check_component()
 
@@ -341,11 +356,13 @@ if __name__ == "__main__":
     # calc_th_cov()
     # do_th_fit()
 
-    # interp_dl(lmax_cov=400, lmax_interp=lmax)
+    lmax_cov = 3000
+    # interp_dl(lmax_cov=lmax_cov, lmax_interp=lmax)
     check_interp_cl()
 
-    # gen_interp_cov()
-    # fit_my_ps()
+    # gen_interp_cov(lmax_cov=lmax_cov)
+    # fit_my_ps(lmax_cov=lmax_cov)
+
 
     pass
 
