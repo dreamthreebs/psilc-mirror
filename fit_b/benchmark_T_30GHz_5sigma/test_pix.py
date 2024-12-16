@@ -24,16 +24,16 @@ logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.INFO)
 
 def main():
-    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    nside = 1024
+    nstd = np.load(f'../../FGSim/NSTDNORTH/1024/{freq}.npy')
     nstd_q = nstd[1].copy()
     nstd_u = nstd[2].copy()
 
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/3.npy')
-    m = np.load(f'./data/ps/ps.npy')
     noise = nstd * np.random.normal(loc=0, scale=1, size=(3,hp.nside2npix(nside)))
-    m = m + noise
+    m = noise
     m_q = m[1].copy()
     m_u = m[2].copy()
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
@@ -43,7 +43,6 @@ def main():
     df_mask = pd.read_csv(f'./mask/{freq}.csv')
     print(f'{len(df_mask)=}')
     df_ps = df_mask
-    nside = 1024
 
     for flux_idx in range(len(df_mask)):
         flux_idx = 0

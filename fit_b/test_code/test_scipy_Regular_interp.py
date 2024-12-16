@@ -2,27 +2,41 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
 
-# Define the 1D grid and function values in reverse order
-x = np.linspace(0, 10, 5)  # Grid points in descending order
-y = np.sin(x)  # Function values at the grid points
+# Define the 2D grid
+x = np.linspace(0, 4, 10)  # Grid points for the x-axis
+y = np.linspace(0, 4, 10)  # Grid points for the y-axis
+X, Y = np.meshgrid(x, y, indexing='ij')  # Create a 2D grid
 
-# Reverse the order of grid and values to ascending order
-x_sorted = x[::-1]
-y_sorted = y[::-1]
+# Define a 2D function over the grid
+Z = np.sin(X) * np.cos(Y)
 
 # Create the interpolator
-interpolator = RegularGridInterpolator((x_sorted,), y_sorted)
+interpolator = RegularGridInterpolator((x, y), Z)
 
-# Interpolate at new points
-x_new = np.linspace(0, 10, 50)  # Points to interpolate
-y_new = interpolator(x_new)
+# Points to interpolate
+x_new = np.linspace(0, 4, 50)  # Fine grid for x-axis
+y_new = np.linspace(0, 4, 50)  # Fine grid for y-axis
+X_new, Y_new = np.meshgrid(x_new, y_new, indexing='ij')
+points = np.array([X_new.ravel(), Y_new.ravel()]).T  # Create points for interpolation
 
-# Visualize the result
-plt.plot(x, y, 'o', label="Original Points (Descending Order)")
-plt.plot(x_new, y_new, '-', label="Interpolated Curve")
-plt.legend()
-plt.xlabel("x")
-plt.ylabel("y")
-plt.title("Interpolation with Data in Inverse Order")
+# Perform interpolation
+Z_new = interpolator(points).reshape(X_new.shape)
+
+# Visualize the results
+plt.figure(figsize=(12, 6))
+
+# Original grid
+plt.subplot(1, 2, 1)
+plt.contourf(X, Y, Z, levels=20, cmap='viridis')
+plt.title('Original Grid')
+plt.colorbar(label='Value')
+
+# Interpolated grid
+plt.subplot(1, 2, 2)
+plt.contourf(X_new, Y_new, Z_new, levels=50, cmap='viridis')
+plt.title('Interpolated Grid')
+plt.colorbar(label='Value')
+
+plt.tight_layout()
 plt.show()
 
