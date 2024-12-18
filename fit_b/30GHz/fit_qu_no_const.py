@@ -985,9 +985,9 @@ def first_fit_all():
         'true_q': true_q_arr,
         'fit_q': fit_q_arr,
         'fit_q_err': fit_q_err_arr,
-        'true_u': true_q_arr,
-        'fit_u': fit_q_arr,
-        'fit_u_err': fit_q_err_arr
+        'true_u': true_u_arr,
+        'fit_u': fit_u_arr,
+        'fit_u_err': fit_u_err_arr
         })
 
     df_fit.to_csv('./mask/30_fit.csv', index=False)
@@ -1016,7 +1016,7 @@ def main():
     df_mask = pd.read_csv(f'./mask/{freq}.csv')
     df_ps = pd.read_csv(f'../../pp_P/mask/ps_csv/{freq}.csv')
 
-    flux_idx=4
+    flux_idx=19
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
