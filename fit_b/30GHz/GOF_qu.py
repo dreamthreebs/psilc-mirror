@@ -36,8 +36,8 @@ for flux_idx in range(0,10):
     # print(f'{P_list=}')
     
     for rlz_idx in range(0,200):
-        P = np.load(f'./parameter/th_have_all/fit_P_{rlz_idx}.npy')
-        phi = np.load(f'./parameter/th_have_all/fit_phi_{rlz_idx}.npy')
+        P = np.load(f'./parameter/cmb_noise_vary/fit_P_{rlz_idx}.npy')
+        phi = np.load(f'./parameter/cmb_noise_vary/fit_phi_{rlz_idx}.npy')
         # print(f"{P=}")
         # phi = np.load(f'./params/0/fit_2/phi_{rlz_idx}.npy')
         Q = P * np.cos(phi)

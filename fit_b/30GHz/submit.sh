@@ -26,8 +26,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=50GB
-# SBATCH --exclude=aliws005
+#SBATCH --mem=80GB
+#SBATCH --exclude=aliws[007-044]
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 
@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./component_cl.py
+mpiexec python -u ./fit_qu_no_const.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

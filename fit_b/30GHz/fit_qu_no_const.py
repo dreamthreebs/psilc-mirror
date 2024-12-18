@@ -316,7 +316,7 @@ class FitPolPS:
         hp.gnomview(mask, rot=[lon, lat, 0])
         plt.show()
 
-    def find_nearby_ps(self, num_ps=1, threshold_extra_factor=1.1):
+    def find_nearby_ps(self, num_ps=1, threshold_extra_factor=0.5):
         threshold_factor = self.radius_factor + threshold_extra_factor
         logger.debug(f'{threshold_factor=}')
         dir_0 = (self.lon, self.lat)
@@ -358,7 +358,7 @@ class FitPolPS:
             index = index_near[0][i]
             print(f'{index=}')
             print(f'{self.df_mask.at[self.flux_idx, "flux_idx"]=}')
-            if index < self.df_mask.at[self.flux_idx, 'rank']:
+            if index < self.df_mask.at[self.flux_idx, 'flux_idx']:
                 lon = np.rad2deg(self.df_ps.at[index, 'lon'])
                 lat = np.rad2deg(self.df_ps.at[index, 'lat'])
                 pflux = self.flux2norm_beam(self.df_ps.at[index, 'pflux']) / self.nside2pixarea_factor
@@ -441,7 +441,7 @@ class FitPolPS:
 
         return num_ps, tuple(sum(zip(qflux_arr, uflux_arr, lon_arr, lat_arr), ()))
 
-    def fit_all(self, cov_mode:str, mode:str='pipeline'):
+    def fit_all(self, cov_mode:str, mode:str='pipeline', return_qu:bool=False):
         def calc_error():
             theta = hp.rotator.angdist(dir1=ctr0_vec, dir2=vec_around)
 
@@ -585,13 +585,13 @@ class FitPolPS:
 
         def fit_3_ps():
             num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat) = self.find_nearby_ps(num_ps=2)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, 0.0, 0.0)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3)
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon)
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat)
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
-            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","c_q","c_u"), *params)
-            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-500,500), (-500,500)]
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3"), *params)
+            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -607,13 +607,13 @@ class FitPolPS:
 
         def fit_4_ps():
             num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat) = self.find_nearby_ps(num_ps=3)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, 0.0, 0.0)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4)
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon)
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat)
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
-            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","c_q","c_u"), *params)
-            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-500,500), (-500,500)]
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4"), *params)
+            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -629,13 +629,13 @@ class FitPolPS:
 
         def fit_5_ps():
             num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat) = self.find_nearby_ps(num_ps=4)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, 0.0, 0.0)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5)
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon)
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat)
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
-            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","c_q","c_u"), *params)
-            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-500,500), (-500,500)]
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5"), *params)
+            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -651,13 +651,13 @@ class FitPolPS:
 
         def fit_6_ps():
             num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat) = self.find_nearby_ps(num_ps=5)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, 0.0, 0.0)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6)
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon)
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat)
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
-            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6","c_q","c_u"), *params)
-            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-500,500), (-500,500)]
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6"), *params)
+            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -673,13 +673,13 @@ class FitPolPS:
 
         def fit_7_ps():
             num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat, self.q_amp_7, self.u_amp_7, self.ctr7_lon, self.ctr7_lat) = self.find_nearby_ps(num_ps=6)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, self.q_amp_7, self.u_amp_7, 0.0, 0.0)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, self.q_amp_7, self.u_amp_7)
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon, self.ctr7_lon)
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat)
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
-            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6","q_amp_7","u_amp_7","c_q","c_u"), *params)
-            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-500,500), (-500,500)]
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6","q_amp_7","u_amp_7"), *params)
+            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -695,13 +695,13 @@ class FitPolPS:
 
         def fit_8_ps():
             num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat, self.q_amp_7, self.u_amp_7, self.ctr7_lon, self.ctr7_lat, self.q_amp_8, self.u_amp_8, self.ctr8_lon, self.ctr8_lat) = self.find_nearby_ps(num_ps=7)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, self.q_amp_7, self.u_amp_7, self.q_amp_8, self.u_amp_8, 0.0, 0.0)
+            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, self.q_amp_7, self.u_amp_7, self.q_amp_8, self.u_amp_8)
             self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon, self.ctr7_lon, self.ctr8_lon)
             self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat, self.ctr8_lat)
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
-            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6","q_amp_7","u_amp_7","q_amp_8","u_amp_8","c_q","c_u"), *params)
-            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-500,500), (-500,500)]
+            obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6","q_amp_7","u_amp_7","q_amp_8","u_amp_8"), *params)
+            obj_minuit.limits = [(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000),(-50000,50000)]
             logger.debug(f'\n{obj_minuit.migrad()}')
             logger.debug(f'\n{obj_minuit.hesse()}')
 
@@ -764,6 +764,8 @@ class FitPolPS:
             logger.info(f'{self.p_amp=}, {fit_P=}, {fit_P_err=}')
             logger.info(f'{self.phi=}, {fit_phi=}, {fit_phi_err=}')
             # return num_ps, chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err, fit_error_q, fit_error_u
+            if return_qu:
+                return num_ps, chi2dof, self.q_amp, fit_q_amp, fit_q_amp_err, self.u_amp, fit_u_amp, fit_u_amp_err
             return num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err
 
         if mode == 'get_num_ps':
@@ -785,81 +787,33 @@ def gen_fg_cl():
     Cl_TE = np.zeros_like(Cl_TT)
     return np.array([Cl_TT, Cl_EE, Cl_BB, Cl_TE])
 
-def gen_map(beam, freq, lmax):
+def gen_map(beam, freq, lmax, rlz_idx=0, mode='mean'):
+    # mode can be mean or std
+    noise_seed = np.load('../seeds_noise_2k.npy')
+    cmb_seed = np.load('../seeds_cmb_2k.npy')
     nside = 2048
-    ps = np.load('./data/ps/ps.npy')
-    # fg = np.load(f'../../fitdata/2048/FG/{freq}/fg.npy')
+    ps = np.load(f'../../fitdata/2048/PS/{freq}/ps.npy')
+    fg = np.load(f'../../fitdata/2048/FG/{freq}/fg.npy')
 
     nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
     npix = hp.nside2npix(nside=2048)
-    # np.random.seed(seed=noise_seed[rlz_idx])
+    np.random.seed(seed=noise_seed[rlz_idx])
     # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
     noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
     print(f"{np.std(noise[1])=}")
 
-    # cmb_iqu = np.load(f'../../fitdata/2048/CMB/215/{rlz_idx}.npy')
-    # cls = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
     cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
-    # np.random.seed(seed=cmb_seed[rlz_idx])
-    # cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=1999)
-    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=lmax)
+    if mode=='std':
+        np.random.seed(seed=cmb_seed[rlz_idx])
+    elif mode=='mean':
+        np.random.seed(seed=cmb_seed[0])
 
-    cls_fg = gen_fg_cl()
-    # np.random.seed(seed=fg_seed[rlz_idx])
-    fg = hp.synfast(cls_fg, nside=nside, fwhm=0, new=True, lmax=lmax)
-
-    # l = np.arange(lmax+1)
-    # cls_out = hp.anafast(cmb_iqu, lmax=lmax)
+    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
 
     m = noise + ps + cmb_iqu + fg
     # m = noise
+    return m
 
-def main():
-    freq = 215
-    lmax = 2500
-    nside = 2048
-    npix = hp.nside2npix(nside)
-    beam = 11
-
-    time0 = time.perf_counter()
-    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
-    print(f'{nstd[1,0]=}')
-    nstd_q = nstd[1].copy()
-    nstd_u = nstd[2].copy()
-    # ps = np.load('./data/ps/ps.npy')
-    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
-    # m = ps + noise
-    # m = np.load('./data/ps/ps.npy')
-    m = gen_map(beam=beam, freq=freq, lmax=lmax)
-    # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/')
-    # m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/3.npy')
-    # m = np.load(f'./1_6k_pcn.npy')
-    m_q = m[1].copy()
-    m_u = m[2].copy()
-    logger.debug(f'{sys.getrefcount(m_q)-1=}')
-
-    logger.info(f'time for fitting = {time.perf_counter()-time0}')
-
-    df_mask = pd.read_csv('./mask/215.csv')
-    df_ps = df_mask
-
-    flux_idx=0
-
-    logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
-
-    logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    # obj.see_true_map(m_q=m_q, m_u=m_u, nside=nside, beam=beam)
-
-    obj.calc_definite_fixed_cmb_cov()
-    obj.calc_covariance_matrix(mode='cmb+noise')
-
-    # obj.fit_all(cov_mode='cmb+noise')
-
-    # obj.calc_covariance_matrix(mode='noise')
-    # obj.fit_all(cov_mode='noise')
-
-    # obj.fit_all(cov_mode='noise', mode='check_sigma')
 
 def gen_pix_idx(flux_idx=0):
     from config import lmax, nside, freq, beam
@@ -884,13 +838,204 @@ def gen_pix_idx(flux_idx=0):
         print(f'{flux_idx=}')
         obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
 
+def gen_cov_inv():
+    from config import lmax, nside, freq, beam
+    npix = hp.nside2npix(nside)
+
+    time0 = time.perf_counter()
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    print(f'{nstd[1,0]=}')
+    nstd_q = nstd[1].copy()
+    nstd_u = nstd[2].copy()
+    m_q = nstd_q * np.random.normal(loc=0, scale=1, size=(npix,))
+    m_u = nstd_u * np.random.normal(loc=0, scale=1, size=(npix,))
+
+    logger.info(f'time for fitting = {time.perf_counter()-time0}')
+
+    df_mask = pd.read_csv(f'./mask/{freq}.csv')
+    df_ps = df_mask
+
+    # obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+
+    flux_idx = 0
+    print(f'{flux_idx=}')
+    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, cov_path='./cmb_qu_cov_interp')
+    obj.calc_definite_fixed_cmb_cov()
+    obj.calc_covariance_matrix()
+
+def check_parameter_distribution():
+    from config import lmax, nside, freq, beam
+    rlz_idx = 0
+    npix = hp.nside2npix(nside)
+
+    time0 = time.perf_counter()
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    print(f'{nstd[1,0]=}')
+    nstd_q = nstd[1].copy()
+    nstd_u = nstd[2].copy()
+    # ps = np.load('./data/ps/ps.npy')
+    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='std')
+    # m = gen_map(beam=beam, freq=freq, lmax=lmax, mode='std')
+    m_q = m[1].copy()
+    m_u = m[2].copy()
+    logger.debug(f'{sys.getrefcount(m_q)-1=}')
+
+    logger.info(f'time for fitting = {time.perf_counter()-time0}')
+
+    df_mask = pd.read_csv(f'./mask/{freq}.csv')
+    df_ps = df_mask
+
+    flux_idx=0
+
+    logger.debug(f'{sys.getrefcount(m_q)-1=}')
+    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+
+    # obj.calc_definite_fixed_cmb_cov()
+    # obj.calc_covariance_matrix(mode='cmb+noise')
+
+    # obj.fit_all(cov_mode='cmb+noise')
+    num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
+
+    # path_res = Path('./parameter/only_noise_vary')
+    path_res = Path('./parameter/cmb_noise_vary')
+    path_res.mkdir(exist_ok=True, parents=True)
+    np.save(path_res / Path(f'fit_P_{rlz_idx}.npy'), fit_P)
+    np.save(path_res / Path(f'fit_phi_{rlz_idx}.npy'), fit_phi)
+
+def first_fit_all():
+    from config import lmax, nside, freq, beam
+    import gc
+
+    rlz_idx = 0
+    npix = hp.nside2npix(nside)
+
+    time0 = time.perf_counter()
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    print(f'{nstd[1,0]=}')
+    nstd_q = nstd[1].copy()
+    nstd_u = nstd[2].copy()
+    # ps = np.load('./data/ps/ps.npy')
+    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='mean')
+    # m = gen_map(beam=beam, freq=freq, lmax=lmax, mode='std')
+    m_q = m[1].copy()
+    m_u = m[2].copy()
+    logger.debug(f'{sys.getrefcount(m_q)-1=}')
+
+    logger.info(f'time for fitting = {time.perf_counter()-time0}')
+
+    df_mask = pd.read_csv(f'./mask/{freq}.csv')
+    df_ps = pd.read_csv(f'../../pp_P/mask/ps_csv/{freq}.csv')
+
+    n_ps = 135
+    logger.debug(f'{sys.getrefcount(m_q)-1=}')
+    save_path = Path(f'fit_res/params/mean_for_sigma')
+    save_path.mkdir(exist_ok=True, parents=True)
+
+    flux_idx_arr = df_mask.loc[:n_ps-1, 'flux_idx'].to_numpy()
+    index_arr = df_mask.loc[:n_ps-1, 'index'].to_numpy()
+    lon_arr = df_mask.loc[:n_ps-1, 'lon'].to_numpy()
+    lat_arr = df_mask.loc[:n_ps-1, 'lat'].to_numpy()
+    iflux_arr = df_mask.loc[:n_ps-1, 'iflux'].to_numpy()
+    qflux_arr = df_mask.loc[:n_ps-1, 'qflux'].to_numpy()
+    uflux_arr = df_mask.loc[:n_ps-1, 'uflux'].to_numpy()
+    pflux_arr = df_mask.loc[:n_ps-1, 'pflux'].to_numpy()
+
+    num_ps_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    chi2dof_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    true_q_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    fit_q_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    fit_q_err_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    true_u_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    fit_u_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    fit_u_err_arr = np.zeros_like(flux_idx_arr, dtype=float)
+
+
+    for flux_idx in range(135):
+        logger.debug(f'{flux_idx=}')
+        obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+        # num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
+        num_ps, chi2dof, true_q, fit_q, fit_q_err, true_u, fit_u, fit_u_err = obj.fit_all(cov_mode='cmb+noise', return_qu=True)
+
+        del obj
+        gc.collect()
+
+        num_ps_arr[flux_idx] = num_ps
+        chi2dof_arr[flux_idx] = chi2dof
+        true_q_arr[flux_idx] = true_q
+        fit_q_arr[flux_idx] = fit_q
+        fit_q_err_arr[flux_idx] = fit_q_err
+        true_u_arr[flux_idx] = true_u
+        fit_u_arr[flux_idx] = fit_u
+        fit_u_err_arr[flux_idx] = fit_u_err
+        print(f'{fit_q_arr=}')
+
+    df_fit = pd.DataFrame({
+        'flux_idx': flux_idx_arr,
+        'index': index_arr,
+        'lon': lon_arr,
+        'lat': lat_arr,
+        'iflux': iflux_arr,
+        'qflux': qflux_arr,
+        'uflux': uflux_arr,
+        'pflux': pflux_arr,
+        'num_ps': num_ps_arr,
+        'chi2dof': chi2dof_arr,
+        'true_q': true_q_arr,
+        'fit_q': fit_q_arr,
+        'fit_q_err': fit_q_err_arr,
+        'true_u': true_q_arr,
+        'fit_u': fit_q_arr,
+        'fit_u_err': fit_q_err_arr
+        })
+
+    df_fit.to_csv('./mask/30_fit.csv', index=False)
+
+
+def main():
+    from config import lmax, nside, freq, beam
+    rlz_idx = 0
+    npix = hp.nside2npix(nside)
+
+    time0 = time.perf_counter()
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    print(f'{nstd[1,0]=}')
+    nstd_q = nstd[1].copy()
+    nstd_u = nstd[2].copy()
+    # ps = np.load('./data/ps/ps.npy')
+    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='std')
+    # m = gen_map(beam=beam, freq=freq, lmax=lmax, mode='std')
+    m_q = m[1].copy()
+    m_u = m[2].copy()
+    logger.debug(f'{sys.getrefcount(m_q)-1=}')
+
+    logger.info(f'time for fitting = {time.perf_counter()-time0}')
+
+    df_mask = pd.read_csv(f'./mask/{freq}.csv')
+    df_ps = pd.read_csv(f'../../pp_P/mask/ps_csv/{freq}.csv')
+
+    flux_idx=4
+
+    logger.debug(f'{sys.getrefcount(m_q)-1=}')
+    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+
+    # obj.calc_definite_fixed_cmb_cov()
+    # obj.calc_covariance_matrix(mode='cmb+noise')
+
+    # obj.fit_all(cov_mode='cmb+noise')
+    num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
 
 
 
 
 if __name__ == '__main__':
+    # gen_pix_idx(flux_idx=0)
+    # gen_cov_inv()
+    # check_parameter_distribution()
+    first_fit_all()
     # main()
-    gen_pix_idx(flux_idx=0)
 
 
 
