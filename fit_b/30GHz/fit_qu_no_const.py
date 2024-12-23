@@ -63,7 +63,7 @@ class FitPolPS:
 
         return phi, sigma_phi
 
-    def __init__(self, m_q, m_u, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False, cov_path='./cmb_qu_cov', cov_precise_path=None):
+    def __init__(self, m_q, m_u, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False, cov_path='./cmb_qu_cov', cov_precise_path=None, threshold_extra_factor=0.5):
         self.m_q = m_q # sky maps (npix,)
         self.m_u = m_u # sky maps (npix,)
         self.freq = freq # frequency
@@ -85,6 +85,7 @@ class FitPolPS:
         self.sigma_threshold = sigma_threshold # judge if a signal is a point source
         self.beam = beam # in arcmin
         self.epsilon = epsilon # if CMB covariance matrix is not semi-positive, add this to cross term
+        self.threshold_extra_factor = threshold_extra_factor # extra threshold for finding nearby point sources
         self.nside2pixarea_factor = hp.nside2pixarea(nside=self.nside)
         self.cov_path = Path(cov_path)
         if cov_precise_path is not None:
@@ -316,8 +317,8 @@ class FitPolPS:
         hp.gnomview(mask, rot=[lon, lat, 0])
         plt.show()
 
-    def find_nearby_ps(self, num_ps=1, threshold_extra_factor=0.5):
-        threshold_factor = self.radius_factor + threshold_extra_factor
+    def find_nearby_ps(self, num_ps=1):
+        threshold_factor = self.radius_factor + self.threshold_extra_factor
         logger.debug(f'{threshold_factor=}')
         dir_0 = (self.lon, self.lat)
         arr_1 = self.df_ps.loc[:, 'flux_idx']
@@ -954,7 +955,7 @@ def first_fit_all():
 
     for flux_idx in range(135):
         logger.debug(f'{flux_idx=}')
-        obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+        obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5)
         # num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
         num_ps, chi2dof, true_q, fit_q, fit_q_err, true_u, fit_u, fit_u_err = obj.fit_all(cov_mode='cmb+noise', return_qu=True)
 
@@ -990,7 +991,7 @@ def first_fit_all():
         'fit_u_err': fit_u_err_arr
         })
 
-    df_fit.to_csv('./mask/30_fit.csv', index=False)
+    df_fit.to_csv('./mask/30_fit_3dot0.csv', index=False)
 
 
 def main():
@@ -1016,10 +1017,10 @@ def main():
     df_mask = pd.read_csv(f'./mask/{freq}.csv')
     df_ps = pd.read_csv(f'../../pp_P/mask/ps_csv/{freq}.csv')
 
-    flux_idx=19
+    flux_idx=2
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=0.5)
 
     # obj.calc_definite_fixed_cmb_cov()
     # obj.calc_covariance_matrix(mode='cmb+noise')
