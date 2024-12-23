@@ -26,7 +26,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=100GB
+#SBATCH --mem=50GB
 #SBATCH --exclude=aliws005
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
@@ -38,10 +38,9 @@
 # mpiexec python -u tod_gen4cc.py
 # mpirun -np 7 ./cosmomc test.ini
 # python as.py
-# export OMP_NUM_THREADS=1
 
 date +%m-%d_%H-%M
-mpiexec python -u ./pix_cov.py
+mpiexec python -u ./fit_base.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

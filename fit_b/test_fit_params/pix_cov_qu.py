@@ -59,11 +59,10 @@ class CovCalculator:
         npix = len(pixind)
         vecst = hp.pix2vec(nside, pixind)
         vecs = np.array(vecst).T
-        # np.save('./vecs.npy', vecs)
         covmat = np.zeros((3*npix, 3*npix), dtype=np.float64)
 
         # use the c package to calculate the Covmat
-        lib = cdll.LoadLibrary('./CovMat.so')
+        lib = cdll.LoadLibrary('../CovMat.so')
         CovMat = lib.CovMat
         CovMat(c_void_p(vecs.ctypes.data), c_void_p(l.ctypes.data), c_void_p(Cls.ctypes.data), c_void_p(covmat.ctypes.data), c_int(npix), c_int(nl))
         # covert back to 2d
@@ -101,7 +100,7 @@ def _test_cmb_cl(beam, lmax):
     print(f'{bl[0:10,2]=}')
     print(f'{bl[0:10,3]=}')
     # cl = np.load('../../src/cmbsim/cmbdata/cmbcl.npy')
-    cl = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_8k.npy')
+    cl = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
     print(f'{cl.shape=}')
 
     Cl_TT = cl[0:lmax+1,0] * bl[0:lmax+1,0]**2
@@ -110,30 +109,83 @@ def _test_cmb_cl(beam, lmax):
     Cl_TE = cl[0:lmax+1,3] * bl[0:lmax+1,3]**2
     return Cl_TT, Cl_EE, Cl_BB, Cl_TE
 
-def _main_cf():
-    from config import lmax, nside, beam, freq
+def _test_fg_cl(freq):
+    cl_fg = np.load(f'../{freq}GHz/data/debeam_full_b/cl_fg.npy')
+    print(f'{cl_fg.shape=}')
+    Cl_TT = cl_fg[0]
+    Cl_EE = cl_fg[1]
+    Cl_BB = cl_fg[2]
+    Cl_TE = np.zeros_like(Cl_TT)
+
+    return Cl_TT, Cl_EE, Cl_BB, Cl_TE
+
+def _test_noise_cl(lmax):
+    map_depth = 1.9
+    Cl_NN = (map_depth*np.ones(shape=(lmax+1,)))**2 / 3437.748**2 # 3437.748 is the factor from sr to arcmin**2
+    print(f'{Cl_NN.shape=}')
+    return Cl_NN
+
+def _main_fg():
     nside = 2048
     lmin = 2
-    lmax = 10
+    # lmax = 3 * nside - 1
+    lmax = 600
     flux_idx=0
+    beam = 67
     pixind = np.load(f'./pix_idx_qu/{flux_idx}.npy')
 
     ## test for cmb cov
 
-    # Cl_TT_FG,Cl_EE_FG,Cl_BB_FG,Cl_TE_FG = test_fg_cl()
-    Cl_TT,Cl_EE,Cl_BB,Cl_TE = _test_cmb_cl(beam=beam, lmax=lmax)
-
-    # Cl_TT = Cl_TT_CMB + Cl_TT_FG
-    # Cl_EE = Cl_EE_CMB + Cl_EE_FG
-    # Cl_BB = Cl_BB_CMB + Cl_BB_FG
-    # Cl_TE = Cl_TE_CMB + Cl_TE_FG
+    Cl_TT,Cl_EE,Cl_BB,Cl_TE = test_fg_cl()
 
     # l = np.arange(lmax + 1)
-    # plt.loglog(l, l*(l+1)*Cl_BB/(2*np.pi), label='BB')
-    # plt.loglog(l, l*(l+1)*Cl_TT/(2*np.pi), label='TT')
-    # plt.loglog(l, l*(l+1)*Cl_EE/(2*np.pi), label='EE')
-    # plt.legend()
+    # plt.loglog(l, l*(l+1)*Cl_BB/(2*np.pi))
+    # plt.loglog(l, l*(l+1)*Cl_TT/(2*np.pi))
+    # plt.loglog(l, l*(l+1)*Cl_EE/(2*np.pi))
     # plt.show()
+
+    obj = CovCalculator(nside=nside, lmin=2, lmax=lmax, Cl_TT=Cl_TT, Cl_EE=Cl_EE, Cl_BB=Cl_BB, Cl_TE=Cl_TE, pixind=pixind, calc_opt='polarization', out_pol_opt='QU')
+    MP = obj.run_calc_cov()
+    path_test_class_cov = Path('./fg_qu_cov')
+    path_test_class_cov.mkdir(exist_ok=True, parents=True)
+    # np.save(f'./test_class_cov/cmb.npy', MP)
+    np.save(Path(path_test_class_cov / f'{flux_idx}.npy'), MP)
+
+    ## test for noise cov
+
+    # Cl_NN = test_noise_cl(lmax=3*nside-1)
+    # obj = CovCalculator(nside=nside, lmin=2, lmax=3*nside-1, Cl_TT=Cl_NN, Cl_EE=None, Cl_BB=None, Cl_TE=None, pixind=pixind)
+    # MP = obj.run_calc_cov()
+    # path_test_class_cov = Path('./test_class_cov')
+    # path_test_class_cov.mkdir(exist_ok=True, parents=True)
+    # np.save(f'./test_class_cov/noise.npy', MP)
+
+def _main_cf():
+    nside = 2048
+    lmin = 2
+    # lmax = 3 * nside - 1
+    lmax = 500
+    flux_idx=0
+    beam = 67
+    freq = 30
+    pixind = np.load(f'./pix_idx_qu/{flux_idx}.npy')
+
+    ## test for cmb cov
+
+    Cl_TT_FG,Cl_EE_FG,Cl_BB_FG,Cl_TE_FG = _test_fg_cl(freq=freq)
+    Cl_TT_CMB,Cl_EE_CMB,Cl_BB_CMB,Cl_TE_CMB = _test_cmb_cl(beam=beam, lmax=500)
+
+    Cl_TT = Cl_TT_CMB + Cl_TT_FG
+    Cl_EE = Cl_EE_CMB + Cl_EE_FG
+    Cl_BB = Cl_BB_CMB + Cl_BB_FG
+    Cl_TE = Cl_TE_CMB + Cl_TE_FG
+
+    l = np.arange(lmax + 1)
+    plt.loglog(l, l*(l+1)*Cl_BB/(2*np.pi), label='BB')
+    plt.loglog(l, l*(l+1)*Cl_TT/(2*np.pi), label='TT')
+    plt.loglog(l, l*(l+1)*Cl_EE/(2*np.pi), label='EE')
+    plt.legend()
+    plt.show()
 
     obj = CovCalculator(nside=nside, lmin=2, lmax=lmax, Cl_TT=Cl_TT, Cl_EE=Cl_EE, Cl_BB=Cl_BB, Cl_TE=Cl_TE, pixind=pixind, calc_opt='polarization', out_pol_opt='QU')
     MP = obj.run_calc_cov()
