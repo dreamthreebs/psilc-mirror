@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./fit_qu_no_const.py
+mpiexec python -u ./pp.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

@@ -21,6 +21,6 @@ class GENPIX:
         print(f'ndof = {len(self.ipix_fit)*2}')
 
 
-obj = GENPIX(nside=2048, lon=0, lat=0, radius_factor=2.5, beam=67, flux_idx=0)
+obj = GENPIX(nside=2048, lon=0, lat=0, radius_factor=2.0, beam=67, flux_idx=0)
 obj.gen_pix()
 

@@ -3,17 +3,12 @@ import healpy as hp
 import matplotlib.pyplot as plt
 import pandas as pd
 import time
-import pickle
 import os,sys
 import logging
-import ipdb
 
 from pathlib import Path
 from iminuit import Minuit
 from iminuit.cost import LeastSquares
-from numpy.polynomial.legendre import Legendre
-from scipy.interpolate import CubicSpline
-from memory_profiler import profile
 
 # logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s -%(name)s - %(message)s')
 logging.basicConfig(level=logging.WARNING)
@@ -63,7 +58,7 @@ class FitPolPS:
 
         return phi, sigma_phi
 
-    def __init__(self, m_q, m_u, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False, cov_path='./cmb_qu_cov', cov_precise_path=None, threshold_extra_factor=0.5):
+    def __init__(self, m_q, m_u, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False, cov_path='./cmb_qu_cov', cov_precise_path=None, threshold_extra_factor=0.5, inv_idx=None):
         self.m_q = m_q # sky maps (npix,)
         self.m_u = m_u # sky maps (npix,)
         self.freq = freq # frequency
@@ -88,6 +83,8 @@ class FitPolPS:
         self.threshold_extra_factor = threshold_extra_factor # extra threshold for finding nearby point sources
         self.nside2pixarea_factor = hp.nside2pixarea(nside=self.nside)
         self.cov_path = Path(cov_path)
+        self.inv_idx = inv_idx
+
         if cov_precise_path is not None:
             self.cov_precise_path = Path(cov_precise_path)
         else:
@@ -229,7 +226,7 @@ class FitPolPS:
             self.inv_cov = np.linalg.solve(cov, np.eye(cov.shape[0]))
 
             I_exp = cov @ self.inv_cov
-            print(f'{I_exp=}')
+            logger.debug(f'{I_exp=}')
             # self.inv_cov = np.linalg.pinv(cov)
             path_inv_cov = Path(f'inv_cov_{self.nside}/r_{self.radius_factor}') / Path(mode)
             path_inv_cov.mkdir(parents=True, exist_ok=True)
@@ -324,6 +321,7 @@ class FitPolPS:
         arr_1 = self.df_ps.loc[:, 'flux_idx']
         logger.debug(f'{arr_1.shape=}')
         bool_arr = self.df_ps.loc[:, 'flux_idx'] != self.df_mask.at[self.flux_idx, 'flux_idx']
+        logger.debug(f'{bool_arr=}')
         logger.debug(f'{bool_arr.shape=}')
         lon_other = np.rad2deg(self.df_ps.loc[bool_arr, 'lon'])
         lat_other = np.rad2deg(self.df_ps.loc[bool_arr, 'lat'])
@@ -355,22 +353,26 @@ class FitPolPS:
         pflux_list = []
         qflux_list = []
         uflux_list = []
+        self.index_list = [self.flux_idx,]
         for i in range(min(num_ps, len(index_near[0]))):
             index = index_near[0][i]
-            print(f'{index=}')
-            print(f'{self.df_mask.at[self.flux_idx, "flux_idx"]=}')
-            if index < self.df_mask.at[self.flux_idx, 'flux_idx']:
+            logger.debug(f'{index=}')
+            logger.debug(f'{self.df_mask.at[self.flux_idx, "flux_idx"]=}')
+            logger.debug(f'{self.df_ps.at[index, "flux_idx"]=}')
+            if self.df_ps.at[index, 'flux_idx'] < self.df_mask.at[self.flux_idx, 'flux_idx']:
                 lon = np.rad2deg(self.df_ps.at[index, 'lon'])
                 lat = np.rad2deg(self.df_ps.at[index, 'lat'])
                 pflux = self.flux2norm_beam(self.df_ps.at[index, 'pflux']) / self.nside2pixarea_factor
                 qflux = self.flux2norm_beam(self.df_ps.at[index, 'qflux']) / self.nside2pixarea_factor
                 uflux = self.flux2norm_beam(self.df_ps.at[index, 'uflux']) / self.nside2pixarea_factor
+                self.index_list.append(index)
             else:
                 lon = np.rad2deg(self.df_ps.at[index + 1, 'lon'])
                 lat = np.rad2deg(self.df_ps.at[index + 1, 'lat'])
                 pflux = self.flux2norm_beam(self.df_ps.at[index + 1, 'pflux']) / self.nside2pixarea_factor
                 qflux = self.flux2norm_beam(self.df_ps.at[index + 1, 'qflux']) / self.nside2pixarea_factor
                 uflux = self.flux2norm_beam(self.df_ps.at[index + 1, 'uflux']) / self.nside2pixarea_factor
+                self.index_list.append(index + 1)
             lon_list.append(lon)
             lat_list.append(lat)
             pflux_list.append(pflux)
@@ -717,7 +719,11 @@ class FitPolPS:
             return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
 
         if mode == 'pipeline':
-            self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.flux_idx}.npy')
+
+            if self.inv_idx is None:
+                self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.flux_idx}.npy')
+            else:
+                self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.inv_idx}.npy')
 
             ctr0_vec = self.ctr0_vec
             ipix_fit = self.ipix_fit
@@ -771,7 +777,7 @@ class FitPolPS:
 
         if mode == 'get_num_ps':
             num_ps, near = self.find_nearby_ps(num_ps=10)
-            return num_ps, self.num_near_ps, self.ang_near
+            return self.index_list
 
         if mode == 'check_sigma':
             calc_error()
@@ -780,263 +786,6 @@ class FitPolPS:
             num_ps, near = self.find_nearby_ps(num_ps=10)
             return self.flag_overlap
 
-def gen_fg_cl():
-    cl_fg = np.load('./data/debeam_full_b/cl_fg.npy')
-    Cl_TT = cl_fg[0]
-    Cl_EE = cl_fg[1]
-    Cl_BB = cl_fg[2]
-    Cl_TE = np.zeros_like(Cl_TT)
-    return np.array([Cl_TT, Cl_EE, Cl_BB, Cl_TE])
-
-def gen_map(beam, freq, lmax, rlz_idx=0, mode='mean'):
-    # mode can be mean or std
-    noise_seed = np.load('../seeds_noise_2k.npy')
-    cmb_seed = np.load('../seeds_cmb_2k.npy')
-    nside = 2048
-    ps = np.load(f'../../fitdata/2048/PS/{freq}/ps.npy')
-    fg = np.load(f'../../fitdata/2048/FG/{freq}/fg.npy')
-
-    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
-    npix = hp.nside2npix(nside=2048)
-    np.random.seed(seed=noise_seed[rlz_idx])
-    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
-    noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
-    print(f"{np.std(noise[1])=}")
-
-    cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
-    if mode=='std':
-        np.random.seed(seed=cmb_seed[rlz_idx])
-    elif mode=='mean':
-        np.random.seed(seed=cmb_seed[0])
-
-    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
-
-    m = noise + ps + cmb_iqu + fg
-    # m = noise
-    return m
-
-
-def gen_pix_idx(flux_idx=0):
-    from config import lmax, nside, freq, beam
-    npix = hp.nside2npix(nside)
-
-    time0 = time.perf_counter()
-    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
-    print(f'{nstd[1,0]=}')
-    nstd_q = nstd[1].copy()
-    nstd_u = nstd[2].copy()
-    m_q = nstd_q * np.random.normal(loc=0, scale=1, size=(npix,))
-    m_u = nstd_u * np.random.normal(loc=0, scale=1, size=(npix,))
-
-    logger.info(f'time for fitting = {time.perf_counter()-time0}')
-
-    df_mask = pd.read_csv(f'./mask/{freq}.csv')
-    df_ps = df_mask
-
-    # obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
-
-    for flux_idx in range(135):
-        print(f'{flux_idx=}')
-        obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
-
-def gen_cov_inv():
-    from config import lmax, nside, freq, beam
-    npix = hp.nside2npix(nside)
-
-    time0 = time.perf_counter()
-    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
-    print(f'{nstd[1,0]=}')
-    nstd_q = nstd[1].copy()
-    nstd_u = nstd[2].copy()
-    m_q = nstd_q * np.random.normal(loc=0, scale=1, size=(npix,))
-    m_u = nstd_u * np.random.normal(loc=0, scale=1, size=(npix,))
-
-    logger.info(f'time for fitting = {time.perf_counter()-time0}')
-
-    df_mask = pd.read_csv(f'./mask/{freq}.csv')
-    df_ps = df_mask
-
-    # obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
-
-    flux_idx = 0
-    print(f'{flux_idx=}')
-    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, cov_path='./cmb_qu_cov_interp')
-    obj.calc_definite_fixed_cmb_cov()
-    obj.calc_covariance_matrix()
-
-def check_parameter_distribution():
-    from config import lmax, nside, freq, beam
-    rlz_idx = 0
-    npix = hp.nside2npix(nside)
-
-    time0 = time.perf_counter()
-    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
-    print(f'{nstd[1,0]=}')
-    nstd_q = nstd[1].copy()
-    nstd_u = nstd[2].copy()
-    # ps = np.load('./data/ps/ps.npy')
-    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
-    m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='std')
-    # m = gen_map(beam=beam, freq=freq, lmax=lmax, mode='std')
-    m_q = m[1].copy()
-    m_u = m[2].copy()
-    logger.debug(f'{sys.getrefcount(m_q)-1=}')
-
-    logger.info(f'time for fitting = {time.perf_counter()-time0}')
-
-    df_mask = pd.read_csv(f'./mask/{freq}.csv')
-    df_ps = df_mask
-
-    flux_idx=0
-
-    logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
-
-    # obj.calc_definite_fixed_cmb_cov()
-    # obj.calc_covariance_matrix(mode='cmb+noise')
-
-    # obj.fit_all(cov_mode='cmb+noise')
-    num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
-
-    # path_res = Path('./parameter/only_noise_vary')
-    path_res = Path('./parameter/cmb_noise_vary')
-    path_res.mkdir(exist_ok=True, parents=True)
-    np.save(path_res / Path(f'fit_P_{rlz_idx}.npy'), fit_P)
-    np.save(path_res / Path(f'fit_phi_{rlz_idx}.npy'), fit_phi)
-
-def first_fit_all():
-    from config import lmax, nside, freq, beam
-    import gc
-
-    rlz_idx = 0
-    npix = hp.nside2npix(nside)
-
-    time0 = time.perf_counter()
-    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
-    print(f'{nstd[1,0]=}')
-    nstd_q = nstd[1].copy()
-    nstd_u = nstd[2].copy()
-    # ps = np.load('./data/ps/ps.npy')
-    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
-    m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='mean')
-    # m = gen_map(beam=beam, freq=freq, lmax=lmax, mode='std')
-    m_q = m[1].copy()
-    m_u = m[2].copy()
-    logger.debug(f'{sys.getrefcount(m_q)-1=}')
-
-    logger.info(f'time for fitting = {time.perf_counter()-time0}')
-
-    df_mask = pd.read_csv(f'./mask/{freq}.csv')
-    df_ps = pd.read_csv(f'../../pp_P/mask/ps_csv/{freq}.csv')
-
-    n_ps = 135
-    logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    save_path = Path(f'fit_res/params/mean_for_sigma')
-    save_path.mkdir(exist_ok=True, parents=True)
-
-    flux_idx_arr = df_mask.loc[:n_ps-1, 'flux_idx'].to_numpy()
-    index_arr = df_mask.loc[:n_ps-1, 'index'].to_numpy()
-    lon_arr = df_mask.loc[:n_ps-1, 'lon'].to_numpy()
-    lat_arr = df_mask.loc[:n_ps-1, 'lat'].to_numpy()
-    iflux_arr = df_mask.loc[:n_ps-1, 'iflux'].to_numpy()
-    qflux_arr = df_mask.loc[:n_ps-1, 'qflux'].to_numpy()
-    uflux_arr = df_mask.loc[:n_ps-1, 'uflux'].to_numpy()
-    pflux_arr = df_mask.loc[:n_ps-1, 'pflux'].to_numpy()
-
-    num_ps_arr = np.zeros_like(flux_idx_arr, dtype=float)
-    chi2dof_arr = np.zeros_like(flux_idx_arr, dtype=float)
-    true_q_arr = np.zeros_like(flux_idx_arr, dtype=float)
-    fit_q_arr = np.zeros_like(flux_idx_arr, dtype=float)
-    fit_q_err_arr = np.zeros_like(flux_idx_arr, dtype=float)
-    true_u_arr = np.zeros_like(flux_idx_arr, dtype=float)
-    fit_u_arr = np.zeros_like(flux_idx_arr, dtype=float)
-    fit_u_err_arr = np.zeros_like(flux_idx_arr, dtype=float)
-
-
-    for flux_idx in range(135):
-        logger.debug(f'{flux_idx=}')
-        obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5)
-        # num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
-        num_ps, chi2dof, true_q, fit_q, fit_q_err, true_u, fit_u, fit_u_err = obj.fit_all(cov_mode='cmb+noise', return_qu=True)
-
-        del obj
-        gc.collect()
-
-        num_ps_arr[flux_idx] = num_ps
-        chi2dof_arr[flux_idx] = chi2dof
-        true_q_arr[flux_idx] = true_q
-        fit_q_arr[flux_idx] = fit_q
-        fit_q_err_arr[flux_idx] = fit_q_err
-        true_u_arr[flux_idx] = true_u
-        fit_u_arr[flux_idx] = fit_u
-        fit_u_err_arr[flux_idx] = fit_u_err
-        print(f'{fit_q_arr=}')
-
-    df_fit = pd.DataFrame({
-        'flux_idx': flux_idx_arr,
-        'index': index_arr,
-        'lon': lon_arr,
-        'lat': lat_arr,
-        'iflux': iflux_arr,
-        'qflux': qflux_arr,
-        'uflux': uflux_arr,
-        'pflux': pflux_arr,
-        'num_ps': num_ps_arr,
-        'chi2dof': chi2dof_arr,
-        'true_q': true_q_arr,
-        'fit_q': fit_q_arr,
-        'fit_q_err': fit_q_err_arr,
-        'true_u': true_u_arr,
-        'fit_u': fit_u_arr,
-        'fit_u_err': fit_u_err_arr
-        })
-
-    df_fit.to_csv('./mask/30_fit_3dot0.csv', index=False)
-
-
-def main():
-    from config import lmax, nside, freq, beam
-    rlz_idx = 0
-    npix = hp.nside2npix(nside)
-
-    time0 = time.perf_counter()
-    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
-    print(f'{nstd[1,0]=}')
-    nstd_q = nstd[1].copy()
-    nstd_u = nstd[2].copy()
-    # ps = np.load('./data/ps/ps.npy')
-    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
-    m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='std')
-    # m = gen_map(beam=beam, freq=freq, lmax=lmax, mode='std')
-    m_q = m[1].copy()
-    m_u = m[2].copy()
-    logger.debug(f'{sys.getrefcount(m_q)-1=}')
-
-    logger.info(f'time for fitting = {time.perf_counter()-time0}')
-
-    df_mask = pd.read_csv(f'./mask/{freq}.csv')
-    df_ps = pd.read_csv(f'../../pp_P/mask/ps_csv/{freq}.csv')
-
-    flux_idx=2
-
-    logger.debug(f'{sys.getrefcount(m_q)-1=}')
-    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=0.5)
-
-    # obj.calc_definite_fixed_cmb_cov()
-    # obj.calc_covariance_matrix(mode='cmb+noise')
-
-    # obj.fit_all(cov_mode='cmb+noise')
-    num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
-
-
-
-
-if __name__ == '__main__':
-    # gen_pix_idx(flux_idx=0)
-    # gen_cov_inv()
-    # check_parameter_distribution()
-    first_fit_all()
-    # main()
 
 
 
