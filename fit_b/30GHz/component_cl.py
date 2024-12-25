@@ -341,6 +341,37 @@ def gen_interp_cov_all():
     path_cov.mkdir(exist_ok=True, parents=True)
     np.save(Path(path_cov / f'{flux_idx}.npy'), MP)
 
+def second_gen_interp_cov_all():
+    import pickle
+    cl_fg = gen_fg_cl()
+    cl_cmb = gen_cmb_cl(beam=beam, lmax=lmax)
+
+    cl_tot = cl_fg + cl_cmb
+
+    lmax_cov = 400
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax_cov)
+    cl_interp_e = np.load('./component_dl/cl_interp_pcfn/e.npy')
+    cl_interp_b = np.load('./component_dl/cl_interp_pcfn/b.npy')
+
+    flux_idx = 0
+    with open('./mask/ps_list.pkl', 'rb') as f:
+        ps_list = pickle.load(f)
+
+    for flux_idx in ps_list:
+        print(f'{flux_idx=}')
+        if len(flux_idx) > 1:
+            path_multi_ps = Path(f'{"_".join(map(str, flux_idx))}.npy')
+            pix_ind = np.load(Path(f'./pix_idx_qu') / path_multi_ps)
+            obj_cov = CovCalculator(nside=nside, lmin=2, lmax=lmax_cov, Cl_TT=cl_tot[0], Cl_EE=cl_interp_e*bl**2, Cl_BB=cl_interp_b*bl**2, Cl_TE=cl_tot[3], pixind=pix_ind, calc_opt='polarization', out_pol_opt='QU')
+            MP = obj_cov.run_calc_cov()
+
+            path_cov = Path('./cmb_qu_cov_interp')
+            path_cov.mkdir(exist_ok=True, parents=True)
+            np.save(Path(path_cov / path_multi_ps), MP)
+        else:
+            continue
+
+
 
 if __name__ == "__main__":
     # gen_ps_fg_map()
@@ -368,7 +399,8 @@ if __name__ == "__main__":
     # gen_interp_cov()
     # fit_my_ps()
 
-    gen_interp_cov_all()
+    # gen_interp_cov_all()
+    second_gen_interp_cov_all()
 
     pass
 

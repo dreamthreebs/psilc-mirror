@@ -325,7 +325,22 @@ def second_one_ps_fit():
         # obj.fit_all(cov_mode='cmb+noise')
         num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
 
+def reduce_lists(lists):
+    # Sort lists by length in descending order to prioritize longer lists
+    sorted_lists = sorted(lists, key=len, reverse=True)
+
+    # Store the final result
+    result = []
+
+    for current_list in sorted_lists:
+        # Check if this list is already a subset of any list in the result
+        if not any(set(current_list).issubset(set(existing_list)) for existing_list in result):
+            result.append(current_list)
+
+    return result
+
 def second_fit_find_nearby():
+    import pickle
     rlz_idx = 0
     npix = hp.nside2npix(nside)
 
@@ -347,6 +362,8 @@ def second_fit_find_nearby():
     df_mask = pd.read_csv(f'./mask/{freq}_after_filter.csv')
     df_ps = pd.read_csv(f'./mask/{freq}_after_filter.csv')
 
+    all_nearby_ps_list = []
+
     for flux_idx in range(len(df_mask)):
         inv_idx = df_mask.at[flux_idx, 'second_fit_index']
         print(f'{flux_idx=}, {inv_idx=}')
@@ -355,6 +372,89 @@ def second_fit_find_nearby():
 
         index_list = obj.fit_all(mode='get_num_ps', cov_mode='cmb+noise')
         print(f'{index_list=}')
+        all_nearby_ps_list.append(index_list)
+
+    unique_ps_list = reduce_lists(all_nearby_ps_list)
+    print(f'{unique_ps_list=}')
+
+    with open('./mask/ps_list.pkl', 'wb') as f:
+        pickle.dump(unique_ps_list, f)
+
+def test_isinstance():
+    rlz_idx = 0
+    npix = hp.nside2npix(nside)
+
+    time0 = time.perf_counter()
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    print(f'{nstd[1,0]=}')
+    nstd_q = nstd[1].copy()
+    nstd_u = nstd[2].copy()
+    # ps = np.load('./data/ps/ps.npy')
+    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='std')
+    # m = gen_map(beam=beam, freq=freq, lmax=lmax, mode='std')
+    m_q = m[1].copy()
+    m_u = m[2].copy()
+    logger.debug(f'{sys.getrefcount(m_q)-1=}')
+
+    logger.info(f'time for fitting = {time.perf_counter()-time0}')
+
+    df_mask = pd.read_csv(f'./mask/{freq}_after_filter.csv')
+    df_ps = pd.read_csv(f'./mask/{freq}_after_filter.csv')
+
+    all_nearby_ps_list = []
+
+    flux_idx = 0
+    inv_idx = df_mask.at[flux_idx, 'second_fit_index']
+    print(f'{flux_idx=}, {inv_idx=}')
+
+    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=[14,6,8], df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5, inv_idx=inv_idx)
+
+def second_fit_all():
+    import pickle
+    rlz_idx = 0
+    npix = hp.nside2npix(nside)
+
+    time0 = time.perf_counter()
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    print(f'{nstd[1,0]=}')
+    nstd_q = nstd[1].copy()
+    nstd_u = nstd[2].copy()
+    # ps = np.load('./data/ps/ps.npy')
+    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='std')
+    # m = gen_map(beam=beam, freq=freq, lmax=lmax, mode='std')
+    m_q = m[1].copy()
+    m_u = m[2].copy()
+    logger.debug(f'{sys.getrefcount(m_q)-1=}')
+
+    logger.info(f'time for fitting = {time.perf_counter()-time0}')
+
+    df_mask = pd.read_csv(f'./mask/{freq}_after_filter.csv')
+    df_ps = pd.read_csv(f'./mask/{freq}_after_filter.csv')
+    with open('./mask/ps_list.pkl', 'rb') as f:
+        ps_list = pickle.load(f)
+
+    for idx in ps_list:
+        print(f'{idx=}')
+        if len(idx) == 1:
+            continue
+            flux_idx = idx[0]
+            inv_idx = df_mask.at[flux_idx, 'second_fit_index']
+            print(f'{flux_idx=}, {inv_idx=}')
+
+            obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5, inv_idx=inv_idx)
+
+
+            num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
+        else:
+            flux_idx = idx
+            obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5, cov_path='./cmb_qu_cov_interp')
+            obj.calc_definite_fixed_cmb_cov()
+            obj.calc_covariance_matrix(mode='cmb+noise')
+            num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
+
+
 
 
 
@@ -368,6 +468,9 @@ if __name__ == '__main__':
     # get_ps_need_process(n_ps=135)
 
     # second_one_ps_fit()
-    second_fit_find_nearby()
+    # second_fit_find_nearby()
+    second_fit_all()
+
+    # test_isinstance()
 
 

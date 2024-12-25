@@ -58,11 +58,35 @@ class FitPolPS:
 
         return phi, sigma_phi
 
+    @staticmethod
+    def multi_union1d(arrays):
+        result = arrays[0]
+        for arr in arrays[1:]:
+            result = np.union1d(result, arr)
+        return result
+
     def __init__(self, m_q, m_u, freq, nstd_q, nstd_u, flux_idx, df_mask, df_ps, lmax, nside, radius_factor, beam, sigma_threshold=5, epsilon=1e-4, debug_flag=False, cov_path='./cmb_qu_cov', cov_precise_path=None, threshold_extra_factor=0.5, inv_idx=None):
         self.m_q = m_q # sky maps (npix,)
         self.m_u = m_u # sky maps (npix,)
         self.freq = freq # frequency
         self.df_mask = df_mask # pandas data frame of point sources in mask
+        if isinstance(flux_idx, list):
+            print(f'flux_idx is a list!')
+            if len(flux_idx) == 1:
+                self.multi_fit = False
+            elif len(flux_idx) >= 1:
+                self.multi_fit = True
+                self.multi_fit_list = flux_idx
+            else:
+                raise ValueError('flux_idx is not code expected')
+
+            flux_idx = flux_idx[0]
+            print(f'multi fit using {flux_idx=}')
+        else:
+            print(f'flux_idx is a int')
+            self.multi_fit = False
+
+        self.flux_idx = flux_idx # index in df_mask
         self.lon_rad = df_mask.at[flux_idx, 'lon'] # longitude of the point sources in rad
         self.lat_rad = df_mask.at[flux_idx, 'lat'] # latitude of the point sources in rad
         self.lon = np.rad2deg(self.lon_rad) # latitude of the point sources in degree
@@ -70,7 +94,7 @@ class FitPolPS:
         self.iflux = df_mask.at[flux_idx, 'iflux']
         self.qflux = df_mask.at[flux_idx, 'qflux']
         self.uflux = df_mask.at[flux_idx, 'uflux']
-        self.flux_idx = flux_idx # index in df_mask
+
         self.df_ps = df_ps # pandas data frame of all point sources
         self.nstd_q = nstd_q # noise standard deviation of Q
         self.nstd_u = nstd_u # noise standard deviation of U
@@ -98,13 +122,29 @@ class FitPolPS:
 
         self.sigma = np.deg2rad(beam) / 60 / (np.sqrt(8 * np.log(2)))
 
-        ctr0_pix = hp.ang2pix(nside=self.nside, theta=self.lon, phi=self.lat, lonlat=True)
-        self.ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
+        if self.multi_fit:
+            ctr0_pix = hp.ang2pix(nside=self.nside, theta=self.lon, phi=self.lat, lonlat=True)
+            self.ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
 
-        self.ipix_fit = hp.query_disc(nside=self.nside, vec=self.ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
-        path_pix_idx = Path(f'./pix_idx_qu')
-        path_pix_idx.mkdir(exist_ok=True, parents=True)
-        np.save(path_pix_idx / Path(f'{self.flux_idx}.npy'), self.ipix_fit)
+            ipix_fit_list = []
+            for idx in self.multi_fit_list:
+                lon = np.rad2deg(df_mask.at[idx, 'lon'])
+                lat = np.rad2deg(df_mask.at[idx, 'lat'])
+                ctr_pix = hp.ang2pix(nside=self.nside, theta=lon, phi=lat, lonlat=True)
+                ctr_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr_pix)).astype(np.float64)
+                ipix_fit = hp.query_disc(nside=self.nside, vec=ctr_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
+                ipix_fit_list.append(ipix_fit)
+            self.ipix_fit = FitPolPS.multi_union1d(ipix_fit_list)
+            path_pix_idx = Path(f'./pix_idx_qu')
+            path_pix_idx.mkdir(exist_ok=True, parents=True)
+            np.save(path_pix_idx / Path(f'{"_".join(map(str, self.multi_fit_list))}.npy'), self.ipix_fit)
+        else:
+            ctr0_pix = hp.ang2pix(nside=self.nside, theta=self.lon, phi=self.lat, lonlat=True)
+            self.ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
+            self.ipix_fit = hp.query_disc(nside=self.nside, vec=self.ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
+            path_pix_idx = Path(f'./pix_idx_qu')
+            path_pix_idx.mkdir(exist_ok=True, parents=True)
+            np.save(path_pix_idx / Path(f'{self.flux_idx}.npy'), self.ipix_fit)
 
         ## if you want the ipix_fit to range from near point to far point, add the following code
         # self.vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=self.ipix_fit.astype(int))).astype(np.float64)
@@ -127,6 +167,7 @@ class FitPolPS:
         logger.info(f'{freq=}, {beam=}, {flux_idx=}, {radius_factor=}, lon={self.lon}, lat={self.lat}, ndof={self.ndof}')
         logger.info(f'iflux={self.iflux=}, {self.qflux=}, {self.uflux=}')
         logger.info(f'i_amp={self.i_amp}, q_amp={self.q_amp}, u_amp={self.u_amp}, p_amp={self.p_amp}')
+
     def get_pix_ind(self):
         return self.ipix_fit
 
@@ -136,7 +177,10 @@ class FitPolPS:
         if self.cov_precise_path is not None:
             cmb_cov_path = self.cov_precise_path
         else:
-            cmb_cov_path = self.cov_path / Path(f'{self.flux_idx}.npy')
+            if self.multi_fit:
+                cmb_cov_path = self.cov_path / Path(f'{"_".join(map(str, self.multi_fit_list))}.npy')
+            else:
+                cmb_cov_path = self.cov_path / Path(f'{self.flux_idx}.npy')
 
         # cmb_cov_path = Path(f'./exp_cov_QU.npy')
         cov = np.load(cmb_cov_path)
@@ -155,7 +199,10 @@ class FitPolPS:
 
         semi_def_cmb_cov = Path(f'semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}')
         semi_def_cmb_cov.mkdir(parents=True, exist_ok=True)
-        np.save(semi_def_cmb_cov / Path(f'{self.flux_idx}.npy'), reconstructed_cov)
+        if self.multi_fit:
+            np.save(semi_def_cmb_cov / Path(f'{"_".join(map(str, self.multi_fit_list))}.npy'), reconstructed_cov)
+        else:
+            np.save(semi_def_cmb_cov / Path(f'{self.flux_idx}.npy'), reconstructed_cov)
 
     def calc_definite_fixed_fg_cov(self):
         fg_cov_path = Path(f'./fg_qu_cov/{self.flux_idx}.npy')
@@ -196,7 +243,10 @@ class FitPolPS:
         if self.cov_precise_path is not None:
             pass
 
-        cmb_cov_path = Path(f'./semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
+        if self.multi_fit:
+            cmb_cov_path = Path(f'./semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{"_".join(map(str, self.multi_fit_list))}.npy')
+        else:
+            cmb_cov_path = Path(f'./semi_def_cmb_cov_{self.nside}/r_{self.radius_factor}') / Path(f'{self.flux_idx}.npy')
 
         logger.info(f'{cmb_cov_path=}')
 
@@ -230,7 +280,10 @@ class FitPolPS:
             # self.inv_cov = np.linalg.pinv(cov)
             path_inv_cov = Path(f'inv_cov_{self.nside}/r_{self.radius_factor}') / Path(mode)
             path_inv_cov.mkdir(parents=True, exist_ok=True)
-            np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
+            if self.multi_fit:
+                np.save(path_inv_cov / Path(f'{"_".join(map(str, self.multi_fit_list))}.npy'), self.inv_cov)
+            else:
+                np.save(path_inv_cov / Path(f'{self.flux_idx}.npy'), self.inv_cov)
             return None
 
         if mode == 'cmb+noise+fg':
@@ -725,7 +778,7 @@ class FitPolPS:
             else:
                 self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.inv_idx}.npy')
 
-            ctr0_vec = self.ctr0_vec
+            # ctr0_vec = self.ctr0_vec
             ipix_fit = self.ipix_fit
             vec_around = self.vec_around
 
