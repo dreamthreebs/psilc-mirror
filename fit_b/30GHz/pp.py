@@ -408,7 +408,12 @@ def test_isinstance():
     inv_idx = df_mask.at[flux_idx, 'second_fit_index']
     print(f'{flux_idx=}, {inv_idx=}')
 
-    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=[14,6,8], df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5, inv_idx=inv_idx)
+    # obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=[14,6,8], df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5, inv_idx=inv_idx)
+
+    obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=[14,6,8], df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5, cov_path='./cmb_qu_cov_interp')
+    num_ps, chi2dof, q_tuple, u_tuple = obj.fit_all(cov_mode='cmb+noise')
+    print(f'{q_tuple=}, {u_tuple=}')
+
 
 def second_fit_all():
     import pickle
@@ -435,27 +440,75 @@ def second_fit_all():
     with open('./mask/ps_list.pkl', 'rb') as f:
         ps_list = pickle.load(f)
 
+    n_ps = len(df_mask)
+
+    flux_idx_arr = df_mask.loc[:n_ps-1, 'flux_idx'].to_numpy()
+    index_arr = df_mask.loc[:n_ps-1, 'index'].to_numpy()
+    lon_arr = df_mask.loc[:n_ps-1, 'lon'].to_numpy()
+    lat_arr = df_mask.loc[:n_ps-1, 'lat'].to_numpy()
+
+    num_ps_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    chi2dof_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    true_q_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    fit_q_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    true_u_arr = np.zeros_like(flux_idx_arr, dtype=float)
+    fit_u_arr = np.zeros_like(flux_idx_arr, dtype=float)
+
+
     for idx in ps_list:
         print(f'{idx=}')
         if len(idx) == 1:
-            continue
             flux_idx = idx[0]
             inv_idx = df_mask.at[flux_idx, 'second_fit_index']
             print(f'{flux_idx=}, {inv_idx=}')
 
-            obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5, inv_idx=inv_idx)
+            obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5, inv_idx=inv_idx, cov_path='./cmb_qu_cov_interp')
+            # num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
+            num_ps, chi2dof, true_q, fit_q, fit_q_err, true_u, fit_u, fit_u_err = obj.fit_all(cov_mode='cmb+noise', return_qu=True)
+            num_ps_arr[flux_idx] = num_ps
+            chi2dof_arr[flux_idx] = chi2dof
+            true_q_arr[flux_idx] = true_q
+            fit_q_arr[flux_idx] = fit_q
+            true_u_arr[flux_idx] = true_u
+            fit_u_arr[flux_idx] = fit_u
 
-
-            num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
         else:
             flux_idx = idx
             obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5, cov_path='./cmb_qu_cov_interp')
-            obj.calc_definite_fixed_cmb_cov()
-            obj.calc_covariance_matrix(mode='cmb+noise')
-            num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
+            # obj.calc_definite_fixed_cmb_cov()
+            # obj.calc_covariance_matrix(mode='cmb+noise')
+            # num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
+            num_ps, chi2dof, q_tuple, u_tuple = obj.fit_all(cov_mode='cmb+noise')
+            print(f'{q_tuple=}, {u_tuple=}')
 
+            for i, (fit_q, fit_u) in enumerate(zip(q_tuple, u_tuple)):
+                _idx = flux_idx[i]
+                true_q = FitPolPS.mJy_to_uKCMB(intensity_mJy=df_mask.at[flux_idx[i], 'qflux'], frequency_GHz=freq) / hp.nside2pixarea(nside=nside)
+                true_u = FitPolPS.mJy_to_uKCMB(intensity_mJy=df_mask.at[flux_idx[i], 'uflux'], frequency_GHz=freq) / hp.nside2pixarea(nside=nside)
+                print(f'flux_idx = {flux_idx[i]}, {fit_q=}, {fit_u=}, {true_q=}, {true_u=}')
+                num_ps_arr[_idx] = num_ps
+                chi2dof_arr[_idx] = chi2dof
+                true_q_arr[_idx] = true_q
+                fit_q_arr[_idx] = fit_q
+                true_u_arr[_idx] = true_u
+                fit_u_arr[_idx] = fit_u
 
+    df_fit = pd.DataFrame({
+        'flux_idx': flux_idx_arr,
+        'index': index_arr,
+        'lon': lon_arr,
+        'lat': lat_arr,
+        'num_ps': num_ps_arr,
+        'chi2dof': chi2dof_arr,
+        'true_q': true_q_arr,
+        'fit_q': fit_q_arr,
+        'true_u': true_u_arr,
+        'fit_u': fit_u_arr,
+        })
 
+    path_csv = Path('./mask/std')
+    path_csv.mkdir(exist_ok=True, parents=True)
+    df_fit.to_csv(f'./mask/std/{rlz_idx}.csv', index=False)
 
 
 

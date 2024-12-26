@@ -470,30 +470,28 @@ class FitPolPS:
         logger.debug(f'lat_arr after mask very faint: {lat_arr}')
         logger.debug(f'pflux_arr after mask very faint: {pflux_arr}')
 
-        if num_ps > 0:
-            ang_near_and_bigger_than_threshold = ang_near[0:num_ps]
-            if any(ang_near_and_bigger_than_threshold < 0.35):
-                self.flag_too_near = True
+        # if point sources have nearby ps < some threshold, give flag too near and sort the list by ang from small to large. Now this part is deprecated because in multi fit situation is a little bit different.
 
-                self.num_near_ps = np.count_nonzero(np.where(ang_near_and_bigger_than_threshold < 0.35, ang_near_and_bigger_than_threshold, 0))
-                logger.debug(f'{self.num_near_ps=}')
-                sorted_indices = np.argsort(ang_near_arr)
-
-                ang_near_arr = ang_near_arr[sorted_indices]
-                pflux_arr = pflux_arr[sorted_indices]
-                qflux_arr = qflux_arr[sorted_indices]
-                uflux_arr = uflux_arr[sorted_indices]
-                lon_arr = lon_arr[sorted_indices]
-                lat_arr = lat_arr[sorted_indices]
-
-                logger.debug(f'ang_near_arr after sort by ang: {ang_near_arr}')
-                logger.debug(f'lon_arr after sort by ang: {lon_arr}')
-                logger.debug(f'lat_arr after sort by ang: {lat_arr}')
-                logger.debug(f'pflux_arr after sort by ang: {pflux_arr}')
-                logger.debug(f'qflux_arr after sort by ang: {qflux_arr}')
-                logger.debug(f'uflux_arr after sort by ang: {uflux_arr}')
-
-            logger.debug(f'{self.flag_too_near = }')
+        # if num_ps > 0:
+        #     ang_near_and_bigger_than_threshold = ang_near[0:num_ps]
+        #     if any(ang_near_and_bigger_than_threshold < 0.35):
+        #         self.flag_too_near = True
+        #         self.num_near_ps = np.count_nonzero(np.where(ang_near_and_bigger_than_threshold < 0.35, ang_near_and_bigger_than_threshold, 0))
+        #         logger.debug(f'{self.num_near_ps=}')
+        #         sorted_indices = np.argsort(ang_near_arr)
+        #         ang_near_arr = ang_near_arr[sorted_indices]
+        #         pflux_arr = pflux_arr[sorted_indices]
+        #         qflux_arr = qflux_arr[sorted_indices]
+        #         uflux_arr = uflux_arr[sorted_indices]
+        #         lon_arr = lon_arr[sorted_indices]
+        #         lat_arr = lat_arr[sorted_indices]
+        #         logger.debug(f'ang_near_arr after sort by ang: {ang_near_arr}')
+        #         logger.debug(f'lon_arr after sort by ang: {lon_arr}')
+        #         logger.debug(f'lat_arr after sort by ang: {lat_arr}')
+        #         logger.debug(f'pflux_arr after sort by ang: {pflux_arr}')
+        #         logger.debug(f'qflux_arr after sort by ang: {qflux_arr}')
+        #         logger.debug(f'uflux_arr after sort by ang: {uflux_arr}')
+        #     logger.debug(f'{self.flag_too_near = }')
 
         return num_ps, tuple(sum(zip(qflux_arr, uflux_arr, lon_arr, lat_arr), ()))
 
@@ -509,36 +507,10 @@ class FitPolPS:
             sigma = 1 / np.sqrt(Fish_mat)
             logger.info(f'{sigma=}')
 
-        def lsq_4_params(q_amp,u_amp):
-
-            theta = hp.rotator.angdist(dir1=ctr0_vec, dir2=vec_around)
-
-            def model():
-                profile = 1 / (2 * np.pi * self.sigma**2) * np.exp(- (theta)**2 / (2 * self.sigma**2))
-                P = (q_amp + 1j * u_amp) * np.exp(2j * self.lon_rad)
-                lugwid_P = P * profile
-                QU = lugwid_P * np.exp(-2j * self.phi_around)
-                Q = QU.real
-                U = QU.imag
-                return np.concatenate([Q,U])
-
-            y_model = model()
-            y_data = np.concatenate([self.m_q[ipix_fit], self.m_u[ipix_fit]])
-            y_err = np.concatenate([self.nstd_q[ipix_fit], self.nstd_u[ipix_fit]])
-            y_diff = y_data - y_model
-
-            # error_estimate = np.sum(y_model**2 / y_err**2)
-            # print(f"{error_estimate=}")
-
-            z = (y_diff) @ self.inv_cov @ (y_diff)
-            return z
-            # z = (y_diff) / y_err
-            # return np.sum(z**2)
-
         def lsq_params(*args):
             # args is expected to be in the format:
-            # norm_beam1, norm_beamN, const
-        
+            # q_amp_1, u_amp_1, ... , q_amp_N, u_amp_N
+
             num_ps = (len(args)) // 2 # Determine the number of point sources based on the number of arguments
 
             # Process each point source
@@ -567,8 +539,8 @@ class FitPolPS:
         
             def model():
                 md = sum(thetas)
-                md[:len(Q)] = md[:len(Q)]
-                md[len(Q)+1:-1] = md[len(Q)+1:-1]
+                # md[:len(Q)] = md[:len(Q)]
+                # md[len(Q)+1:-1] = md[len(Q)+1:-1]
                 return md
         
             y_model = model()
@@ -579,22 +551,6 @@ class FitPolPS:
             z = (y_diff) @ self.inv_cov @ (y_diff)
             logger.debug(f'{z=}')
             return z
-
-        def test_fit():
-            params = (self.q_amp, self.u_amp, 0, 0)
-            obj_minuit = Minuit(lsq_4_params, name=("q_amp", "u_amp", "c_q", "c_u"), *params)
-            obj_minuit.limits = [(-10,10),(-10,10),(-100,100),(-100,100)]
-            logger.debug(f'\n{obj_minuit.migrad()}')
-            logger.debug(f'\n{obj_minuit.hesse()}')
-
-            chi2dof = obj_minuit.fval / (self.ndof)
-            str_chi2 = f"𝜒²/ndof = {obj_minuit.fval:.2f} / {self.ndof} = {chi2dof}"
-            logger.debug(str_chi2)
-            if obj_minuit.fmin.hesse_failed:
-                raise ValueError('hesse failed!')
-
-            logger.info(f'2 parameter fitting is enough, hesse ok')
-            return chi2dof, obj_minuit.values['q_amp'],obj_minuit.errors['q_amp'], obj_minuit.values['u_amp'], obj_minuit.errors['u_amp']
 
         def fit_1_ps():
             params = (self.q_amp, self.u_amp)
@@ -618,10 +574,27 @@ class FitPolPS:
             return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'], obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
 
         def fit_2_ps():
-            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat) = self.find_nearby_ps(num_ps=1)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2)
-            self.fit_lon = (self.lon, self.ctr2_lon)
-            self.fit_lat = (self.lat, self.ctr2_lat)
+            if self.multi_fit:
+                q_list = []
+                u_list = []
+                lon_list = []
+                lat_list = []
+                for idx in self.multi_fit_list:
+                    q_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'qflux']) / self.nside2pixarea_factor)
+                    u_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'uflux']) / self.nside2pixarea_factor)
+                    lon_list.append(np.rad2deg(self.df_mask.at[idx, 'lon']))
+                    lat_list.append(np.rad2deg(self.df_mask.at[idx, 'lat']))
+
+                params = tuple(val for pair in zip(q_list, u_list) for val in pair)
+                self.fit_lon = tuple(lon_list)
+                self.fit_lat = tuple(lat_list)
+            else:
+                num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat) = self.find_nearby_ps(num_ps=1)
+                params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2)
+                self.fit_lon = (self.lon, self.ctr2_lon)
+                self.fit_lat = (self.lat, self.ctr2_lat)
+
+            logger.debug(f'{params=}')
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2"), *params)
@@ -637,13 +610,34 @@ class FitPolPS:
                 raise ValueError('hesse failed!')
 
             logger.info(f'two ps fitting is enough, hesse ok')
-            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+            if self.multi_fit:
+                return chi2dof, (obj_minuit.values['q_amp_1'], obj_minuit.values['q_amp_2']), (obj_minuit.values['u_amp_1'], obj_minuit.values['u_amp_2'])
+            else:
+                return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
 
         def fit_3_ps():
-            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat) = self.find_nearby_ps(num_ps=2)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3)
-            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon)
-            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat)
+            if self.multi_fit:
+                logger.debug(f'parameter from multifit')
+                q_list = []
+                u_list = []
+                lon_list = []
+                lat_list = []
+                for idx in self.multi_fit_list:
+                    q_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'qflux']) / self.nside2pixarea_factor)
+                    u_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'uflux']) / self.nside2pixarea_factor)
+                    lon_list.append(np.rad2deg(self.df_mask.at[idx, 'lon']))
+                    lat_list.append(np.rad2deg(self.df_mask.at[idx, 'lat']))
+
+                params = tuple(val for pair in zip(q_list, u_list) for val in pair)
+                self.fit_lon = tuple(lon_list)
+                self.fit_lat = tuple(lat_list)
+            else:
+                num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat) = self.find_nearby_ps(num_ps=2)
+                params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3)
+                self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon)
+                self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat)
+
+            logger.debug(f'{params=}')
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3"), *params)
@@ -659,13 +653,35 @@ class FitPolPS:
                 raise ValueError('hesse failed!')
 
             logger.info(f'three ps fitting is enough, hesse ok')
-            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+            if self.multi_fit:
+                return chi2dof, (obj_minuit.values['q_amp_1'], obj_minuit.values['q_amp_2'], obj_minuit.values['q_amp_3']), (obj_minuit.values['u_amp_1'], obj_minuit.values['u_amp_2'], obj_minuit.values['u_amp_3'])
+            else:
+                return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
 
         def fit_4_ps():
-            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat) = self.find_nearby_ps(num_ps=3)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4)
-            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon)
-            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat)
+            if self.multi_fit:
+                logger.debug(f'parameter from multifit')
+                q_list = []
+                u_list = []
+                lon_list = []
+                lat_list = []
+                for idx in self.multi_fit_list:
+                    q_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'qflux']) / self.nside2pixarea_factor)
+                    u_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'uflux']) / self.nside2pixarea_factor)
+                    lon_list.append(np.rad2deg(self.df_mask.at[idx, 'lon']))
+                    lat_list.append(np.rad2deg(self.df_mask.at[idx, 'lat']))
+
+                params = tuple(val for pair in zip(q_list, u_list) for val in pair)
+                self.fit_lon = tuple(lon_list)
+                self.fit_lat = tuple(lat_list)
+            else:
+                num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat) = self.find_nearby_ps(num_ps=3)
+                params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4)
+                self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon)
+                self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat)
+
+            logger.debug(f'{params=}')
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4"), *params)
@@ -681,13 +697,34 @@ class FitPolPS:
                 raise ValueError('hesse failed!')
 
             logger.info(f'four ps fitting is enough, hesse ok')
-            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+            if self.multi_fit:
+                return chi2dof, (obj_minuit.values['q_amp_1'], obj_minuit.values['q_amp_2'], obj_minuit.values['q_amp_3'], obj_minuit.values['q_amp_4']), (obj_minuit.values['u_amp_1'], obj_minuit.values['u_amp_2'], obj_minuit.values['u_amp_3'], obj_minuit.values['u_amp_4'])
+            else:
+                return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
 
         def fit_5_ps():
-            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat) = self.find_nearby_ps(num_ps=4)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5)
-            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon)
-            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat)
+            if self.multi_fit:
+                logger.debug(f'parameter from multifit')
+                q_list = []
+                u_list = []
+                lon_list = []
+                lat_list = []
+                for idx in self.multi_fit_list:
+                    q_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'qflux']) / self.nside2pixarea_factor)
+                    u_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'uflux']) / self.nside2pixarea_factor)
+                    lon_list.append(np.rad2deg(self.df_mask.at[idx, 'lon']))
+                    lat_list.append(np.rad2deg(self.df_mask.at[idx, 'lat']))
+
+                params = tuple(val for pair in zip(q_list, u_list) for val in pair)
+                self.fit_lon = tuple(lon_list)
+                self.fit_lat = tuple(lat_list)
+            else:
+                num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat) = self.find_nearby_ps(num_ps=4)
+                params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5)
+                self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon)
+                self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat)
+            logger.debug(f'{params=}')
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5"), *params)
@@ -703,13 +740,34 @@ class FitPolPS:
                 raise ValueError('hesse failed!')
 
             logger.info(f'five ps fitting is enough, hesse ok')
-            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+            if self.multi_fit:
+                return chi2dof, (obj_minuit.values['q_amp_1'], obj_minuit.values['q_amp_2'], obj_minuit.values['q_amp_3'], obj_minuit.values['q_amp_4'], obj_minuit.values['q_amp_5']), (obj_minuit.values['u_amp_1'], obj_minuit.values['u_amp_2'], obj_minuit.values['u_amp_3'], obj_minuit.values['u_amp_4'], obj_minuit.values['u_amp_5'])
+            else:
+                return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
 
         def fit_6_ps():
-            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat) = self.find_nearby_ps(num_ps=5)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6)
-            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon)
-            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat)
+            if self.multi_fit:
+                logger.debug(f'parameter from multifit')
+                q_list = []
+                u_list = []
+                lon_list = []
+                lat_list = []
+                for idx in self.multi_fit_list:
+                    q_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'qflux']) / self.nside2pixarea_factor)
+                    u_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'uflux']) / self.nside2pixarea_factor)
+                    lon_list.append(np.rad2deg(self.df_mask.at[idx, 'lon']))
+                    lat_list.append(np.rad2deg(self.df_mask.at[idx, 'lat']))
+
+                params = tuple(val for pair in zip(q_list, u_list) for val in pair)
+                self.fit_lon = tuple(lon_list)
+                self.fit_lat = tuple(lat_list)
+            else:
+                num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat) = self.find_nearby_ps(num_ps=5)
+                params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6)
+                self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon)
+                self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat)
+            logger.debug(f'{params=}')
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6"), *params)
@@ -725,13 +783,35 @@ class FitPolPS:
                 raise ValueError('hesse failed!')
 
             logger.info(f'six ps fitting is enough, hesse ok')
-            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+            if self.multi_fit:
+                return chi2dof, (obj_minuit.values['q_amp_1'], obj_minuit.values['q_amp_2'], obj_minuit.values['q_amp_3'], obj_minuit.values['q_amp_4'], obj_minuit.values['q_amp_5'], obj_minuit.values['q_amp_6']), (obj_minuit.values['u_amp_1'], obj_minuit.values['u_amp_2'], obj_minuit.values['u_amp_3'], obj_minuit.values['u_amp_4'], obj_minuit.values['u_amp_5'], obj_minuit.values['u_amp_6'])
+            else:
+                return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
+
 
         def fit_7_ps():
-            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat, self.q_amp_7, self.u_amp_7, self.ctr7_lon, self.ctr7_lat) = self.find_nearby_ps(num_ps=6)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, self.q_amp_7, self.u_amp_7)
-            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon, self.ctr7_lon)
-            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat)
+            if self.multi_fit:
+                logger.debug(f'parameter from multifit')
+                q_list = []
+                u_list = []
+                lon_list = []
+                lat_list = []
+                for idx in self.multi_fit_list:
+                    q_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'qflux']) / self.nside2pixarea_factor)
+                    u_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'uflux']) / self.nside2pixarea_factor)
+                    lon_list.append(np.rad2deg(self.df_mask.at[idx, 'lon']))
+                    lat_list.append(np.rad2deg(self.df_mask.at[idx, 'lat']))
+
+                params = tuple(val for pair in zip(q_list, u_list) for val in pair)
+                self.fit_lon = tuple(lon_list)
+                self.fit_lat = tuple(lat_list)
+            else:
+                num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat, self.q_amp_7, self.u_amp_7, self.ctr7_lon, self.ctr7_lat) = self.find_nearby_ps(num_ps=6)
+                params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, self.q_amp_7, self.u_amp_7)
+                self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon, self.ctr7_lon)
+                self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat)
+            logger.debug(f'{params=}')
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6","q_amp_7","u_amp_7"), *params)
@@ -747,13 +827,34 @@ class FitPolPS:
                 raise ValueError('hesse failed!')
 
             logger.info(f'seven ps fitting is enough, hesse ok')
-            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+            if self.multi_fit:
+                return chi2dof, (obj_minuit.values['q_amp_1'], obj_minuit.values['q_amp_2'], obj_minuit.values['q_amp_3'], obj_minuit.values['q_amp_4'], obj_minuit.values['q_amp_5'], obj_minuit.values['q_amp_6'], obj_minuit.values['q_amp_7']), (obj_minuit.values['u_amp_1'], obj_minuit.values['u_amp_2'], obj_minuit.values['u_amp_3'], obj_minuit.values['u_amp_4'], obj_minuit.values['u_amp_5'], obj_minuit.values['u_amp_6'], obj_minuit.values['u_amp_7'])
+            else:
+                return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
 
         def fit_8_ps():
-            num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat, self.q_amp_7, self.u_amp_7, self.ctr7_lon, self.ctr7_lat, self.q_amp_8, self.u_amp_8, self.ctr8_lon, self.ctr8_lat) = self.find_nearby_ps(num_ps=7)
-            params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, self.q_amp_7, self.u_amp_7, self.q_amp_8, self.u_amp_8)
-            self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon, self.ctr7_lon, self.ctr8_lon)
-            self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat, self.ctr8_lat)
+            if self.multi_fit:
+                logger.debug(f'parameter from multifit')
+                q_list = []
+                u_list = []
+                lon_list = []
+                lat_list = []
+                for idx in self.multi_fit_list:
+                    q_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'qflux']) / self.nside2pixarea_factor)
+                    u_list.append(self.flux2norm_beam(self.df_mask.at[idx, 'uflux']) / self.nside2pixarea_factor)
+                    lon_list.append(np.rad2deg(self.df_mask.at[idx, 'lon']))
+                    lat_list.append(np.rad2deg(self.df_mask.at[idx, 'lat']))
+
+                params = tuple(val for pair in zip(q_list, u_list) for val in pair)
+                self.fit_lon = tuple(lon_list)
+                self.fit_lat = tuple(lat_list)
+            else:
+                num_ps, (self.q_amp_2, self.u_amp_2, self.ctr2_lon, self.ctr2_lat, self.q_amp_3, self.u_amp_3, self.ctr3_lon, self.ctr3_lat, self.q_amp_4, self.u_amp_4, self.ctr4_lon, self.ctr4_lat, self.q_amp_5, self.u_amp_5, self.ctr5_lon, self.ctr5_lat, self.q_amp_6, self.u_amp_6, self.ctr6_lon, self.ctr6_lat, self.q_amp_7, self.u_amp_7, self.ctr7_lon, self.ctr7_lat, self.q_amp_8, self.u_amp_8, self.ctr8_lon, self.ctr8_lat) = self.find_nearby_ps(num_ps=7)
+                params = (self.q_amp, self.u_amp, self.q_amp_2, self.u_amp_2, self.q_amp_3, self.u_amp_3, self.q_amp_4, self.u_amp_4, self.q_amp_5, self.u_amp_5, self.q_amp_6, self.u_amp_6, self.q_amp_7, self.u_amp_7, self.q_amp_8, self.u_amp_8)
+                self.fit_lon = (self.lon, self.ctr2_lon, self.ctr3_lon, self.ctr4_lon, self.ctr5_lon, self.ctr6_lon, self.ctr7_lon, self.ctr8_lon)
+                self.fit_lat = (self.lat, self.ctr2_lat, self.ctr3_lat, self.ctr4_lat, self.ctr5_lat, self.ctr6_lat, self.ctr7_lat, self.ctr8_lat)
+            logger.debug(f'{params=}')
             logger.debug(f'{self.fit_lon=}, {self.fit_lat=}')
 
             obj_minuit = Minuit(lsq_params, name=("q_amp_1","u_amp_1","q_amp_2","u_amp_2","q_amp_3","u_amp_3","q_amp_4","u_amp_4","q_amp_5","u_amp_5","q_amp_6","u_amp_6","q_amp_7","u_amp_7","q_amp_8","u_amp_8"), *params)
@@ -769,14 +870,22 @@ class FitPolPS:
                 raise ValueError('hesse failed!')
 
             logger.info(f'eight ps fitting is enough, hesse ok')
-            return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+            if self.multi_fit:
+                return chi2dof, (obj_minuit.values['q_amp_1'], obj_minuit.values['q_amp_2'], obj_minuit.values['q_amp_3'], obj_minuit.values['q_amp_4'], obj_minuit.values['q_amp_5'], obj_minuit.values['q_amp_6'], obj_minuit.values['q_amp_7'], obj_minuit.values['q_amp_8']), (obj_minuit.values['u_amp_1'], obj_minuit.values['u_amp_2'], obj_minuit.values['u_amp_3'], obj_minuit.values['u_amp_4'], obj_minuit.values['u_amp_5'], obj_minuit.values['u_amp_6'], obj_minuit.values['u_amp_7'], obj_minuit.values['u_amp_7'])
+            else:
+                return chi2dof, obj_minuit.values['q_amp_1'],obj_minuit.errors['q_amp_1'],obj_minuit.values['u_amp_1'],obj_minuit.errors['u_amp_1']
+
+
 
         if mode == 'pipeline':
 
-            if self.inv_idx is None:
-                self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.flux_idx}.npy')
+            if self.multi_fit:
+                self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{"_".join(map(str, self.multi_fit_list))}.npy')
             else:
-                self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.inv_idx}.npy')
+                if self.inv_idx is None:
+                    self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.flux_idx}.npy')
+                else:
+                    self.inv_cov = np.load(f'./inv_cov_{self.nside}/r_{self.radius_factor}/{cov_mode}/{self.inv_idx}.npy')
 
             # ctr0_vec = self.ctr0_vec
             ipix_fit = self.ipix_fit
@@ -795,38 +904,58 @@ class FitPolPS:
             if np.abs(fit_u_amp) < self.sigma_threshold * fit_u_amp_err:
                 logger.info('there is no point sources on U map')
 
-            if num_ps == 0:
-                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
-            elif num_ps == 1:
-                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_ps()
-            elif num_ps == 2:
-                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_3_ps()
-            elif num_ps == 3:
-                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_4_ps()
-            elif num_ps == 4:
-                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_5_ps()
-            elif num_ps == 5:
-                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_6_ps()
-            elif num_ps == 6:
-                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_7_ps()
-            elif num_ps == 7:
-                chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
+            if self.multi_fit:
+                num_ps = len(self.multi_fit_list) - 1
+                if num_ps == 1:
+                    chi2dof, q_tuple, u_tuple = fit_2_ps()
+                elif num_ps == 2:
+                    chi2dof, q_tuple, u_tuple = fit_3_ps()
+                elif num_ps == 3:
+                    chi2dof, q_tuple, u_tuple = fit_4_ps()
+                elif num_ps == 4:
+                    chi2dof, q_tuple, u_tuple = fit_5_ps()
+                elif num_ps == 5:
+                    chi2dof, q_tuple, u_tuple = fit_6_ps()
+                elif num_ps == 6:
+                    chi2dof, q_tuple, u_tuple = fit_7_ps()
+                elif num_ps == 7:
+                    chi2dof, q_tuple, u_tuple = fit_8_ps()
 
-            fit_P, fit_P_err = FitPolPS.calculate_P_error(Q=fit_q_amp, U=fit_u_amp, sigma_Q=fit_q_amp_err, sigma_U=fit_u_amp_err)
-            fit_phi, fit_phi_err = FitPolPS.calculate_phi_error(Q=fit_q_amp, U=fit_u_amp, sigma_Q=fit_q_amp_err, sigma_U=fit_u_amp_err)
+                return num_ps, chi2dof, q_tuple, u_tuple
 
-            fit_error_q = np.abs((fit_q_amp - self.q_amp) / self.q_amp )
-            fit_error_u = np.abs((fit_u_amp - self.u_amp) / self.u_amp )
+            else:
+                if num_ps == 0:
+                    chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_1_ps()
+                elif num_ps == 1:
+                    chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_2_ps()
+                elif num_ps == 2:
+                    chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_3_ps()
+                elif num_ps == 3:
+                    chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_4_ps()
+                elif num_ps == 4:
+                    chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_5_ps()
+                elif num_ps == 5:
+                    chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_6_ps()
+                elif num_ps == 6:
+                    chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_7_ps()
+                elif num_ps == 7:
+                    chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err = fit_8_ps()
 
-            logger.info(f'{num_ps=}, {chi2dof=}')
-            logger.info(f'{self.q_amp=}, {fit_q_amp=}, {fit_error_q=}, {fit_q_amp_err=}')
-            logger.info(f'{self.u_amp=}, {fit_u_amp=}, {fit_error_u=}, {fit_u_amp_err=}')
-            logger.info(f'{self.p_amp=}, {fit_P=}, {fit_P_err=}')
-            logger.info(f'{self.phi=}, {fit_phi=}, {fit_phi_err=}')
-            # return num_ps, chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err, fit_error_q, fit_error_u
-            if return_qu:
-                return num_ps, chi2dof, self.q_amp, fit_q_amp, fit_q_amp_err, self.u_amp, fit_u_amp, fit_u_amp_err
-            return num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err
+                fit_P, fit_P_err = FitPolPS.calculate_P_error(Q=fit_q_amp, U=fit_u_amp, sigma_Q=fit_q_amp_err, sigma_U=fit_u_amp_err)
+                fit_phi, fit_phi_err = FitPolPS.calculate_phi_error(Q=fit_q_amp, U=fit_u_amp, sigma_Q=fit_q_amp_err, sigma_U=fit_u_amp_err)
+
+                fit_error_q = np.abs((fit_q_amp - self.q_amp) / self.q_amp )
+                fit_error_u = np.abs((fit_u_amp - self.u_amp) / self.u_amp )
+
+                logger.info(f'{num_ps=}, {chi2dof=}')
+                logger.info(f'{self.q_amp=}, {fit_q_amp=}, {fit_error_q=}, {fit_q_amp_err=}')
+                logger.info(f'{self.u_amp=}, {fit_u_amp=}, {fit_error_u=}, {fit_u_amp_err=}')
+                logger.info(f'{self.p_amp=}, {fit_P=}, {fit_P_err=}')
+                logger.info(f'{self.phi=}, {fit_phi=}, {fit_phi_err=}')
+                # return num_ps, chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err, fit_error_q, fit_error_u
+                if return_qu:
+                    return num_ps, chi2dof, self.q_amp, fit_q_amp, fit_q_amp_err, self.u_amp, fit_u_amp, fit_u_amp_err
+                return num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err
 
         if mode == 'get_num_ps':
             num_ps, near = self.find_nearby_ps(num_ps=10)
