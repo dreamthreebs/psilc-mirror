@@ -9,13 +9,16 @@ from fit_qu_no_const import FitPolPS
 from config import freq, nside
 
 factor = hp.nside2pixarea(nside=nside)
-df = pd.read_csv(f'./mask/{freq}.csv')
+df = pd.read_csv(f'./mask/{freq}_after_filter.csv')
 
 for flux_idx in range(0,10):
     print(f'{flux_idx=}')
-    flux_p = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'pflux']/factor, freq)
-    flux_q = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'qflux']/factor, freq)
-    flux_u = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'uflux']/factor, freq)
+    # flux_p = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'pflux']/factor, freq)
+    # flux_q = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'qflux']/factor, freq)
+    # flux_u = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'uflux']/factor, freq)
+
+    flux_q = df.at[flux_idx, 'true_q']
+    flux_u = df.at[flux_idx, 'true_u']
 
     # Assuming data is loaded or generated here
     # data = np.random.normal(loc=0, scale=1, size=10000)  # Example data
@@ -36,13 +39,15 @@ for flux_idx in range(0,10):
     # print(f'{P_list=}')
     
     for rlz_idx in range(0,200):
-        P = np.load(f'./parameter/cmb_noise_vary/fit_P_{rlz_idx}.npy')
-        phi = np.load(f'./parameter/cmb_noise_vary/fit_phi_{rlz_idx}.npy')
-        # print(f"{P=}")
-        # phi = np.load(f'./params/0/fit_2/phi_{rlz_idx}.npy')
-        Q = P * np.cos(phi)
-        U = P * np.sin(phi)
-        P_list.append(P)
+        df_rlz = pd.read_csv(f'./mask/std/{rlz_idx}.csv')
+        # P = np.load(f'./parameter/cmb_noise_vary/fit_P_{rlz_idx}.npy')
+        # phi = np.load(f'./parameter/cmb_noise_vary/fit_phi_{rlz_idx}.npy')
+        # Q = P * np.cos(phi)
+        # U = P * np.sin(phi)
+        Q = df_rlz.at[flux_idx, 'fit_q']
+        U = df_rlz.at[flux_idx, 'fit_u']
+
+        # P_list.append(P)
         Q_list.append(Q)
         U_list.append(U)
         # phi_list.append(phi)
