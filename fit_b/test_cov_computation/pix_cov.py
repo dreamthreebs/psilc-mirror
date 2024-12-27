@@ -65,7 +65,7 @@ class CovCalculator:
         # use the c package to calculate the Covmat
         lib = cdll.LoadLibrary('./CovMat.so')
         CovMat = lib.CovMat
-        CovMat(c_void_p(vecs.ctypes.data), c_void_p(l.ctypes.data), c_void_p(Cls.ctypes.data), c_void_p(covmat.ctypes.data), c_int(npix), c_int(nl))
+        CovMat(c_void_p(vecs.ctypes.data), c_void_p(l.ctypes.data), c_void_p(Cls.ctypes.data), c_void_p(covmat.ctypes.data), c_long(npix), c_long(nl))
         # covert back to 2d
         covmat = covmat.reshape((3*npix, 3*npix))
         return covmat

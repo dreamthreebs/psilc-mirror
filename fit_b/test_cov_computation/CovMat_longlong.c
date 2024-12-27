@@ -287,7 +287,6 @@ void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int 
 	#pragma omp parallel
 	{
 	int kr,kl,t;
-  int current_idx;
 	double z;
 	double ri[3], rj[3], rij[3], rji[3], rsi[3], rsj[3];
 	double M[3][3], M1[3][3], covmatij[3][3];
@@ -302,7 +301,7 @@ void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int 
 	static const double zvec[3]={0.,0.,1.};
 	#pragma omp for schedule(dynamic, 1)
 	//npix = 3;
-	for(int i=12400;i<npix;i++)
+	for(int i=0;i<npix;i++)
 	{
 		printf("i=%d\n", i);
 		for(int j=0;j<npix;j++)
@@ -366,9 +365,6 @@ void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int 
 				{
 					//*(covmat+(3*i+kr)*3*npix+(3*j+kl)) = *(covmatij+3*kr+kl);
 					*(covmat+(3*i+kr)*3*npix+(3*j+kl)) = covmatij[kr][kl];
-          current_idx = (3*i+kr)*3*npix+(3*j+kl);
-          if (i==j){
-          printf("current_idx=%ld\n", current_idx);}
 					/* *(covmat+(3*i+kr)*3*npix+(3*j+kl)) = M[kr][kl]; */
 				}
 			}

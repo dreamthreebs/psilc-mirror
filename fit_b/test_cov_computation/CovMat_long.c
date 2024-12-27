@@ -17,7 +17,7 @@
 //}
 
 double Plz(double l, double z, double *PLZ){
-	int i;
+	long i;
 	PLZ[0] = 1.;
 	PLZ[1] = z;
 	for(i=2.;i<=l;i++){
@@ -37,7 +37,7 @@ double Plz(double l, double z, double *PLZ){
 //	return plz;
 //}
 double P2lz(double l, double z, double *PLZ){
-	int i;
+	long i;
 	PLZ[0] = 0.;
 	PLZ[1] = 0.;
 	PLZ[2] = 3*(1-pow(z, 2));
@@ -59,7 +59,7 @@ void CrossProd(double *ri, double *rj, double *r)
 // Calculate the length of a vector.
 double Dist(double *r)
 {
-	int i;
+	long i;
 	double dist=0.;
 	for(i=0;i<3;i++)
 	{
@@ -74,7 +74,7 @@ double Dist(double *r)
 // Calculate the dot product of two vectors
 double DotProd(double *ri, double *rj)
 {
-	int i;
+	long i;
 	double prod=0.;
 	for(i=0;i<3;i++)
 	{
@@ -88,7 +88,7 @@ double DotProd(double *ri, double *rj)
 // Normalization vector
 void Norm(double *r)
 {
-	int i;
+	long i;
 	double dist;
 	dist = Dist(r);
 	if(dist!=0.){
@@ -103,16 +103,16 @@ void Norm(double *r)
 // Add a small displacement to a vector
 void modify(double *r)
 {
-	int i;
+	long i;
 	for(i=1;i<3;i++)
 	{
 		*(r+1)+=p;
 	}
 }
 
-// Print Matrix
+// Prlong Matrix
 void printM(double M[][3], char *s){
-	int i, j;
+	long i, j;
 	printf("%s\n", s);
 	for(i=0;i<3;i++){
 		for(j=0;j<3;j++){
@@ -122,9 +122,9 @@ void printM(double M[][3], char *s){
 		}
 }
 
-// Print vector
+// Prlong vector
 void printv(double *vec, char *s){
-	int i;
+	long i;
 	printf("%s\n", s);
 	for(i=0;i<3;i++){
 		printf("%f, ", vec[i]);
@@ -185,7 +185,7 @@ void RotMat(double alpha, double R[][3])
 void MatT(double M[][3])
 {
 	double tmp;
-	int i,j;
+	long i,j;
 	for(i=0;i<3;i++)
 	{
 		for(j=i+1;j<3;j++)
@@ -203,7 +203,7 @@ void MatT(double M[][3])
 // Matrix multiplication
 void Mat_Mul(double *A, double *B, double *C)
 {
-	int i,j,k;
+	long i,j,k;
 	for(i=0;i<3;i++)
 	{
 		for(j=0;j<3;j++)
@@ -219,9 +219,9 @@ void Mat_Mul(double *A, double *B, double *C)
 }
 
 // Calculate the covariance matrix before rotation
-void Calc_M(double *l, double *Cls, double M[][3], double *PLZ, double *P2LZ, double z, int lmax, int nl)
+void Calc_M(double *l, double *Cls, double M[][3], double *PLZ, double *P2LZ, double z, long lmax, long nl)
 {
-	int i;
+	long i;
 	double li;
 	double F10, F12, F22;
 	double TiTj=0., TiQj=0., TiUj=0., QiQj=0., UiUj=0.;
@@ -282,30 +282,30 @@ void Calc_M(double *l, double *Cls, double M[][3], double *PLZ, double *P2LZ, do
 }
 
 // Calculate the theoretical covariance matrix
-void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int nl)
+void CovMat(double *vecs, double *l, double *Cls, double *covmat, long npix, long nl)
 {
 	#pragma omp parallel
 	{
-	int kr,kl,t;
-  int current_idx;
+	long kr,kl,t;
+  /* long current_idx; */
 	double z;
 	double ri[3], rj[3], rij[3], rji[3], rsi[3], rsj[3];
 	double M[3][3], M1[3][3], covmatij[3][3];
 	double Rij[3][3]={0.}, Rji[3][3]={0.};
 	double alpha[2];
-	int lmax=(int) (l[nl-1]);
+	long lmax=(int) (l[nl-1]);
 	double* PLZ=(double*)malloc((lmax+1)*sizeof(double));
 	double* P2LZ=(double*)malloc((lmax+1)*sizeof(double));
-	for(int i=0;i<=lmax;i++){
+	for(long i=0;i<=lmax;i++){
 		PLZ[i] = P2LZ[i] = 0.;
 	}
 	static const double zvec[3]={0.,0.,1.};
 	#pragma omp for schedule(dynamic, 1)
 	//npix = 3;
-	for(int i=12400;i<npix;i++)
+	for(long i=0;i<npix;i++)
 	{
 		printf("i=%d\n", i);
-		for(int j=0;j<npix;j++)
+		for(long j=0;j<npix;j++)
 		{
 //			printf("j=%d\n", j);
 			for(t=0;t<3;t++){
@@ -366,9 +366,9 @@ void CovMat(double *vecs, double *l, double *Cls, double *covmat, int npix, int 
 				{
 					//*(covmat+(3*i+kr)*3*npix+(3*j+kl)) = *(covmatij+3*kr+kl);
 					*(covmat+(3*i+kr)*3*npix+(3*j+kl)) = covmatij[kr][kl];
-          current_idx = (3*i+kr)*3*npix+(3*j+kl);
-          if (i==j){
-          printf("current_idx=%ld\n", current_idx);}
+          /* current_idx = (3*i+kr)*3*npix+(3*j+kl); */
+          /* if (i==j){ */
+          /* printf("current_idx=%ld\n", current_idx);} */
 					/* *(covmat+(3*i+kr)*3*npix+(3*j+kl)) = M[kr][kl]; */
 				}
 			}
