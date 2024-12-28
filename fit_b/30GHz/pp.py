@@ -28,13 +28,11 @@ def gen_fg_cl():
     Cl_TE = np.zeros_like(Cl_TT)
     return np.array([Cl_TT, Cl_EE, Cl_BB, Cl_TE])
 
-def gen_map(beam, freq, lmax, rlz_idx=0, mode='mean'):
+def gen_map(beam, freq, lmax, rlz_idx=0, mode='mean', return_noise=False):
     # mode can be mean or std
     noise_seed = np.load('../seeds_noise_2k.npy')
     cmb_seed = np.load('../seeds_cmb_2k.npy')
     nside = 2048
-    ps = np.load(f'../../fitdata/2048/PS/{freq}/ps.npy')
-    fg = np.load(f'../../fitdata/2048/FG/{freq}/fg.npy')
 
     nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
     npix = hp.nside2npix(nside=2048)
@@ -42,6 +40,12 @@ def gen_map(beam, freq, lmax, rlz_idx=0, mode='mean'):
     # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
     noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
     print(f"{np.std(noise[1])=}")
+
+    if return_noise:
+        return noise
+
+    ps = np.load(f'../../fitdata/2048/PS/{freq}/ps.npy')
+    fg = np.load(f'../../fitdata/2048/FG/{freq}/fg.npy')
 
     cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
     if mode=='std':
@@ -52,7 +56,6 @@ def gen_map(beam, freq, lmax, rlz_idx=0, mode='mean'):
     cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
 
     m = noise + ps + cmb_iqu + fg
-    # m = noise
     return m
 
 
@@ -427,7 +430,8 @@ def second_fit_all():
     nstd_u = nstd[2].copy()
     # ps = np.load('./data/ps/ps.npy')
     # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
-    m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='std')
+    # m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='mean')
+    m = gen_map(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode='mean', return_noise=True)
     # m = gen_map(beam=beam, freq=freq, lmax=lmax, mode='std')
     m_q = m[1].copy()
     m_u = m[2].copy()
@@ -506,9 +510,9 @@ def second_fit_all():
         'fit_u': fit_u_arr,
         })
 
-    path_csv = Path('./mask/std')
+    path_csv = Path('./mask/noise')
     path_csv.mkdir(exist_ok=True, parents=True)
-    df_fit.to_csv(f'./mask/std/{rlz_idx}.csv', index=False)
+    df_fit.to_csv(f'./mask/noise/{rlz_idx}.csv', index=False)
 
 
 

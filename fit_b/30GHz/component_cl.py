@@ -365,7 +365,7 @@ def second_gen_interp_cov_all():
             obj_cov = CovCalculator(nside=nside, lmin=2, lmax=lmax_cov, Cl_TT=cl_tot[0], Cl_EE=cl_interp_e*bl**2, Cl_BB=cl_interp_b*bl**2, Cl_TE=cl_tot[3], pixind=pix_ind, calc_opt='polarization', out_pol_opt='QU')
             MP = obj_cov.run_calc_cov()
 
-            path_cov = Path('./cmb_qu_cov_interp')
+            path_cov = Path('./cmb_qu_cov_interp_multi')
             path_cov.mkdir(exist_ok=True, parents=True)
             np.save(Path(path_cov / path_multi_ps), MP)
         else:
