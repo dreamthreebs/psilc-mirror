@@ -20,7 +20,7 @@ print(f'{freq=}, {beam=}')
 
 bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
 apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
-# ps_mask = np.load(f'../inpainting/mask/apo_ps_mask.npy')
+ps_mask = np.load(f'../inpainting/mask/apo_ps_mask.npy')
 
 noise_seeds = np.load('../../seeds_noise_2k.npy')
 cmb_seeds = np.load('../../seeds_cmb_2k.npy')
@@ -125,15 +125,15 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     print('begin calc dl...')
 
-    dl_pcfn = calc_dl_from_pol_map(m_q=m_pcfn_q, m_u=m_pcfn_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    dl_cfn = calc_dl_from_pol_map(m_q=m_cfn_q, m_u=m_cfn_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    dl_cf = calc_dl_from_pol_map(m_q=m_cf_q, m_u=m_cf_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    dl_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_pcfn = calc_dl_from_pol_map(m_q=m_pcfn_q, m_u=m_pcfn_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_cfn = calc_dl_from_pol_map(m_q=m_cfn_q, m_u=m_cfn_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_cf = calc_dl_from_pol_map(m_q=m_cf_q, m_u=m_cf_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    path_dl_qu_pcfn = Path(f'pcfn_dl/STD/pcfn')
-    path_dl_qu_cfn = Path(f'pcfn_dl/STD/cfn')
-    path_dl_qu_cf = Path(f'pcfn_dl/STD/cf')
-    path_dl_qu_n = Path(f'pcfn_dl/STD/n')
+    path_dl_qu_pcfn = Path(f'pcfn_dl/PS_MASK/STD/pcfn')
+    path_dl_qu_cfn = Path(f'pcfn_dl/PS_MASK/STD/cfn')
+    path_dl_qu_cf = Path(f'pcfn_dl/PS_MASK/STD/cf')
+    path_dl_qu_n = Path(f'pcfn_dl/PS_MASK/STD/n')
     path_dl_qu_pcfn.mkdir(parents=True, exist_ok=True)
     path_dl_qu_cfn.mkdir(parents=True, exist_ok=True)
     path_dl_qu_cf.mkdir(parents=True, exist_ok=True)

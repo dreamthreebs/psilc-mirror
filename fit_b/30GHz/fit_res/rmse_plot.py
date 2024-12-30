@@ -22,9 +22,7 @@ cfn_list = []
 pcfn_list = []
 
 rmv_list = []
-
-
-
+ps_mask_list = []
 
 def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     bins_edges = []
@@ -45,7 +43,6 @@ bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
 print(f'{ell_arr=}')
 
-
 for rlz_idx in range(1,200):
     n_qu = np.load(f'./pcfn_dl/MEAN/n/{rlz_idx}.npy')
     pcfn = np.load(f'./pcfn_dl/MEAN/pcfn/{rlz_idx}.npy') - n_qu
@@ -55,12 +52,16 @@ for rlz_idx in range(1,200):
     n_rmv = np.load(f'./pcfn_dl/RMV/n/{rlz_idx}.npy')
     rmv_qu = np.load(f'./pcfn_dl/RMV/mean/{rlz_idx}.npy') - n_rmv
 
+    n_ps_mask = np.load(f'./pcfn_dl/PS_MASK/MEAN/n/{rlz_idx}.npy')
+    ps_mask = np.load(f'./pcfn_dl/PS_MASK/MEAN/pcfn/{rlz_idx}.npy') - n_rmv
+
     # plt.loglog(pcfn, label='pcfn')
     # plt.loglog(cfn, label='cfn')
     # plt.loglog(cf, label='cf')
+    # plt.loglog(rmv_qu, label='rmv_qu')
     # plt.loglog(n_qu, label='n_qu')
     # plt.loglog(n_rmv, label='n_rmv')
-    # plt.loglog(rmv_qu, label='rmv_qu')
+    # plt.loglog(n_ps_mask, label='n_ps_mask')
     # plt.legend()
     # plt.show()
 
@@ -69,24 +70,39 @@ for rlz_idx in range(1,200):
     pcfn_list.append(pcfn)
 
     rmv_list.append(rmv_qu)
+    ps_mask_list.append(ps_mask)
 
 
-pcfn_mean = np.mean(pcfn_list, axis=0)
-cfn_mean = np.mean(cfn_list, axis=0)
-cf_mean = np.mean(cf_list, axis=0)
+pcfn_arr = np.asarray(pcfn_list)
+cfn_arr = np.asarray(cfn_list)
+cf_arr = np.asarray(cf_list)
 
-rmv_mean = np.mean(rmv_list, axis=0)
+rmv_arr = np.asarray(rmv_list)
+ps_mask_arr = np.asarray(ps_mask_list)
+print(f"{rmv_arr.shape=}")
 
-plt.scatter(ell_arr, pcfn_mean, label='pcfn', marker='.')
-plt.scatter(ell_arr, cfn_mean, label='cfn', marker='.')
-plt.scatter(ell_arr, cf_mean, label='cf', marker='.')
-plt.scatter(ell_arr, rmv_mean, label='rmv', marker='.')
+nsim = np.size(pcfn_arr, axis=0)
+
+pcfn_rmse = np.sqrt(np.sum((pcfn_arr-cf_arr) ** 2, axis=0) / nsim)
+print(f'{pcfn_rmse.shape=}')
+# cfn_rmse = np.sqrt(np.sum((cfn_arr-cf_arr) ** 2, axis=0) / nsim)
+rmv_rmse = np.sqrt(np.sum((rmv_arr-cf_arr) ** 2, axis=0) / nsim)
+# inp_eb_rmse = np.sqrt(np.sum((inp_eb_arr-cf_arr) ** 2, axis=0) / nsim)
+ps_mask_rmse = np.sqrt(np.sum((ps_mask_arr-cf_arr) ** 2, axis=0) / nsim)
+
+
+plt.figure(1)
+plt.scatter(ell_arr, pcfn_rmse, label='pcfn', marker='.')
+# plt.scatter(ell_arr, cfn_rmse, label='cfn', marker='.')
+plt.scatter(ell_arr, rmv_rmse, label='rmv', marker='.')
+plt.scatter(ell_arr, ps_mask_rmse, label='ps_mask', marker='.')
 plt.xlabel('$\\ell$')
-plt.ylabel('$\\Delta D_\\ell^{BB} [\mu K^2]$')
+plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
 
 plt.loglog()
 plt.legend()
-plt.title('MEAN')
+plt.title('RMSE(MEAN)')
+
 plt.show()
 
 
