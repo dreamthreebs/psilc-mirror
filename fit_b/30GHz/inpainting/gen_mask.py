@@ -40,8 +40,8 @@ path_mask = Path('./mask')
 path_mask.mkdir(exist_ok=True, parents=True)
 # hp.write_map(f'./mask/mask_add_edge.fits', mask*ori_mask, overwrite=True)
 # hp.write_map(f'./mask/mask.fits', mask*ori_mask, overwrite=True)
-# hp.write_map(f'./mask/mask_only_edge.fits', ori_mask, overwrite=True)
-hp.write_map(f'./mask/mask1d8.fits', mask*ori_mask, overwrite=True)
+hp.write_map(f'./mask/mask_only_edge.fits', ori_mask, overwrite=True)
+# hp.write_map(f'./mask/mask1d8.fits', mask*ori_mask, overwrite=True)
 
 
 

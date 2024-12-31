@@ -23,6 +23,7 @@ pcfn_list = []
 
 rmv_list = []
 ps_mask_list = []
+inp_list = []
 sim_mode = 'MEAN'
 
 def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
@@ -57,6 +58,9 @@ def mean_and_std(sim_mode):
         n_ps_mask = np.load(f'./pcfn_dl/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
         ps_mask = np.load(f'./pcfn_dl/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_rmv
 
+        n_inp = np.load(f'./pcfn_dl/INP/noise/{rlz_idx}.npy')
+        inp = np.load(f'./pcfn_dl/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
+
         # plt.loglog(pcfn, label='pcfn')
         # plt.loglog(cfn, label='cfn')
         # plt.loglog(cf, label='cf')
@@ -64,6 +68,7 @@ def mean_and_std(sim_mode):
         # plt.loglog(n_qu, label='n_qu')
         # plt.loglog(n_rmv, label='n_rmv')
         # plt.loglog(n_ps_mask, label='n_ps_mask')
+        # plt.loglog(n_inp, label='n_inp')
         # plt.legend()
         # plt.show()
 
@@ -73,6 +78,7 @@ def mean_and_std(sim_mode):
 
         rmv_list.append(rmv_qu)
         ps_mask_list.append(ps_mask)
+        inp_list.append(inp)
 
 
     pcfn_mean = np.mean(pcfn_list, axis=0)
@@ -81,6 +87,7 @@ def mean_and_std(sim_mode):
 
     rmv_mean = np.mean(rmv_list, axis=0)
     ps_mask_mean = np.mean(ps_mask_list, axis=0)
+    inp_mean = np.mean(inp_list, axis=0)
 
     pcfn_std = np.std(pcfn_list, axis=0)
     cfn_std = np.std(cfn_list, axis=0)
@@ -88,9 +95,11 @@ def mean_and_std(sim_mode):
 
     rmv_std = np.std(rmv_list, axis=0)
     ps_mask_std = np.std(ps_mask_list, axis=0)
-    return pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std
+    inp_std = np.mean(inp_list, axis=0)
 
-pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, _, _, _, _, _ = mean_and_std(sim_mode='MEAN')
+    return pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std
+
+pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, _, _, _, _, _, _ = mean_and_std(sim_mode='MEAN')
 
 plt.figure(1)
 plt.scatter(ell_arr, pcfn_mean, label='pcfn', marker='.')
@@ -98,6 +107,7 @@ plt.scatter(ell_arr, cfn_mean, label='cfn', marker='.')
 plt.scatter(ell_arr, cf_mean, label='cf', marker='.')
 plt.scatter(ell_arr, rmv_mean, label='rmv', marker='.')
 plt.scatter(ell_arr, ps_mask_mean, label='ps_mask', marker='.')
+plt.scatter(ell_arr, inp_mean, label='ps_mask', marker='.')
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
 
@@ -105,7 +115,7 @@ plt.loglog()
 plt.legend()
 plt.title('mean')
 
-_, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std = mean_and_std(sim_mode='STD')
+_, _, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
 
 plt.figure(2)
 plt.scatter(ell_arr, pcfn_std, label='pcfn', marker='.')
@@ -113,6 +123,7 @@ plt.scatter(ell_arr, cfn_std, label='cfn', marker='.')
 plt.scatter(ell_arr, cf_std, label='cf', marker='.')
 plt.scatter(ell_arr, rmv_std, label='rmv', marker='.')
 plt.scatter(ell_arr, ps_mask_std, label='ps_mask', marker='.')
+plt.scatter(ell_arr, inp_std, label='inp', marker='.')
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
 
@@ -131,7 +142,8 @@ ax.set_yscale('log')
 ax.errorbar(ell_arr, pcfn_mean, yerr=pcfn_std, fmt='.', capsize=5, label='PS + CMB + FG + NOISE')
 ax.errorbar(ell_arr+1.2, cfn_mean, yerr=cfn_std, fmt='.', capsize=5, label='CMB + FG + NOISE')
 ax.errorbar(ell_arr+2.4, rmv_mean, yerr=rmv_std, fmt='.', capsize=5, label='Template Fitting method')
-# ax.errorbar(ell_arr+3.6, ps_mask_mean, yerr=ps_mask_std, fmt='.', capsize=5, label='ps_mask')
+ax.errorbar(ell_arr+3.6, ps_mask_mean, yerr=ps_mask_std, fmt='.', capsize=5, label='ps_mask')
+ax.errorbar(ell_arr+4.8, inp_mean, yerr=inp_std, fmt='.', capsize=5, label='inp')
 
 # Add labels, legend, and title
 ax.set_xlabel('$\\ell$')
