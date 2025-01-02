@@ -14,6 +14,7 @@ print(f'{df=}')
 
 # m_ps = np.load('../data/ps/ps_b.npy')
 m_ps = np.load('./data/ps/ps.npy')
+m_ps = np.load(f'../../fitdata/2048/PS/{freq}/ps.npy')
 hp.orthview(m_ps[1], rot=[100,50,0])
 print(f'{len(df)=}')
 

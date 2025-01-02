@@ -6,8 +6,8 @@ import pandas as pd
 from pathlib import Path
 from config import nside, beam, freq
 
-lmax = 2500
-m_lmax = 3000
+lmax = 500
+m_lmax = 550
 df = pd.read_csv('../../FGSim/FreqBand')
 fg = np.load(f'../../fitdata/2048/FG/{freq}/fg.npy')
 apo_mask = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_8.npy')
@@ -280,12 +280,12 @@ def check_fg():
 
 def check_cl():
     # full_b = np.load('./data/full_b/cl_fg.npy')
-    # no_debeam_full_b = np.load('./data/no_debeam_full_b/cl_fg.npy')
-    # no_debeam_full_qu = np.load('./data/no_debeam_full_qu/cl_fg.npy')
+    no_debeam_full_b = np.load('./data/no_debeam_full_b/cl_fg.npy')
+    no_debeam_full_qu = np.load('./data/no_debeam_full_qu/cl_fg.npy')
     debeam_full_b = np.load('./data/debeam_full_b/cl_fg.npy')
-    # debeam_full_qu = np.load('./data/debeam_full_qu/cl_fg.npy')
+    debeam_full_qu = np.load('./data/debeam_full_qu/cl_fg.npy')
 
-    cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy').T[:,:np.size(debeam_full_b, axis=1)]
+    cl_cmb = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy').T[:,:np.size(debeam_full_qu, axis=1)]
     l = np.arange(np.size(cl_cmb, axis=1))
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=np.size(cl_cmb, axis=1)-1)
     plt.semilogy(l*(l+1)*cl_cmb[2]/(2*np.pi), label='CMB')
@@ -295,7 +295,7 @@ def check_cl():
     # noise = nstd * np.random.normal(loc=0, scale=1, size=(npix,))
     # nl_exp = hp.anafast(noise, lmax=m_lmax)
     # map_depth = 1.9
-    map_depth = df.at[6, 'mapdepth']
+    map_depth = df.at[0, 'mapdepth']
     nl_th = (map_depth/bl)**2 / 3437.748**2
 
     # plt.semilogy(l*(l+1)*nl_exp/bl**2/(2*np.pi), label='noise, exp')
@@ -335,7 +335,7 @@ def check_cl():
 # full_b()
 # no_debeam_full_b()
 # no_debeam_full_qu()
-debeam_full_b()
+# debeam_full_b()
 # debeam_full_qu()
 
 # check_fg()

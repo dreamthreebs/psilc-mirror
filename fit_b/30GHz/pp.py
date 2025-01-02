@@ -11,7 +11,7 @@ from pathlib import Path
 from iminuit import Minuit
 from iminuit.cost import LeastSquares
 from fit_qu_no_const import FitPolPS
-from config import lmax, nside, freq, beam
+from config import lmax, nside, freq, beam, ps_number
 
 # logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s -%(name)s - %(message)s')
 logging.basicConfig(level=logging.WARNING)
@@ -76,8 +76,9 @@ def gen_pix_idx(flux_idx=0):
     df_ps = df_mask
 
     # obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
+    n_ps = ps_number
 
-    for flux_idx in range(135):
+    for flux_idx in range(n_ps):
         print(f'{flux_idx=}')
         obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_mask, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)
 
@@ -168,7 +169,7 @@ def first_fit_all():
     df_mask = pd.read_csv(f'./mask/{freq}.csv')
     df_ps = pd.read_csv(f'../../pp_P/mask/ps_csv/{freq}.csv')
 
-    n_ps = 135
+    n_ps = ps_number
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     save_path = Path(f'fit_res/params/mean_for_sigma')
     save_path.mkdir(exist_ok=True, parents=True)
@@ -192,7 +193,7 @@ def first_fit_all():
     fit_u_err_arr = np.zeros_like(flux_idx_arr, dtype=float)
 
 
-    for flux_idx in range(135):
+    for flux_idx in range(n_ps):
         logger.debug(f'{flux_idx=}')
         obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001, threshold_extra_factor=1.5)
         # num_ps, chi2dof, fit_P, fit_P_err, fit_phi, fit_phi_err = obj.fit_all(cov_mode='cmb+noise')
@@ -230,7 +231,7 @@ def first_fit_all():
         'fit_u_err': fit_u_err_arr
         })
 
-    df_fit.to_csv('./mask/30_fit_3dot0.csv', index=False)
+    df_fit.to_csv(f'./mask/{freq}_fit.csv', index=False)
 
 
 def one_ps_fit():
@@ -522,7 +523,7 @@ if __name__ == '__main__':
     # check_parameter_distribution()
     # first_fit_all()
     # one_ps_fit()
-    # get_ps_need_process(n_ps=135)
+    # get_ps_need_process(n_ps=ps_number)
 
     # second_one_ps_fit()
     # second_fit_find_nearby()
