@@ -47,6 +47,8 @@ print(f'{ell_arr=}')
 
 def mean_and_std(sim_mode):
     for rlz_idx in range(1,200):
+        print(f'{rlz_idx=}')
+
         n_qu = np.load(f'./pcfn_dl/{sim_mode}/n/{rlz_idx}.npy')
         pcfn = np.load(f'./pcfn_dl/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
         cfn = np.load(f'./pcfn_dl/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
@@ -61,14 +63,16 @@ def mean_and_std(sim_mode):
         n_inp = np.load(f'./pcfn_dl/INP/noise/{rlz_idx}.npy')
         inp = np.load(f'./pcfn_dl/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
 
-        # plt.loglog(pcfn, label='pcfn')
-        # plt.loglog(cfn, label='cfn')
-        # plt.loglog(cf, label='cf')
-        # plt.loglog(rmv_qu, label='rmv_qu')
-        # plt.loglog(n_qu, label='n_qu')
-        # plt.loglog(n_rmv, label='n_rmv')
-        # plt.loglog(n_ps_mask, label='n_ps_mask')
-        # plt.loglog(n_inp, label='n_inp')
+        # plt.loglog(ell_arr, pcfn, label='pcfn')
+        # plt.loglog(ell_arr, cfn, label='cfn')
+        # plt.loglog(ell_arr, cf, label='cf')
+        # plt.loglog(ell_arr, rmv_qu, label='rmv_qu')
+        # plt.loglog(ell_arr, n_qu, label='n_qu')
+        # plt.loglog(ell_arr, n_rmv, label='n_rmv')
+        # plt.loglog(ell_arr, n_ps_mask, label='n_ps_mask')
+        # plt.loglog(ell_arr, n_inp, label='n_inp')
+
+        # plt.loglog(ell_arr, inp, label='inp')
         # plt.legend()
         # plt.show()
 
@@ -95,7 +99,7 @@ def mean_and_std(sim_mode):
 
     rmv_std = np.std(rmv_list, axis=0)
     ps_mask_std = np.std(ps_mask_list, axis=0)
-    inp_std = np.mean(inp_list, axis=0)
+    inp_std = np.std(inp_list, axis=0)
 
     return pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std
 
