@@ -111,7 +111,7 @@ plt.scatter(ell_arr, cfn_mean, label='cfn', marker='.')
 plt.scatter(ell_arr, cf_mean, label='cf', marker='.')
 plt.scatter(ell_arr, rmv_mean, label='rmv', marker='.')
 plt.scatter(ell_arr, ps_mask_mean, label='ps_mask', marker='.')
-plt.scatter(ell_arr, inp_mean, label='ps_mask', marker='.')
+plt.scatter(ell_arr, inp_mean, label='inp', marker='.')
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
 

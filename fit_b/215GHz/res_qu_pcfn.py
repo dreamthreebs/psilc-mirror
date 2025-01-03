@@ -74,7 +74,12 @@ class GetResidual:
         rlz_idx = 0
         print(f'{rlz_idx=}')
 
-        m_pcn, _ = self.gen_map(rlz_idx=rlz_idx, mode='std', return_noise=True)
+        mode = 'noise'
+        if mode == 'noise':
+            m_pcn, _ = self.gen_map(rlz_idx=rlz_idx, mode='std', return_noise=True)
+        else:
+            m_pcn, _ = self.gen_map(rlz_idx=rlz_idx, mode=mode)
+
         m_pcn_q = m_pcn[1].copy()
         m_pcn_u = m_pcn[2].copy()
 
@@ -84,7 +89,7 @@ class GetResidual:
         de_ps_q = m_pcn_q.copy()
         de_ps_u = m_pcn_u.copy()
         mask_list = []
-        df_rlz = pd.read_csv(f'./mask/noise/{rlz_idx}.csv')
+        df_rlz = pd.read_csv(f'./mask/{mode}/{rlz_idx}.csv')
 
         for flux_idx in range(len(self.df_mask)):
             print(f'{flux_idx=}')
@@ -152,7 +157,7 @@ class GetResidual:
         res_q = np.copy(de_ps_q)
         res_u = np.copy(de_ps_u)
 
-        path_for_res_map = Path(f'./fit_res/noise/{threshold}sigma')
+        path_for_res_map = Path(f'./fit_res/{mode}/{threshold}sigma')
         path_for_res_map.mkdir(parents=True, exist_ok=True)
         np.save(path_for_res_map / Path(f'map_q_{rlz_idx}.npy'), res_q)
         np.save(path_for_res_map / Path(f'map_u_{rlz_idx}.npy'), res_u)

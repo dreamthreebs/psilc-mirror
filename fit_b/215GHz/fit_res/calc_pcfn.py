@@ -103,7 +103,7 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
     # m_pcn = np.load(f'../../../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/{rlz_idx}.npy')
 
-    m_pcfn, m_cfn, m_cf, m_n= gen_map(rlz_idx=rlz_idx, mode='std')
+    m_pcfn, m_cfn, m_cf, m_n= gen_map(rlz_idx=rlz_idx, mode='mean')
 
     # m_pcfn_q = np.load(f'./pcfn_fit_qu/3sigma/map_q_{rlz_idx}.npy') * bin_mask
     # m_pcfn_u = np.load(f'./pcfn_fit_qu/3sigma/map_u_{rlz_idx}.npy') * bin_mask
@@ -130,10 +130,10 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     dl_cf = calc_dl_from_pol_map(m_q=m_cf_q, m_u=m_cf_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     dl_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    path_dl_qu_pcfn = Path(f'pcfn_dl/STD/pcfn')
-    path_dl_qu_cfn = Path(f'pcfn_dl/STD/cfn')
-    path_dl_qu_cf = Path(f'pcfn_dl/STD/cf')
-    path_dl_qu_n = Path(f'pcfn_dl/STD/n')
+    path_dl_qu_pcfn = Path(f'pcfn_dl/MEAN/pcfn')
+    path_dl_qu_cfn = Path(f'pcfn_dl/MEAN/cfn')
+    path_dl_qu_cf = Path(f'pcfn_dl/MEAN/cf')
+    path_dl_qu_n = Path(f'pcfn_dl/MEAN/n')
     path_dl_qu_pcfn.mkdir(parents=True, exist_ok=True)
     path_dl_qu_cfn.mkdir(parents=True, exist_ok=True)
     path_dl_qu_cf.mkdir(parents=True, exist_ok=True)
