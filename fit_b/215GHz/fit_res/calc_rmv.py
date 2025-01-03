@@ -103,33 +103,31 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     # m_pcfn, _, _, m_n= gen_map(rlz_idx=rlz_idx)
 
-    m_pcfn_q = np.load(f'./std/3sigma/map_q_{rlz_idx}.npy') * bin_mask
-    m_pcfn_u = np.load(f'./std/3sigma/map_u_{rlz_idx}.npy') * bin_mask
+    m_pcfn_q = np.load(f'./mean/3sigma/map_q_{rlz_idx}.npy') * bin_mask
+    m_pcfn_u = np.load(f'./mean/3sigma/map_u_{rlz_idx}.npy') * bin_mask
 
-    # m_n_q = np.load(f'./noise/3sigma/map_q_{rlz_idx}.npy') * bin_mask
-    # m_n_u = np.load(f'./noise/3sigma/map_u_{rlz_idx}.npy') * bin_mask
+    m_std_q = np.load(f'./std/3sigma/map_q_{rlz_idx}.npy') * bin_mask
+    m_std_u = np.load(f'./std/3sigma/map_u_{rlz_idx}.npy') * bin_mask
 
-    # m_pcfn_q = m_pcfn[1].copy() * bin_mask
-    # m_pcfn_u = m_pcfn[2].copy() * bin_mask
-
-    # m_n_q = m_n[1].copy() * bin_mask
-    # m_n_u = m_n[2].copy() * bin_mask
+    m_n_q = np.load(f'./noise/3sigma/map_q_{rlz_idx}.npy') * bin_mask
+    m_n_u = np.load(f'./noise/3sigma/map_u_{rlz_idx}.npy') * bin_mask
 
     print('begin calc dl...')
 
-    # dl_qu = calc_dl_from_pol_map(m_q=m_pcfn_q, m_u=m_pcfn_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    # dl_qu_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-
     dl_qu = calc_dl_from_pol_map(m_q=m_pcfn_q, m_u=m_pcfn_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    # dl_qu_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_qu_std = calc_dl_from_pol_map(m_q=m_std_q, m_u=m_std_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_qu_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    path_dl_qu = Path(f'pcfn_dl/RMV/std')
+    path_dl_qu = Path(f'pcfn_dl/RMV/MEAN')
+    path_dl_qu_std = Path(f'pcfn_dl/RMV/STD')
     path_dl_qu_n = Path(f'pcfn_dl/RMV/n')
     path_dl_qu.mkdir(parents=True, exist_ok=True)
+    path_dl_qu_std.mkdir(parents=True, exist_ok=True)
     path_dl_qu_n.mkdir(parents=True, exist_ok=True)
 
     np.save(path_dl_qu / Path(f'{rlz_idx}.npy'), dl_qu)
-    # np.save(path_dl_qu_n / Path(f'{rlz_idx}.npy'), dl_qu_n)
+    np.save(path_dl_qu_std / Path(f'{rlz_idx}.npy'), dl_qu_std)
+    np.save(path_dl_qu_n / Path(f'{rlz_idx}.npy'), dl_qu_n)
 
 
 def main():
