@@ -58,7 +58,7 @@ def mean_and_std(sim_mode):
         rmv_qu = np.load(f'./pcfn_dl/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
 
         n_ps_mask = np.load(f'./pcfn_dl/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
-        ps_mask = np.load(f'./pcfn_dl/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_rmv
+        ps_mask = np.load(f'./pcfn_dl/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
 
         n_inp = np.load(f'./pcfn_dl/INP/noise/{rlz_idx}.npy')
         inp = np.load(f'./pcfn_dl/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
@@ -146,8 +146,8 @@ ax.set_yscale('log')
 ax.errorbar(ell_arr, pcfn_mean, yerr=pcfn_std, fmt='.', capsize=5, label='PS + CMB + FG + NOISE')
 ax.errorbar(ell_arr+1.2, cfn_mean, yerr=cfn_std, fmt='.', capsize=5, label='CMB + FG + NOISE')
 ax.errorbar(ell_arr+2.4, rmv_mean, yerr=rmv_std, fmt='.', capsize=5, label='Template Fitting method')
-ax.errorbar(ell_arr+3.6, ps_mask_mean, yerr=ps_mask_std, fmt='.', capsize=5, label='ps_mask')
-ax.errorbar(ell_arr+4.8, inp_mean, yerr=inp_std, fmt='.', capsize=5, label='inp')
+ax.errorbar(ell_arr+3.6, ps_mask_mean, yerr=ps_mask_std, fmt='.', capsize=5, label='Mask on QU')
+ax.errorbar(ell_arr+4.8, inp_mean, yerr=inp_std, fmt='.', capsize=5, label='Recycling + inpaint on B')
 
 # Add labels, legend, and title
 ax.set_xlabel('$\\ell$')
