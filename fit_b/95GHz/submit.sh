@@ -25,8 +25,8 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=36
-#SBATCH --mem=200GB
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=40GB
 #SBATCH --exclude=aliws005
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./pp_cov_estimate.py
+mpiexec python -u ./pp.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

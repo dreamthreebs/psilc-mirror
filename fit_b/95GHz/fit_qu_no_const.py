@@ -447,14 +447,14 @@ class FitPolPS:
         ang_near_arr = np.array(ang_near)[0:num_ps]
         lon_arr = np.array(lon_list)
         lat_arr = np.array(lat_list)
-        num_ps = np.count_nonzero(np.where(pflux_arr > self.flux2norm_beam(flux=1) / self.nside2pixarea_factor, pflux_arr, 0))
-        logger.debug(f'there are {num_ps} ps > 1 mJy')
+        num_ps = np.count_nonzero(np.where(pflux_arr > self.flux2norm_beam(flux=0.1) / self.nside2pixarea_factor, pflux_arr, 0))
+        logger.debug(f'there are {num_ps} ps > 0.1 mJy')
         logger.debug(f'ang_near_arr before mask very faint: {ang_near_arr}')
         logger.debug(f'lon_arr before mask very faint: {lon_arr}')
         logger.debug(f'lat_arr before mask very faint: {lat_arr}')
         logger.debug(f'pflux_arr before mask very faint: {pflux_arr}')
 
-        mask_very_faint = pflux_arr > self.flux2norm_beam(flux=1) / self.nside2pixarea_factor
+        mask_very_faint = pflux_arr > self.flux2norm_beam(flux=0.1) / self.nside2pixarea_factor
 
         ang_near_arr = ang_near_arr[mask_very_faint].copy()
         pflux_arr = pflux_arr[mask_very_faint].copy()

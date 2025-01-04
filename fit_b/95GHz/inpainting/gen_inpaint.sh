@@ -17,6 +17,3 @@ for i in $(seq 0 $copies); do
     sed -i "44s/number=\"0\"/number=\"$i\"/" $new_file
 done
 
-
-
-

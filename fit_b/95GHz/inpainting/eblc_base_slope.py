@@ -22,9 +22,20 @@ class EBLeakageCorrection:
         return m * self.post_mask
 
     def check_eblc_result(self, crt_b, tmp_b, cln_b, rot:list=[100,50,0], vmin=-0.6, vmax=0.6, cmap='jet'):
-        hp.orthview(hp.ma(crt_b, badval=0), rot=[100,50,0], half_sky=True,sub=(1,3,1), title='corrupted', min=vmin, max=vmax, cmap=cmap, badcolor='white')
-        hp.orthview(hp.ma(tmp_b, badval=0), rot=[100,50,0],  half_sky=True,sub=(1,3,2), title='template', min=vmin, max=vmax, cmap=cmap, badcolor='white')
-        hp.orthview(hp.ma(cln_b, badval=0), rot=[100,50,0],  half_sky=True,sub=(1,3,3), title='cleaned', min=vmin, max=vmax, cmap=cmap, badcolor='white')
+
+        # hp.orthview(hp.ma(crt_b, badval=0), rot=[100,50,0], half_sky=True,sub=(1,3,1), title='corrupted', min=vmin, max=vmax, cmap=cmap, badcolor='white')
+        # hp.orthview(hp.ma(tmp_b, badval=0), rot=[100,50,0],  half_sky=True,sub=(1,3,2), title='template', min=vmin, max=vmax, cmap=cmap, badcolor='white')
+        # hp.orthview(hp.ma(cln_b, badval=0), rot=[100,50,0],  half_sky=True,sub=(1,3,3), title='cleaned', min=vmin, max=vmax, cmap=cmap, badcolor='white')
+
+        hp.orthview(hp.ma(crt_b, badval=0), rot=[100,50,0], half_sky=True,sub=(1,3,1), title='corrupted', cmap=cmap, badcolor='white')
+        hp.orthview(hp.ma(tmp_b, badval=0), rot=[100,50,0],  half_sky=True,sub=(1,3,2), title='template', cmap=cmap, badcolor='white')
+        hp.orthview(hp.ma(cln_b, badval=0), rot=[100,50,0],  half_sky=True,sub=(1,3,3), title='cleaned', cmap=cmap, badcolor='white')
+ 
+        from pathlib import Path
+
+        path_fig = Path.home() / Path("tmp/20241031/")
+        path_fig.mkdir(exist_ok=True, parents=True)
+        plt.savefig(path_fig / Path("eblc.png"))
         plt.show()
 
     def zzr(self, lmax, nside):

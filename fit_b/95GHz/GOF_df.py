@@ -39,7 +39,7 @@ for flux_idx in range(0,10):
     # print(f'{P_list=}')
     
     for rlz_idx in range(0,200):
-        df_rlz = pd.read_csv(f'./mask/noise/{rlz_idx}.csv')
+        df_rlz = pd.read_csv(f'./mask/mean/{rlz_idx}.csv')
         # P = np.load(f'./parameter/cmb_noise_vary/fit_P_{rlz_idx}.npy')
         # phi = np.load(f'./parameter/cmb_noise_vary/fit_phi_{rlz_idx}.npy')
         # Q = P * np.cos(phi)
