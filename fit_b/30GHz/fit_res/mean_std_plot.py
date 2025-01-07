@@ -26,6 +26,11 @@ ps_mask_list = []
 inp_list = []
 sim_mode = 'MEAN'
 
+def calc_lmax(beam):
+    lmax_eff = 2 * np.pi / np.deg2rad(beam) * 60
+    print(f'{lmax_eff=}')
+    return lmax_eff
+
 def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     bins_edges = []
     l_min = l_min_start  # starting l_min
@@ -136,6 +141,8 @@ plt.legend()
 plt.title('standard deviation')
 plt.show()
 
+lmax_eff = calc_lmax(beam=beam)
+
 # Create figure and axis
 fig, ax = plt.subplots()
 
@@ -152,7 +159,7 @@ ax.errorbar(ell_arr+4.8, inp_mean, yerr=inp_std, fmt='.', capsize=5, label='Recy
 # Add labels, legend, and title
 ax.set_xlabel('$\\ell$')
 ax.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
-ax.set_xlim(2,300)
+ax.set_xlim(2,lmax_eff)
 ax.set_ylim(1e-2,5e0)
 ax.set_title('Debiased power spectra and standard deviation')
 ax.legend()
