@@ -145,16 +145,16 @@ ax.set_yscale('log')
 
 # Error bars (only in y, in log scale)
 ax.errorbar(ell_arr, pcfn_mean, yerr=pcfn_std, fmt='.', capsize=5, label='PS + CMB + FG + NOISE')
-ax.errorbar(ell_arr+1.2, cfn_mean, yerr=cfn_std, fmt='.', capsize=5, label='CMB + FG + NOISE')
-ax.errorbar(ell_arr+2.4, rmv_mean, yerr=rmv_std, fmt='.', capsize=5, label='Template Fitting method')
-ax.errorbar(ell_arr+3.6, ps_mask_mean, yerr=ps_mask_std, fmt='.', capsize=5, label='Mask on QU')
-ax.errorbar(ell_arr+4.8, inp_mean, yerr=inp_std, fmt='.', capsize=5, label='Recycling + Inpaint on B')
+ax.errorbar(ell_arr+3, cfn_mean, yerr=cfn_std, fmt='.', capsize=5, label='CMB + FG + NOISE')
+ax.errorbar(ell_arr+6, rmv_mean, yerr=rmv_std, fmt='.', capsize=5, label='Template Fitting method')
+ax.errorbar(ell_arr+9, ps_mask_mean, yerr=ps_mask_std, fmt='.', capsize=5, label='Mask on QU')
+ax.errorbar(ell_arr+12, inp_mean, yerr=inp_std, fmt='.', capsize=5, label='Recycling + Inpaint on B')
 
 # Add labels, legend, and title
 ax.set_xlabel('$\\ell$')
 ax.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
-# ax.set_xlim(2,300)
-# ax.set_ylim(1e-2,e0)
+ax.set_xlim(2,2000)
+ax.set_ylim(1e-2,4e-1)
 ax.set_title('Debiased power spectra and standard deviation')
 ax.legend()
 
