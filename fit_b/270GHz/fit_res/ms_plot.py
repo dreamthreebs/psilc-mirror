@@ -175,7 +175,6 @@ ax_main.set_xscale('log')
 ax_sub.set_xscale('log')
 
 
-
 # Plot mean values in the main axis (no error bars here)
 ax_main.scatter(ell_arr, pcfn_mean[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
 ax_main.scatter(ell_arr, cfn_mean[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')

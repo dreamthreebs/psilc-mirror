@@ -171,10 +171,6 @@ s = 5
 # Set the y-axis to logarithmic scale for both the main plot and subfigure
 ax_main.set_yscale('log')
 ax_sub.set_yscale('log')
-ax_main.set_xscale('log')
-ax_sub.set_xscale('log')
-
-
 
 # Plot mean values in the main axis (no error bars here)
 ax_main.scatter(ell_arr, pcfn_mean[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')

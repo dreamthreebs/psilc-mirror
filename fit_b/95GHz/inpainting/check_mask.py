@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 
 
 apo_ps_mask = np.load('./mask/apo_ps_mask.npy')
-mask = hp.read_map('./mask/mask1d8.fits')
+mask = hp.read_map('./mask/mask_add_edge.fits')
+fsky = np.sum(apo_ps_mask) / np.size(apo_ps_mask)
+print(f'{fsky=}')
 
 hp.orthview(mask, rot=[100,50,0], title='mask')
 hp.orthview(apo_ps_mask, rot=[100,50,0], title='apo_ps_mask')
