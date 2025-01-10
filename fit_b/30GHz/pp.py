@@ -607,10 +607,12 @@ def check_eblc_res():
     cln_cfn = np.load(f'./fit_res/{sim_mode}/cfn/{rlz_idx}.npy')
     # cln_cf = np.load(f'./fit_res/{sim_mode}/pcfn/{rlz_idx}.npy')
     cln_rmv = np.load(f'./fit_res/{sim_mode}/rmv/{rlz_idx}.npy')
+    inp = hp.read_map(f'./inpainting/output_m2_{sim_mode}/{rlz_idx}.fits')
 
     hp.orthview(cln_pcfn, rot=[100,50,0], title='pcfn', half_sky=True)
     hp.orthview(cln_cfn, rot=[100,50,0], title='cfn', half_sky=True)
     hp.orthview(cln_rmv, rot=[100,50,0], title='rmv', half_sky=True)
+    hp.orthview(inp, rot=[100,50,0], title='inp', half_sky=True)
     plt.show()
 
     for flux_idx in np.arange(len(df)):
@@ -619,6 +621,7 @@ def check_eblc_res():
         hp.gnomview(cln_pcfn, rot=[lon, lat, 0], title='pcfn')
         hp.gnomview(cln_cfn, rot=[lon, lat, 0], title='cfn')
         hp.gnomview(cln_rmv, rot=[lon, lat, 0], title='rmv')
+        hp.gnomview(inp, rot=[lon, lat, 0], title='inp')
         plt.show()
 
 if __name__ == '__main__':
@@ -634,8 +637,8 @@ if __name__ == '__main__':
     # second_fit_all()
 
     # test_isinstance()
-    do_eblc()
-    # check_eblc_res()
+    # do_eblc()
+    check_eblc_res()
 
     pass
 
