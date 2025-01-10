@@ -12,6 +12,7 @@ from iminuit import Minuit
 from iminuit.cost import LeastSquares
 from fit_qu_no_const import FitPolPS
 from config import lmax, nside, freq, beam, ps_number
+from eblc_base_slope import EBLeakageCorrection
 
 # logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s -%(name)s - %(message)s')
 logging.basicConfig(level=logging.WARNING)
@@ -58,6 +59,37 @@ def gen_map(beam, freq, lmax, rlz_idx=0, mode='mean', return_noise=False):
     m = noise + ps + cmb_iqu + fg
     return m
 
+def gen_map_all(beam, freq, lmax, rlz_idx=0, mode='mean', return_noise=False):
+    # mode can be mean or std
+    noise_seed = np.load('../seeds_noise_2k.npy')
+    cmb_seed = np.load('../seeds_cmb_2k.npy')
+    nside = 2048
+
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    npix = hp.nside2npix(nside=2048)
+    np.random.seed(seed=noise_seed[rlz_idx])
+    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    print(f"{np.std(noise[1])=}")
+
+    if return_noise:
+        return noise
+
+    ps = np.load(f'../../fitdata/2048/PS/{freq}/ps.npy')
+    fg = np.load(f'../../fitdata/2048/FG/{freq}/fg.npy')
+
+    cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
+    if mode=='std':
+        np.random.seed(seed=cmb_seed[rlz_idx])
+    elif mode=='mean':
+        np.random.seed(seed=cmb_seed[0])
+
+    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
+
+    pcfn = noise + ps + cmb_iqu + fg
+    cfn = noise + cmb_iqu + fg
+    cf = cmb_iqu + fg
+    return pcfn, cfn, cf, noise
 
 def gen_pix_idx(flux_idx=0):
     npix = hp.nside2npix(nside)
@@ -563,6 +595,81 @@ def second_fit_all():
     path_csv.mkdir(exist_ok=True, parents=True)
     df_fit.to_csv(path_csv / Path(f'{rlz_idx}.csv'), index=False)
 
+def do_eblc():
+    rlz_idx = 0
+    def calc_eblc_res(sim_mode):
+        pcfn, cfn, cf, n = gen_map_all(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode=sim_mode)
+        mask = hp.read_map('./inpainting/mask/mask_only_edge.fits')
+
+        obj_pcfn = EBLeakageCorrection(m=pcfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
+        _, _, cln_pcfn = obj_pcfn.run_eblc()
+        slope = obj_pcfn.return_slope()
+
+        obj_cfn = EBLeakageCorrection(m=cfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope)
+        _, _, cln_cfn = obj_cfn.run_eblc()
+
+        obj_cf = EBLeakageCorrection(m=cf, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope)
+        _, _, cln_cf = obj_cf.run_eblc()
+
+        obj_n = EBLeakageCorrection(m=n, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope)
+        _, _, cln_n = obj_n.run_eblc()
+
+        rmv_q = np.load(f'./fit_res/{sim_mode}/3sigma/map_q_{rlz_idx}.npy')
+        rmv_u = np.load(f'./fit_res/{sim_mode}/3sigma/map_u_{rlz_idx}.npy')
+        rmv_t = np.zeros_like(rmv_q)
+
+        obj_rmv = EBLeakageCorrection(m=np.asarray([rmv_t, rmv_q, rmv_u]), lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope)
+        _, _, cln_rmv = obj_rmv.run_eblc()
+
+        path_eblc_pcfn = Path(f'./fit_res/{sim_mode}/pcfn')
+        path_eblc_pcfn.mkdir(exist_ok=True, parents=True)
+        np.save(path_eblc_pcfn / Path(f'{rlz_idx}.npy'), cln_pcfn)
+
+        path_eblc_cfn = Path(f'./fit_res/{sim_mode}/cfn')
+        path_eblc_cfn.mkdir(exist_ok=True, parents=True)
+        np.save(path_eblc_cfn / Path(f'{rlz_idx}.npy'), cln_cfn)
+
+        path_eblc_cf = Path(f'./fit_res/{sim_mode}/cf')
+        path_eblc_cf.mkdir(exist_ok=True, parents=True)
+        np.save(path_eblc_cf / Path(f'{rlz_idx}.npy'), cln_cf)
+
+        path_eblc_n = Path(f'./fit_res/{sim_mode}/n')
+        path_eblc_n.mkdir(exist_ok=True, parents=True)
+        np.save(path_eblc_n / Path(f'{rlz_idx}.npy'), cln_n)
+
+        path_eblc_rmv = Path(f'./fit_res/{sim_mode}/rmv')
+        path_eblc_rmv.mkdir(exist_ok=True, parents=True)
+        np.save(path_eblc_rmv / Path(f'{rlz_idx}.npy'), cln_rmv)
+    calc_eblc_res(sim_mode='mean')
+    calc_eblc_res(sim_mode='std')
+
+def check_eblc_res():
+    rlz_idx = 0
+    sim_mode = 'mean'
+
+    df = pd.read_csv(f'./mask/{freq}_after_filter.csv')
+
+    cln_pcfn = np.load(f'./fit_res/{sim_mode}/pcfn/{rlz_idx}.npy')
+    cln_cfn = np.load(f'./fit_res/{sim_mode}/cfn/{rlz_idx}.npy')
+    # cln_cf = np.load(f'./fit_res/{sim_mode}/pcfn/{rlz_idx}.npy')
+    cln_rmv = np.load(f'./fit_res/{sim_mode}/rmv/{rlz_idx}.npy')
+    inp = hp.read_map(f'./inpainting/output_m2_{sim_mode}/{rlz_idx}.fits')
+
+    hp.orthview(cln_pcfn, rot=[100,50,0], title='pcfn', half_sky=True)
+    hp.orthview(cln_cfn, rot=[100,50,0], title='cfn', half_sky=True)
+    hp.orthview(cln_rmv, rot=[100,50,0], title='rmv', half_sky=True)
+    hp.orthview(inp, rot=[100,50,0], title='inp', half_sky=True)
+    plt.show()
+
+    for flux_idx in np.arange(len(df)):
+        lon = np.rad2deg(df.at[flux_idx, 'lon'])
+        lat = np.rad2deg(df.at[flux_idx, 'lat'])
+        hp.gnomview(cln_pcfn, rot=[lon, lat, 0], title='pcfn')
+        hp.gnomview(cln_cfn, rot=[lon, lat, 0], title='cfn')
+        hp.gnomview(cln_rmv, rot=[lon, lat, 0], title='rmv')
+        hp.gnomview(inp, rot=[lon, lat, 0], title='inp')
+        plt.show()
+
 
 
 if __name__ == '__main__':
@@ -576,7 +683,10 @@ if __name__ == '__main__':
     # second_one_ps_fit()
     # second_fit_find_nearby()
     # second_gen_pix_and_inv()
-    second_fit_all()
+    # second_fit_all()
+
+    # do_eblc()
+    check_eblc_res()
 
     pass
 
