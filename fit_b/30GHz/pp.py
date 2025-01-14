@@ -675,13 +675,13 @@ def smooth_all():
     # mask_check = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
     def calc_smooth(sim_mode):
         if sim_mode == 'noise':
-            n = np.load(f'./fit_res/{sim_mode}/n/{rlz_idx}.npy')
+            n = np.load(f'./fit_res/mean/n/{rlz_idx}.npy')
             n_inp = hp.read_map(f'./inpainting/output_m2_n/{rlz_idx}.fits')
             n_rmv = np.load(f'./fit_res/noise/rmv/{rlz_idx}.npy')
 
             sm_n = smooth_map(map_in=n, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
-            sm_n_inp = smooth_map(map_in=inp, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
-            sm_n_rmv = smooth_map(map_in=rmv, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+            sm_n_inp = smooth_map(map_in=n_inp, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+            sm_n_rmv = smooth_map(map_in=n_rmv, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
 
             path_n = Path(f'./fit_res/sm/{sim_mode}/n')
             path_n_rmv = Path(f'./fit_res/sm/{sim_mode}/n_rmv')
@@ -691,8 +691,8 @@ def smooth_all():
             path_n_rmv.mkdir(exist_ok=True, parents=True)
             path_n_inp.mkdir(exist_ok=True, parents=True)
             np.save(path_n / Path(f'{rlz_idx}.npy'), sm_n)
-            np.save(path_n_inp / Path(f'{rlz_idx}.npy'), sm_inp)
-            np.save(path_n_rmv / Path(f'{rlz_idx}.npy'), sm_rmv)
+            np.save(path_n_inp / Path(f'{rlz_idx}.npy'), sm_n_inp)
+            np.save(path_n_rmv / Path(f'{rlz_idx}.npy'), sm_n_rmv)
         else:
             pcfn = np.load(f'./fit_res/{sim_mode}/pcfn/{rlz_idx}.npy')
             cfn = np.load(f'./fit_res/{sim_mode}/cfn/{rlz_idx}.npy')
