@@ -726,23 +726,90 @@ def smooth_all():
 
 def smooth_check_all():
     rlz_idx = 0
+    beam_out = 17
+    bl_in = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
+    bl_out = hp.gauss_beam(fwhm=np.deg2rad(beam_out)/60, lmax=lmax, pol=True)[:,2]
     sim_mode = 'mean'
     mask_check = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
+
     pcfn = np.load(f'./fit_res/{sim_mode}/pcfn/{rlz_idx}.npy')
     cfn = np.load(f'./fit_res/{sim_mode}/cfn/{rlz_idx}.npy')
     cf = np.load(f'./fit_res/{sim_mode}/cf/{rlz_idx}.npy')
-    n = np.load(f'./fit_res/{sim_mode}/n/{rlz_idx}.npy')
+    rmv = np.load(f'./fit_res/{sim_mode}/rmv/{rlz_idx}.npy')
+    inp = hp.read_map(f'./inpainting/output_m2_{sim_mode}/{rlz_idx}.fits')
 
-    rmv = np.load()
+    sm_pcfn = np.load(f'./fit_res/sm/{sim_mode}/pcfn/{rlz_idx}.npy')
+    sm_cfn = np.load(f'./fit_res/sm/{sim_mode}/cfn/{rlz_idx}.npy')
+    sm_cf = np.load(f'./fit_res/sm/{sim_mode}/cf/{rlz_idx}.npy')
+    sm_rmv = np.load(f'./fit_res/sm/{sim_mode}/rmv/{rlz_idx}.npy')
+    sm_inp = np.load(f'./fit_res/sm/{sim_mode}/inp/{rlz_idx}.npy')
 
+    n = np.load(f'./fit_res/mean/n/{rlz_idx}.npy')
+    n_inp = hp.read_map(f'./inpainting/output_m2_n/{rlz_idx}.fits')
+    n_rmv = np.load(f'./fit_res/noise/rmv/{rlz_idx}.npy')
+    sm_n = np.load(f'./fit_res/sm/noise/n/{rlz_idx}.npy')
+    sm_n_inp = np.load(f'./fit_res/sm/noise/n_inp/{rlz_idx}.npy')
+    sm_n_rmv = np.load(f'./fit_res/sm/noise/n_rmv/{rlz_idx}.npy')
 
+    cl_pcfn = hp.anafast(pcfn*mask_check, lmax=lmax)
+    cl_sm_pcfn = hp.anafast(sm_pcfn*mask_check, lmax=lmax)
+    plt.loglog(cl_pcfn/bl_in**2, label='pcfn in')
+    plt.loglog(cl_sm_pcfn/bl_out**2, label='pcfn out')
+    plt.legend()
+    plt.show()
+
+    cl_cfn = hp.anafast(cfn*mask_check, lmax=lmax)
+    cl_sm_cfn = hp.anafast(sm_cfn*mask_check, lmax=lmax)
+    plt.loglog(cl_cfn/bl_in**2, label='cfn in')
+    plt.loglog(cl_sm_cfn/bl_out**2, label='cfn out')
+    plt.legend()
+    plt.show()
+
+    cl_cf = hp.anafast(cf*mask_check, lmax=lmax)
+    cl_sm_cf = hp.anafast(sm_cf*mask_check, lmax=lmax)
+    plt.loglog(cl_cf/bl_in**2, label='cf in')
+    plt.loglog(cl_sm_cf/bl_out**2, label='cf out')
+    plt.legend()
+    plt.show()
+
+    cl_rmv = hp.anafast(rmv*mask_check, lmax=lmax)
+    cl_sm_rmv = hp.anafast(sm_rmv*mask_check, lmax=lmax)
+    plt.loglog(cl_rmv/bl_in**2, label='rmv in')
+    plt.loglog(cl_sm_rmv/bl_out**2, label='rmv out')
+    plt.legend()
+    plt.show()
+
+    cl_inp = hp.anafast(inp*mask_check, lmax=lmax)
+    cl_sm_inp = hp.anafast(sm_inp*mask_check, lmax=lmax)
+    plt.loglog(cl_inp/bl_in**2, label='inp in')
+    plt.loglog(cl_sm_inp/bl_out**2, label='inp out')
+    plt.legend()
+    plt.show()
+
+    cl_n = hp.anafast(n*mask_check, lmax=lmax)
+    cl_sm_n = hp.anafast(sm_n*mask_check, lmax=lmax)
+    plt.loglog(cl_n/bl_in**2, label='n in')
+    plt.loglog(cl_sm_n/bl_out**2, label='n out')
+    plt.legend()
+    plt.show()
+    cl_n_inp = hp.anafast(n_inp*mask_check, lmax=lmax)
+    cl_sm_n_inp = hp.anafast(sm_n_inp*mask_check, lmax=lmax)
+    plt.loglog(cl_n_inp/bl_in**2, label='n_inp in')
+    plt.loglog(cl_sm_n_inp/bl_out**2, label='n_inp out')
+    plt.legend()
+    plt.show()
+    cl_n_rmv = hp.anafast(n_rmv*mask_check, lmax=lmax)
+    cl_sm_n_rmv = hp.anafast(sm_n_rmv*mask_check, lmax=lmax)
+    plt.loglog(cl_n_rmv/bl_in**2, label='n_rmv in')
+    plt.loglog(cl_sm_n_rmv/bl_out**2, label='n_rmv out')
+    plt.legend()
+    plt.show()
 
 def smooth_check():
     mask = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3.npy')
     mask_check = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
     map_in = np.load(f'./fit_res/mean/rmv/0.npy')
 
-    lmax = 500
     beam_out = 17
     bl_in = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
     bl_out = hp.gauss_beam(fwhm=np.deg2rad(beam_out)/60, lmax=lmax, pol=True)[:,2]
@@ -782,8 +849,9 @@ if __name__ == '__main__':
     # do_eblc_n()
     # check_eblc_res()
 
-    smooth_all()
+    # smooth_all()
     # smooth_check()
+    smooth_check_all()
     pass
 
 
