@@ -643,6 +643,29 @@ def do_eblc():
     calc_eblc_res(sim_mode='mean')
     calc_eblc_res(sim_mode='std')
 
+def do_eblc_n():
+    rlz_idx = 0
+    def calc_eblc_res(sim_mode):
+        pcfn, cfn, cf, n = gen_map_all(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode=sim_mode)
+        mask = hp.read_map('./inpainting/mask/mask_only_edge.fits')
+
+        obj_pcfn = EBLeakageCorrection(m=pcfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
+        _, _, cln_pcfn = obj_pcfn.run_eblc()
+        slope = obj_pcfn.return_slope()
+
+        rmv_q = np.load(f'./fit_res/noise/3sigma/map_q_{rlz_idx}.npy')
+        rmv_u = np.load(f'./fit_res/noise/3sigma/map_u_{rlz_idx}.npy')
+        rmv_t = np.zeros_like(rmv_q)
+
+        obj_rmv = EBLeakageCorrection(m=np.asarray([rmv_t, rmv_q, rmv_u]), lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope)
+        _, _, cln_rmv = obj_rmv.run_eblc()
+
+        path_eblc_rmv = Path(f'./fit_res/noise/rmv')
+        path_eblc_rmv.mkdir(exist_ok=True, parents=True)
+        np.save(path_eblc_rmv / Path(f'{rlz_idx}.npy'), cln_rmv)
+
+    calc_eblc_res(sim_mode='mean')
+
 def check_eblc_res():
     rlz_idx = 0
     sim_mode = 'mean'
@@ -670,6 +693,178 @@ def check_eblc_res():
         hp.gnomview(inp, rot=[lon, lat, 0], title='inp')
         plt.show()
 
+def smooth_map(map_in, mask, lmax, beam_in, beam_out):
+    bl_in = hp.gauss_beam(fwhm=np.deg2rad(beam_in)/60, lmax=lmax, pol=True)[:,2]
+    bl_out = hp.gauss_beam(fwhm=np.deg2rad(beam_out)/60, lmax=lmax, pol=True)[:,2]
+    print(f'{bl_in.shape=}')
+    # alm_, rel_res, n_iter = hp.map2alm_lsq(map_in*mask, lmax=lmax, mmax=lmax, tol=1e-15)
+    alm_ = hp.map2alm(map_in*mask, lmax=lmax)
+    # print(f'{rel_res=}, {n_iter=}')
+    map_out = hp.alm2map(hp.almxfl(alm_, fl=bl_out/bl_in), nside=nside)
+    return map_out
+
+def smooth_all():
+    rlz_idx = 0
+    beam_out = 17
+    mask = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3.npy')
+    # mask_check = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
+    def calc_smooth(sim_mode):
+        if sim_mode == 'noise':
+            n = np.load(f'./fit_res/mean/n/{rlz_idx}.npy')
+            n_inp = hp.read_map(f'./inpainting/output_m2_n/{rlz_idx}.fits')
+            n_rmv = np.load(f'./fit_res/noise/rmv/{rlz_idx}.npy')
+
+            sm_n = smooth_map(map_in=n, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+            sm_n_inp = smooth_map(map_in=n_inp, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+            sm_n_rmv = smooth_map(map_in=n_rmv, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+
+            path_n = Path(f'./fit_res/sm/{sim_mode}/n')
+            path_n_rmv = Path(f'./fit_res/sm/{sim_mode}/n_rmv')
+            path_n_inp = Path(f'./fit_res/sm/{sim_mode}/n_inp')
+
+            path_n.mkdir(exist_ok=True, parents=True)
+            path_n_rmv.mkdir(exist_ok=True, parents=True)
+            path_n_inp.mkdir(exist_ok=True, parents=True)
+            np.save(path_n / Path(f'{rlz_idx}.npy'), sm_n)
+            np.save(path_n_inp / Path(f'{rlz_idx}.npy'), sm_n_inp)
+            np.save(path_n_rmv / Path(f'{rlz_idx}.npy'), sm_n_rmv)
+        else:
+            pcfn = np.load(f'./fit_res/{sim_mode}/pcfn/{rlz_idx}.npy')
+            cfn = np.load(f'./fit_res/{sim_mode}/cfn/{rlz_idx}.npy')
+            cf = np.load(f'./fit_res/{sim_mode}/cf/{rlz_idx}.npy')
+            rmv = np.load(f'./fit_res/{sim_mode}/rmv/{rlz_idx}.npy')
+            inp = hp.read_map(f'./inpainting/output_m2_{sim_mode}/{rlz_idx}.fits')
+            sm_pcfn = smooth_map(map_in=pcfn, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+            sm_cfn = smooth_map(map_in=cfn, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+            sm_cf = smooth_map(map_in=cf, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+            sm_rmv = smooth_map(map_in=rmv, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+            sm_inp = smooth_map(map_in=inp, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+            path_pcfn = Path(f'./fit_res/sm/{sim_mode}/pcfn')
+            path_cfn = Path(f'./fit_res/sm/{sim_mode}/cfn')
+            path_cf = Path(f'./fit_res/sm/{sim_mode}/cf')
+            path_rmv = Path(f'./fit_res/sm/{sim_mode}/rmv')
+            path_inp = Path(f'./fit_res/sm/{sim_mode}/inp')
+            path_pcfn.mkdir(exist_ok=True, parents=True)
+            path_cfn.mkdir(exist_ok=True, parents=True)
+            path_cf.mkdir(exist_ok=True, parents=True)
+            path_rmv.mkdir(exist_ok=True, parents=True)
+            path_inp.mkdir(exist_ok=True, parents=True)
+
+            np.save(path_pcfn / Path(f'{rlz_idx}.npy'), sm_pcfn)
+            np.save(path_cfn / Path(f'{rlz_idx}.npy'), sm_cfn)
+            np.save(path_cf / Path(f'{rlz_idx}.npy'), sm_cf)
+            np.save(path_rmv / Path(f'{rlz_idx}.npy'), sm_rmv)
+            np.save(path_inp / Path(f'{rlz_idx}.npy'), sm_inp)
+    calc_smooth(sim_mode='mean')
+    calc_smooth(sim_mode='std')
+    calc_smooth(sim_mode='noise')
+
+def smooth_check_all():
+    rlz_idx = 0
+    beam_out = 17
+    bl_in = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
+    bl_out = hp.gauss_beam(fwhm=np.deg2rad(beam_out)/60, lmax=lmax, pol=True)[:,2]
+    sim_mode = 'mean'
+    mask_check = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
+
+    pcfn = np.load(f'./fit_res/{sim_mode}/pcfn/{rlz_idx}.npy')
+    cfn = np.load(f'./fit_res/{sim_mode}/cfn/{rlz_idx}.npy')
+    cf = np.load(f'./fit_res/{sim_mode}/cf/{rlz_idx}.npy')
+    rmv = np.load(f'./fit_res/{sim_mode}/rmv/{rlz_idx}.npy')
+    inp = hp.read_map(f'./inpainting/output_m2_{sim_mode}/{rlz_idx}.fits')
+
+    sm_pcfn = np.load(f'./fit_res/sm/{sim_mode}/pcfn/{rlz_idx}.npy')
+    sm_cfn = np.load(f'./fit_res/sm/{sim_mode}/cfn/{rlz_idx}.npy')
+    sm_cf = np.load(f'./fit_res/sm/{sim_mode}/cf/{rlz_idx}.npy')
+    sm_rmv = np.load(f'./fit_res/sm/{sim_mode}/rmv/{rlz_idx}.npy')
+    sm_inp = np.load(f'./fit_res/sm/{sim_mode}/inp/{rlz_idx}.npy')
+
+    n = np.load(f'./fit_res/mean/n/{rlz_idx}.npy')
+    n_inp = hp.read_map(f'./inpainting/output_m2_n/{rlz_idx}.fits')
+    n_rmv = np.load(f'./fit_res/noise/rmv/{rlz_idx}.npy')
+    sm_n = np.load(f'./fit_res/sm/noise/n/{rlz_idx}.npy')
+    sm_n_inp = np.load(f'./fit_res/sm/noise/n_inp/{rlz_idx}.npy')
+    sm_n_rmv = np.load(f'./fit_res/sm/noise/n_rmv/{rlz_idx}.npy')
+
+    cl_pcfn = hp.anafast(pcfn*mask_check, lmax=lmax)
+    cl_sm_pcfn = hp.anafast(sm_pcfn*mask_check, lmax=lmax)
+    plt.loglog(cl_pcfn/bl_in**2, label='pcfn in')
+    plt.loglog(cl_sm_pcfn/bl_out**2, label='pcfn out')
+    plt.legend()
+    plt.show()
+
+    cl_cfn = hp.anafast(cfn*mask_check, lmax=lmax)
+    cl_sm_cfn = hp.anafast(sm_cfn*mask_check, lmax=lmax)
+    plt.loglog(cl_cfn/bl_in**2, label='cfn in')
+    plt.loglog(cl_sm_cfn/bl_out**2, label='cfn out')
+    plt.legend()
+    plt.show()
+
+    cl_cf = hp.anafast(cf*mask_check, lmax=lmax)
+    cl_sm_cf = hp.anafast(sm_cf*mask_check, lmax=lmax)
+    plt.loglog(cl_cf/bl_in**2, label='cf in')
+    plt.loglog(cl_sm_cf/bl_out**2, label='cf out')
+    plt.legend()
+    plt.show()
+
+    cl_rmv = hp.anafast(rmv*mask_check, lmax=lmax)
+    cl_sm_rmv = hp.anafast(sm_rmv*mask_check, lmax=lmax)
+    plt.loglog(cl_rmv/bl_in**2, label='rmv in')
+    plt.loglog(cl_sm_rmv/bl_out**2, label='rmv out')
+    plt.legend()
+    plt.show()
+
+    cl_inp = hp.anafast(inp*mask_check, lmax=lmax)
+    cl_sm_inp = hp.anafast(sm_inp*mask_check, lmax=lmax)
+    plt.loglog(cl_inp/bl_in**2, label='inp in')
+    plt.loglog(cl_sm_inp/bl_out**2, label='inp out')
+    plt.legend()
+    plt.show()
+
+    cl_n = hp.anafast(n*mask_check, lmax=lmax)
+    cl_sm_n = hp.anafast(sm_n*mask_check, lmax=lmax)
+    plt.loglog(cl_n/bl_in**2, label='n in')
+    plt.loglog(cl_sm_n/bl_out**2, label='n out')
+    plt.legend()
+    plt.show()
+    cl_n_inp = hp.anafast(n_inp*mask_check, lmax=lmax)
+    cl_sm_n_inp = hp.anafast(sm_n_inp*mask_check, lmax=lmax)
+    plt.loglog(cl_n_inp/bl_in**2, label='n_inp in')
+    plt.loglog(cl_sm_n_inp/bl_out**2, label='n_inp out')
+    plt.legend()
+    plt.show()
+    cl_n_rmv = hp.anafast(n_rmv*mask_check, lmax=lmax)
+    cl_sm_n_rmv = hp.anafast(sm_n_rmv*mask_check, lmax=lmax)
+    plt.loglog(cl_n_rmv/bl_in**2, label='n_rmv in')
+    plt.loglog(cl_sm_n_rmv/bl_out**2, label='n_rmv out')
+    plt.legend()
+    plt.show()
+
+def smooth_check():
+    mask = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3.npy')
+    mask_check = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
+    map_in = np.load(f'./fit_res/mean/rmv/0.npy')
+
+    beam_out = 17
+    bl_in = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
+    bl_out = hp.gauss_beam(fwhm=np.deg2rad(beam_out)/60, lmax=lmax, pol=True)[:,2]
+    map_out = smooth_map(map_in=map_in, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+    # map_re_out = smooth_map(map_in=map_out, mask=mask, lmax=lmax, beam_in=17, beam_out=67)
+    # map_deproj = hp.alm2map(hp.map2alm(map_out, lmax=300), nside=nside)
+
+    hp.orthview(map_in, rot=[100,50,0], half_sky=True)
+    hp.orthview(map_out, rot=[100,50,0], half_sky=True)
+    # hp.orthview(map_deproj, rot=[100,50,0], half_sky=True, min=-15, max=15)
+    plt.show()
+
+    # cl_in = hp.anafast(map_in*mask_check, lmax=lmax)
+    # cl_out = hp.anafast(map_out*mask_check, lmax=lmax)
+    # # cl_re_out = hp.anafast(map_re_out*mask_check, lmax=lmax)
+    # plt.loglog(cl_in/bl_in**2, label='in')
+    # plt.loglog(cl_out/bl_out**2, label='out')
+    # # plt.loglog(cl_re_out/bl_in**2, label='re out')
+    # plt.legend()
+    # plt.show()
 
 
 if __name__ == '__main__':
@@ -686,7 +881,12 @@ if __name__ == '__main__':
     # second_fit_all()
 
     # do_eblc()
-    check_eblc_res()
+    # do_eblc_n()
+    # check_eblc_res()
+
+    # smooth_all()
+    # smooth_check_all()
+    smooth_check()
 
     pass
 
