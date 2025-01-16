@@ -66,5 +66,52 @@ def calc_dl():
     _calc_dl(sim_mode='std', method='rmv')
     _calc_dl(sim_mode='std', method='inp')
 
-calc_dl()
+def get_mean_std():
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    # delta_ell = 30
+    # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=30, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+    cl = np.load(f'../../src/cmbsim/cmbdata/cmbcl_8k.npy')[:lmax+1,2]
+    print(f'{cl.shape=}')
+    l = np.arange(len(cl))
+
+
+    pcfn_mean = np.mean([np.load(f'./dl_res/mean/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    pcfn_std = np.std([np.load(f'./dl_res/std/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    cfn_mean = np.mean([np.load(f'./dl_res/mean/cfn/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    cfn_std = np.std([np.load(f'./dl_res/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    rmv_mean = np.mean([np.load(f'./dl_res/mean/rmv/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    rmv_std = np.std([np.load(f'./dl_res/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    inp_mean = np.mean([np.load(f'./dl_res/mean/inp/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    inp_std = np.std([np.load(f'./dl_res/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    print(f'mean std over')
+
+    fig, ax = plt.subplots()
+    
+    # Set y-axis to logarithmic scale
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+    
+    # Error bars (only in y, in log scale)
+    ax.errorbar(ell_arr, pcfn_mean, yerr=pcfn_std, fmt='.', capsize=5, label='PS + CMB + FG + NOISE')
+    ax.errorbar(ell_arr+1.2, cfn_mean, yerr=cfn_std, fmt='.', capsize=5, label='CMB + FG + NOISE')
+    ax.errorbar(ell_arr+2.4, rmv_mean, yerr=rmv_std, fmt='.', capsize=5, label='Template Fitting method')
+    ax.errorbar(ell_arr+3.6, inp_mean, yerr=inp_std, fmt='.', capsize=5, label='Recycling + inpaint on B')
+    ax.loglog(l, l*(l+1)*cl/(2*np.pi), label='cmb input')
+    
+    # Add labels, legend, and title
+    ax.set_xlabel('$\\ell$')
+    ax.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
+    # ax.set_xlim(2,lmax_eff)
+    # ax.set_ylim(1e-2,5e0)
+    ax.set_title('Debiased power spectra and standard deviation')
+    ax.legend()
+    plt.show()
+
+
+# calc_dl()
+get_mean_std()
 
