@@ -111,7 +111,72 @@ def get_mean_std():
     ax.legend()
     plt.show()
 
+def plot_ms():
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    # delta_ell = 30
+    # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=30, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+    cl = np.load(f'../../src/cmbsim/cmbdata/cmbcl_8k.npy')[:lmax+1,2]
+    print(f'{cl.shape=}')
+    l = np.arange(len(cl))
+
+    pcfn_mean = np.mean([np.load(f'./dl_res/mean/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    pcfn_std = np.std([np.load(f'./dl_res/std/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    cfn_mean = np.mean([np.load(f'./dl_res/mean/cfn/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    cfn_std = np.std([np.load(f'./dl_res/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    rmv_mean = np.mean([np.load(f'./dl_res/mean/rmv/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    rmv_std = np.std([np.load(f'./dl_res/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    inp_mean = np.mean([np.load(f'./dl_res/mean/inp/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    inp_std = np.std([np.load(f'./dl_res/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    print(f'mean std over')
+
+    # Create figure with 2 subplots (main and subfigure), sharing the x-axis
+    fig, (ax_main, ax_sub) = plt.subplots(2, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+
+    s = 5
+    lmax_ell_arr = len(ell_arr)
+
+    # Set the y-axis to logarithmic scale for both the main plot and subfigure
+    ax_main.set_yscale('log')
+    ax_sub.set_yscale('log')
+
+    # Plot mean values in the main axis (no error bars here)
+    ax_main.scatter(ell_arr, pcfn_mean[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
+    ax_main.scatter(ell_arr, cfn_mean[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
+    ax_main.scatter(ell_arr, rmv_mean[:lmax_ell_arr], s=s, label='Template Fitting method')
+    ax_main.scatter(ell_arr, inp_mean[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
+    # ax_main.plot(l, l*(l+1)*cl_cmb[2,:lmax_eff+1]/(2*np.pi), label='CMB input', color='black')
+
+    # Set labels and title for the main plot
+    ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
+    # ax_main.set_xlim(2, lmax_eff)
+    # ax_main.set_ylim(, lmax_eff)
+    ax_main.set_title('Debiased power spectra')
+    ax_main.legend()
+
+    # Plot standard deviation in the subfigure (using scatter with no error bars)
+    ax_sub.scatter(ell_arr, pcfn_std[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
+    ax_sub.scatter(ell_arr, cfn_std[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
+    ax_sub.scatter(ell_arr, rmv_std[:lmax_ell_arr], s=s, label='Template Fitting method')
+    ax_sub.scatter(ell_arr, inp_std[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
+
+    # Set labels for the subfigure (only xlabel here)
+    ax_sub.set_xlabel('$\\ell$')
+    ax_sub.set_ylabel('Standard Deviation')
+    # ax_sub.set_ylim(5e-4, 3e-2)
+
+    # Adjust layout for better spacing
+    plt.tight_layout()
+    plt.subplots_adjust(hspace=0)
+
+
+    # Show plot
+    plt.show()
 
 # calc_dl()
-get_mean_std()
+# get_mean_std()
+plot_ms()
 
