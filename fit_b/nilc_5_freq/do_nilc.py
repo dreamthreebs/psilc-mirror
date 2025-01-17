@@ -3,9 +3,10 @@ import healpy as hp
 import pandas as pd
 import time
 import matplotlib.pyplot as plt
-
+import pymaster as nmt
 from pathlib import Path
 from nilc import NILC
+from eblc_base_slope import EBLeakageCorrection
 
 freq_list = [30, 95, 155, 215, 270]
 beam_list = [67, 30, 17, 11, 9]
@@ -138,37 +139,86 @@ def check_do_pcfn():
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam_base)/60, lmax=lmax, pol=True)[:,2]
     df_ps = pd.read_csv(f'../95GHz/mask/95_after_filter.csv')
     cln_pcfn = np.load(f'./data/mean/pcfn/0.npy')
-    cln_n = np.load(f'./data/mean/n_pcfn/0.npy')
-    hp.orthview(cln_pcfn, rot=[100,50,0])
-    hp.orthview(cln_n, rot=[100,50,0])
+    cln_cfn = np.load(f'./data/mean/cfn/0.npy')
+    cln_rmv = np.load(f'./data/mean/rmv/0.npy')
+    cln_inp = np.load(f'./data/mean/inp/0.npy')
+    # cln_n = np.load(f'./data/mean/n/0.npy')
+    hp.orthview(cln_pcfn, rot=[100,50,0], title='pcfn')
+    hp.orthview(cln_cfn, rot=[100,50,0], title='cfn')
+    hp.orthview(cln_rmv, rot=[100,50,0], title='rmv')
+    hp.orthview(cln_inp, rot=[100,50,0], title='inp')
+    # hp.orthview(cln_n, rot=[100,50,0])
     plt.show()
 
-    # for flux_idx in np.arange(len(df_ps)):
-    #     lon = np.rad2deg(df_ps.at[flux_idx, 'lon'])
-    #     lat = np.rad2deg(df_ps.at[flux_idx, 'lat'])
-    #     hp.gnomview(cln_pcfn, rot=[lon, lat, 0], title='pcfn')
-    #     hp.gnomview(cln_cfn, rot=[lon, lat, 0], title='cfn')
-    #     hp.gnomview(cln_cf, rot=[lon, lat, 0], title='cf')
-    #     plt.show()
+    for flux_idx in np.arange(len(df_ps)):
+        lon = np.rad2deg(df_ps.at[flux_idx, 'lon'])
+        lat = np.rad2deg(df_ps.at[flux_idx, 'lat'])
+        hp.gnomview(cln_pcfn, rot=[lon, lat, 0], title='pcfn')
+        hp.gnomview(cln_cfn, rot=[lon, lat, 0], title='cfn')
+        hp.gnomview(cln_rmv, rot=[lon, lat, 0], title='rmv')
+        hp.gnomview(cln_inp, rot=[lon, lat, 0], title='inp')
+        # hp.gnomview(cln_cf, rot=[lon, lat, 0], title='cf')
+        plt.show()
 
-    cl_pcfn = hp.anafast(cln_pcfn, lmax=lmax)
-    cl_n = hp.anafast(cln_n, lmax=lmax)
-    cl_fid = gen_fiducial_cmb()
-    l = np.arange(np.size(cl_pcfn))
-    plt.loglog(l, l*(l+1)*(cl_pcfn-cl_n)/bl**2/fsky, label='debias pcfn')
-    plt.loglog(l, l*(l+1)*cl_n/bl**2/fsky, label='noise')
-    plt.loglog(l, l*(l+1)*cl_fid/bl**2, label='fiducial')
-    plt.legend()
-    plt.show()
+    # cl_pcfn = hp.anafast(cln_pcfn, lmax=lmax)
+    # cl_n = hp.anafast(cln_n, lmax=lmax)
+    # cl_fid = gen_fiducial_cmb()
+    # l = np.arange(np.size(cl_pcfn))
+    # plt.loglog(l, l*(l+1)*(cl_pcfn-cl_n)/bl**2/fsky, label='debias pcfn')
+    # plt.loglog(l, l*(l+1)*cl_n/bl**2/fsky, label='noise')
+    # plt.loglog(l, l*(l+1)*cl_fid/bl**2, label='fiducial')
+    # plt.legend()
+    # plt.show()
 
+def calc_dl_from_scalar_map(scalar_map, apo_mask, bin_dl, masked_on_input):
+    scalar_field = nmt.NmtField(apo_mask, [scalar_map], masked_on_input=masked_on_input, lmax=lmax, lmax_mask=lmax)
+    dl = nmt.compute_full_master(scalar_field, scalar_field, bin_dl)
+    return dl[0]
+
+def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
+    bins_edges = []
+    l_min = l_min_start  # starting l_min
+
+    while l_min < l_max:
+        delta_l = max(delta_l_min, int(fold * l_min))
+        l_next = l_min + delta_l
+        bins_edges.append(l_min)
+        l_min = l_next
+
+    # Adding l_max to ensure the last bin goes up to l_max
+    bins_edges.append(l_max)
+    return bins_edges[:-1], bins_edges[1:]
+
+def gen_fiducial_cmb():
+    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    # delta_ell = 30
+    # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=30, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    cmb_seed = np.load(f'../seeds_cmb_2k.npy')
+    cls = np.load(f'../../src/cmbsim/cmbdata/cmbcl_8k.npy')
+    np.random.seed(seed=cmb_seed[rlz_idx])
+    cmb_iqu = hp.synfast(cls.T, nside=nside, new=True, lmax=3*nside-1)
+    mask = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
+    obj_eblc = EBLeakageCorrection(m=cmb_iqu, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
+    _, _, cln_cmb = obj_eblc.run_eblc()
+
+    mask_cl = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5APO_3.npy')
+    dl_cmb = calc_dl_from_scalar_map(scalar_map=cln_cmb, apo_mask=mask_cl, bin_dl=bin_dl, masked_on_input=False)
+    path_fid_cmb = Path(f'./dl_res/fid_cmb')
+    path_fid_cmb.mkdir(exist_ok=True, parents=True)
+    np.save(path_fid_cmb / Path(f'{rlz_idx}.npy'), dl_cmb)
 
 if __name__ == "__main__":
     # calc_lmax()
     # collect_diff_freq_maps()
     # try_nilc()
     # check_try_nilc()
-    do_nilc()
+    # do_nilc()
     # check_do_pcfn()
+    gen_fiducial_cmb()
 
     pass
 
