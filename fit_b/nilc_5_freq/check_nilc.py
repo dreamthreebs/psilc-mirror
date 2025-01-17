@@ -132,6 +132,8 @@ def plot_ms():
     inp_mean = np.mean([np.load(f'./dl_res/mean/inp/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     inp_std = np.std([np.load(f'./dl_res/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     print(f'mean std over')
+    fid_mean = np.mean([np.load(f'./dl_res/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    fid_std = np.std([np.load(f'./dl_res/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
 
     # Create figure with 2 subplots (main and subfigure), sharing the x-axis
     fig, (ax_main, ax_sub) = plt.subplots(2, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
@@ -148,7 +150,8 @@ def plot_ms():
     ax_main.scatter(ell_arr, cfn_mean[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
     ax_main.scatter(ell_arr, rmv_mean[:lmax_ell_arr], s=s, label='Template Fitting method')
     ax_main.scatter(ell_arr, inp_mean[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
-    # ax_main.plot(l, l*(l+1)*cl_cmb[2,:lmax_eff+1]/(2*np.pi), label='CMB input', color='black')
+    ax_main.scatter(ell_arr, fid_mean[:lmax_ell_arr], s=s, label='Fiducial CMB')
+    ax_main.loglog(l, l*(l+1)*cl/(2*np.pi), label='cmb input')
 
     # Set labels and title for the main plot
     ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
@@ -162,6 +165,7 @@ def plot_ms():
     ax_sub.scatter(ell_arr, cfn_std[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
     ax_sub.scatter(ell_arr, rmv_std[:lmax_ell_arr], s=s, label='Template Fitting method')
     ax_sub.scatter(ell_arr, inp_std[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
+    ax_sub.scatter(ell_arr, fid_std[:lmax_ell_arr], s=s, label='Fiducial CMB')
 
     # Set labels for the subfigure (only xlabel here)
     ax_sub.set_xlabel('$\\ell$')
@@ -175,6 +179,9 @@ def plot_ms():
 
     # Show plot
     plt.show()
+
+def from_cl_to_bandpower():
+    pass
 
 # calc_dl()
 # get_mean_std()
