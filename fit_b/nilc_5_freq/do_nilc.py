@@ -42,9 +42,9 @@ def try_nilc():
     np.save('./test/cln_pcfn.npy', clean_map)
     print(f'{time.time()-time0=}')
 
-    obj_noise = NILC(bandinfo='./band_info.csv', needlet_config='./needlets/0.csv', weights_config='./test/weight/pcfn.npz', Sm_maps=noise, mask=mask, lmax=lmax, nside=nside, n_iter=3, weight_in_alm=False)
-    cln_n = obj_noise.run_nilc()
-    np.save('./test/cln_n.npy', cln_n)
+    # obj_noise = NILC(bandinfo='./band_info.csv', needlet_config='./needlets/0.csv', weights_config='./test/weight/pcfn.npz', Sm_maps=noise, mask=mask, lmax=lmax, nside=nside, n_iter=3, weight_in_alm=False)
+    # cln_n = obj_noise.run_nilc()
+    # np.save('./test/cln_n.npy', cln_n)
 
 def gen_fiducial_cmb():
     cmb_seed = np.load('../seeds_cmb_2k.npy')
@@ -205,20 +205,24 @@ def gen_fiducial_cmb():
     obj_eblc = EBLeakageCorrection(m=cmb_iqu, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
     _, _, cln_cmb = obj_eblc.run_eblc()
 
-    mask_cl = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5APO_3.npy')
-    dl_cmb = calc_dl_from_scalar_map(scalar_map=cln_cmb, apo_mask=mask_cl, bin_dl=bin_dl, masked_on_input=False)
-    path_fid_cmb = Path(f'./dl_res/fid_cmb')
-    path_fid_cmb.mkdir(exist_ok=True, parents=True)
-    np.save(path_fid_cmb / Path(f'{rlz_idx}.npy'), dl_cmb)
+    hp.orthview(cln_cmb, rot=[100,50,0])
+    plt.show()
+
+
+    # mask_cl = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5APO_3.npy')
+    # dl_cmb = calc_dl_from_scalar_map(scalar_map=cln_cmb, apo_mask=mask_cl, bin_dl=bin_dl, masked_on_input=False)
+    # path_fid_cmb = Path(f'./dl_res/fid_cmb')
+    # path_fid_cmb.mkdir(exist_ok=True, parents=True)
+    # np.save(path_fid_cmb / Path(f'{rlz_idx}.npy'), dl_cmb)
 
 if __name__ == "__main__":
     # calc_lmax()
     # collect_diff_freq_maps()
-    # try_nilc()
+    try_nilc()
     # check_try_nilc()
     # do_nilc()
     # check_do_pcfn()
-    gen_fiducial_cmb()
+    # gen_fiducial_cmb()
 
     pass
 

@@ -136,7 +136,8 @@ plt.loglog()
 plt.legend()
 plt.title('mean')
 
-_, _, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
+# _, _, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
+pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean ,pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
 
 plt.figure(2)
 plt.scatter(ell_arr, pcfn_std, label='pcfn', marker='.')
@@ -206,9 +207,9 @@ ax_sub.set_ylabel('Standard Deviation')
 plt.tight_layout()
 plt.subplots_adjust(hspace=0)
 
-path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250108')
-path_fig.mkdir(exist_ok=True, parents=True)
-plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
+# path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250108')
+# path_fig.mkdir(exist_ok=True, parents=True)
+# plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
 
 # Show plot
 plt.show()

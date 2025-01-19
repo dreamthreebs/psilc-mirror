@@ -79,13 +79,13 @@ def get_mean_std():
     l = np.arange(len(cl))
 
 
-    pcfn_mean = np.mean([np.load(f'./dl_res/mean/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    pcfn_mean = np.mean([np.load(f'./dl_res/std/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     pcfn_std = np.std([np.load(f'./dl_res/std/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    cfn_mean = np.mean([np.load(f'./dl_res/mean/cfn/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    cfn_mean = np.mean([np.load(f'./dl_res/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     cfn_std = np.std([np.load(f'./dl_res/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    rmv_mean = np.mean([np.load(f'./dl_res/mean/rmv/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    rmv_mean = np.mean([np.load(f'./dl_res/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     rmv_std = np.std([np.load(f'./dl_res/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    inp_mean = np.mean([np.load(f'./dl_res/mean/inp/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    inp_mean = np.mean([np.load(f'./dl_res/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     inp_std = np.std([np.load(f'./dl_res/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     print(f'mean std over')
 
@@ -123,13 +123,13 @@ def plot_ms():
     print(f'{cl.shape=}')
     l = np.arange(len(cl))
 
-    pcfn_mean = np.mean([np.load(f'./dl_res/mean/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    pcfn_mean = np.mean([np.load(f'./dl_res/std/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     pcfn_std = np.std([np.load(f'./dl_res/std/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    cfn_mean = np.mean([np.load(f'./dl_res/mean/cfn/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    cfn_mean = np.mean([np.load(f'./dl_res/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     cfn_std = np.std([np.load(f'./dl_res/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    rmv_mean = np.mean([np.load(f'./dl_res/mean/rmv/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    rmv_mean = np.mean([np.load(f'./dl_res/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     rmv_std = np.std([np.load(f'./dl_res/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    inp_mean = np.mean([np.load(f'./dl_res/mean/inp/{rlz_idx}.npy') - np.load(f'./dl_res/mean/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    inp_mean = np.mean([np.load(f'./dl_res/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     inp_std = np.std([np.load(f'./dl_res/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     print(f'mean std over')
     fid_mean = np.mean([np.load(f'./dl_res/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
@@ -140,6 +140,7 @@ def plot_ms():
 
     s = 5
     lmax_ell_arr = len(ell_arr)
+    dl_in = bin_dl.bin_cell(cls_in=cl)
 
     # Set the y-axis to logarithmic scale for both the main plot and subfigure
     ax_main.set_yscale('log')
@@ -152,6 +153,7 @@ def plot_ms():
     ax_main.scatter(ell_arr, inp_mean[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
     ax_main.scatter(ell_arr, fid_mean[:lmax_ell_arr], s=s, label='Fiducial CMB')
     ax_main.loglog(l, l*(l+1)*cl/(2*np.pi), label='cmb input')
+    ax_main.scatter(ell_arr, dl_in,s=s, label='bin dl')
 
     # Set labels and title for the main plot
     ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')

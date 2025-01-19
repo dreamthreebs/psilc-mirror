@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./pp.py
+mpiexec python -u ./test_recycle.py
 # mpiexec python -u ./component_cl.py
 
 date +%m-%d_%H-%M

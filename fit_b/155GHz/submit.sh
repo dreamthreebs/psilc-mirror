@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./pp.py
+mpiexec python -u ./test_eblc.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

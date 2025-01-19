@@ -7,8 +7,9 @@ from eblc_base_slope import EBLeakageCorrection
 
 nside = 512
 npix = hp.nside2npix(nside=nside)
-beam = 67
+beam = 17
 mask = np.load('../../src/mask/north/BINMASKG.npy')
+ori_mask = np.load('../../src/mask/north/APOMASKC1_3.npy')
 # m = np.load('../../fitdata/synthesis_data/2048/CMBNOISE/270/1.npy')
 rlz_idx = 0
 cmb_seed = np.load('../seeds_cmb_2k.npy')
@@ -72,37 +73,66 @@ m_b = hp.alm2map(hp.map2alm(m)[2], nside=nside) * mask
 
 print(f'component=c')
 print(f'method=cutqufitqu')
-print(f'eblc lmax=600')
+# print(f'eblc lmax=60')
 
-lmax = 600
+lmax = 3 * nside - 1
 obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
 _,_, cln_b_2k = obj.run_eblc()
 slope = obj.return_slope()
 print(f'{slope=}')
+cl_0 = hp.anafast(cln_b_2k*ori_mask, lmax=lmax)
 
 print(f'eblc lmax=3*nside-1')
 # lmax = 3*nside-1
+obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=1.8)
+_,_, cln_b_6k = obj.run_eblc()
+cl_1 = hp.anafast(cln_b_6k*ori_mask, lmax=lmax)
 
-# lmax = 600
-# obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=2.26)
-# _,_, cln_b_6k = obj.run_eblc()
+# hp.orthview(cln_b_6k, rot=[100,50,0], half_sky=True, title='1.8')
+# plt.show()
 
-# lmax = 600
-# obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope=2.46)
-# _,_, cln_b_8k = obj.run_eblc()
+obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=2.2)
+_,_, cln_b_6k = obj.run_eblc()
+cl_2 = hp.anafast(cln_b_6k*ori_mask, lmax=lmax)
 
-# lmax = 600
-# obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope=2.66)
-# _,_, cln_b_10k = obj.run_eblc()
+# hp.orthview(cln_b_6k, rot=[100,50,0], half_sky=True, title='2.26')
+# plt.show()
 
-# lmax = 600
-# obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope=2.86)
-# _,_, cln_b_12k = obj.run_eblc()
+obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=2.4)
+_,_, cln_b_6k = obj.run_eblc()
+cl_3 = hp.anafast(cln_b_6k*ori_mask, lmax=lmax)
+# hp.orthview(cln_b_6k, rot=[100,50,0], half_sky=True, title='2.46')
+# plt.show()
 
-# lmax = 600
+
+obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=2.6)
+_,_, cln_b_6k = obj.run_eblc()
+cl_4 = hp.anafast(cln_b_6k*ori_mask, lmax=lmax)
+# hp.orthview(cln_b_6k, rot=[100,50,0], half_sky=True, title='2.66')
+# plt.show()
+
+
+obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=2.8)
+_,_, cln_b_6k = obj.run_eblc()
+cl_5 = hp.anafast(cln_b_6k*ori_mask, lmax=lmax)
+# hp.orthview(cln_b_6k, rot=[100,50,0], half_sky=True, title='2.86')
+# plt.show()
+
 # obj = EBLeakageCorrection(m=m, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope=3.06)
-# _,_, cln_b_14k = obj.run_eblc()
+# _,_, cln_b_6k = obj.run_eblc()
+# hp.orthview(cln_b_6k, rot=[100,50,0], half_sky=True, title='3.0')
+# plt.show()
 
+l = np.arange(lmax+1)
+
+plt.loglog(l, l*(l+1)*cl_0, label=f'{slope}')
+plt.loglog(l, l*(l+1)*cl_1, label='1.8')
+plt.loglog(l, l*(l+1)*cl_2, label='2.2')
+plt.loglog(l, l*(l+1)*cl_3, label='2.4')
+plt.loglog(l, l*(l+1)*cl_4, label='2.6')
+plt.loglog(l, l*(l+1)*cl_5, label='2.8')
+plt.legend()
+plt.show()
 
 
 

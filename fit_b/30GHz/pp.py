@@ -831,6 +831,49 @@ def smooth_check():
     plt.legend()
     plt.show()
 
+def smooth_tqu(map_in, lmax, beam_in, beam_out):
+    # map_in should be in (3,npix)
+
+    bl_in = hp.gauss_beam(fwhm=np.deg2rad(beam_in)/60, lmax=lmax, pol=True) # (lmax+1,4)
+    bl_out = hp.gauss_beam(fwhm=np.deg2rad(beam_out)/60, lmax=lmax, pol=True)
+    print(f'{bl_in.shape=}')
+    alms = hp.map2alm(map_in, lmax)
+    sm_alm = np.asarray([hp.almxfl(alm, bl_out[:,i]/bl_in[:,i]) for i, alm in enumerate(alms)])
+    print(f'{sm_alm.shape=}')
+
+    map_out = hp.alm2map(sm_alm, nside=nside)
+    return map_out
+
+def smooth_then_eblc():
+    beam_base = 17 # arcmin
+    mask = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3.npy')
+    # mask_for_cl = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
+    mask_for_eblc = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/BIN_C1_5APO_3.npy')
+    pcfn, cfn, cf, n = gen_map_all(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode=sim_mode)
+    mask = hp.read_map('./inpainting/mask/mask_only_edge.fits')
+
+    obj_pcfn = EBLeakageCorrection(m=pcfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
+    _, _, cln_pcfn = obj_pcfn.run_eblc()
+    slope = obj_pcfn.return_slope()
+
+    obj_cfn = EBLeakageCorrection(m=cfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope)
+    _, _, cln_cfn = obj_cfn.run_eblc()
+
+    obj_cf = EBLeakageCorrection(m=cf, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope)
+    _, _, cln_cf = obj_cf.run_eblc()
+
+    obj_n = EBLeakageCorrection(m=n, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope)
+    _, _, cln_n = obj_n.run_eblc()
+
+    rmv_q = np.load(f'./fit_res/{sim_mode}/3sigma/map_q_{rlz_idx}.npy')
+    rmv_u = np.load(f'./fit_res/{sim_mode}/3sigma/map_u_{rlz_idx}.npy')
+    rmv_t = np.zeros_like(rmv_q)
+
+    obj_rmv = EBLeakageCorrection(m=np.asarray([rmv_t, rmv_q, rmv_u]), lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope)
+    _, _, cln_rmv = obj_rmv.run_eblc()
+
+
+    pass
 
 if __name__ == '__main__':
     # gen_pix_idx(flux_idx=0)

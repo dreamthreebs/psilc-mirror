@@ -136,7 +136,8 @@ plt.loglog()
 plt.legend()
 plt.title('mean')
 
-_, _, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
+# _, _, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
+pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean ,pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
 
 plt.figure(2)
 plt.scatter(ell_arr, pcfn_std, label='pcfn', marker='.')
