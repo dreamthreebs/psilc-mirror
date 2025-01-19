@@ -888,6 +888,17 @@ def smooth_then_eblc():
 
     _calc(sim_mode='std')
 
+def check_smooth_then_eblc():
+    rlz_idx = 0
+    pcfn = np.load(f'./fit_res/sm_eblc/std/pcfn/{rlz_idx}.npy')
+    cfn = np.load(f'./fit_res/sm_eblc/std/cfn/{rlz_idx}.npy')
+    rmv = np.load(f'./fit_res/sm_eblc/std/rmv/{rlz_idx}.npy')
+    n = np.load(f'./fit_res/sm_eblc/std/n/{rlz_idx}.npy')
+    hp.orthview(pcfn, rot=[100,50,0])
+    hp.orthview(cfn, rot=[100,50,0])
+    hp.orthview(rmv, rot=[100,50,0])
+    hp.orthview(n, rot=[100,50,0])
+    plt.show()
 
 if __name__ == '__main__':
     # gen_pix_idx(flux_idx=0)
@@ -909,7 +920,9 @@ if __name__ == '__main__':
     # smooth_all()
     # smooth_check_all()
 
-    smooth_then_eblc()
+    # smooth_then_eblc()
+    check_smooth_then_eblc()
+
 
     pass
 

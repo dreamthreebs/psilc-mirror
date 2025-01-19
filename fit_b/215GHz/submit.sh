@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./test_eblc.py
+mpiexec python -u ./smooth.py
 # mpiexec python -u ./component_cl.py
 
 date +%m-%d_%H-%M
