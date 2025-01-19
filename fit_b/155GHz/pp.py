@@ -834,6 +834,61 @@ def smooth_check_all():
     plt.legend()
     plt.show()
 
+def smooth_then_eblc():
+    rlz_idx = 0
+    beam_base = 17 # arcmin
+    mask = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3.npy')
+    # mask_for_cl = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
+    mask_eblc = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/BIN_C1_5APO_3.npy')
+    lmax_eblc = lmax
+    def _calc(sim_mode):
+        pcfn, cfn, cf, n = gen_map_all(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode=sim_mode)
+
+        obj_pcfn = EBLeakageCorrection(m=pcfn, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc)
+        _, _, cln_pcfn = obj_pcfn.run_eblc()
+        slope = obj_pcfn.return_slope()
+        Path(f'./slope_eblc/pcfn').mkdir(exist_ok=True, parents=True)
+        np.save(f'./slope_eblc/pcfn/{rlz_idx}.npy', slope)
+        Path(f'./fit_res/sm_eblc/{sim_mode}/pcfn').mkdir(exist_ok=True, parents=True)
+        np.save(f'./fit_res/sm_eblc/{sim_mode}/pcfn/{rlz_idx}.npy', cln_pcfn)
+
+        obj_cfn = EBLeakageCorrection(m=cfn, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
+        _, _, cln_cfn = obj_cfn.run_eblc()
+        Path(f'./fit_res/sm_eblc/{sim_mode}/cfn').mkdir(exist_ok=True, parents=True)
+        np.save(f'./fit_res/sm_eblc/{sim_mode}/cfn/{rlz_idx}.npy', cln_cfn)
+
+        obj_cf = EBLeakageCorrection(m=cf, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
+        _, _, cln_cf = obj_cf.run_eblc()
+        Path(f'./fit_res/sm_eblc/{sim_mode}/cf').mkdir(exist_ok=True, parents=True)
+        np.save(f'./fit_res/sm_eblc/{sim_mode}/cf/{rlz_idx}.npy', cln_cf)
+
+        obj_n = EBLeakageCorrection(m=n, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
+        _, _, cln_n = obj_n.run_eblc()
+        Path(f'./fit_res/sm_eblc/{sim_mode}/n').mkdir(exist_ok=True, parents=True)
+        np.save(f'./fit_res/sm_eblc/{sim_mode}/n/{rlz_idx}.npy', cln_n)
+
+        rmv_q = np.load(f'./fit_res/{sim_mode}/3sigma/map_q_{rlz_idx}.npy')
+        rmv_u = np.load(f'./fit_res/{sim_mode}/3sigma/map_u_{rlz_idx}.npy')
+        rmv_t = np.zeros_like(rmv_q)
+
+        obj_rmv = EBLeakageCorrection(m=np.asarray([rmv_t, rmv_q, rmv_u]), lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
+        _, _, cln_rmv = obj_rmv.run_eblc()
+        Path(f'./fit_res/sm_eblc/{sim_mode}/rmv').mkdir(exist_ok=True, parents=True)
+        np.save(f'./fit_res/sm_eblc/{sim_mode}/rmv/{rlz_idx}.npy', cln_rmv)
+
+        n_rmv_q = np.load(f'./fit_res/noise/3sigma/map_q_{rlz_idx}.npy')
+        n_rmv_u = np.load(f'./fit_res/noise/3sigma/map_u_{rlz_idx}.npy')
+        n_rmv_t = np.zeros_like(n_rmv_q)
+
+        obj_n_rmv = EBLeakageCorrection(m=np.asarray([n_rmv_t, n_rmv_q, n_rmv_u]), lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
+        _, _, cln_n_rmv = obj_n_rmv.run_eblc()
+
+        Path(f'./fit_res/sm_eblc/{sim_mode}/n_rmv').mkdir(exist_ok=True, parents=True)
+        np.save(f'./fit_res/sm_eblc/{sim_mode}/n_rmv/{rlz_idx}.npy', cln_n_rmv)
+
+    _calc(sim_mode='std')
+
+
 if __name__ == '__main__':
     # gen_pix_idx(flux_idx=0)
     # gen_cov_inv()
@@ -852,7 +907,9 @@ if __name__ == '__main__':
     # check_eblc_res()
 
     # smooth_all()
-    smooth_check_all()
+    # smooth_check_all()
+
+    smooth_then_eblc()
 
     pass
 
