@@ -204,9 +204,9 @@ ax_sub.set_ylabel('Standard Deviation')
 plt.tight_layout()
 plt.subplots_adjust(hspace=0)
 
-# path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250108')
-# path_fig.mkdir(exist_ok=True, parents=True)
-# plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
+path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250120')
+path_fig.mkdir(exist_ok=True, parents=True)
+plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
 
 # Show plot
 plt.show()

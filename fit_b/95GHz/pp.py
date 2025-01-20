@@ -894,61 +894,163 @@ def smooth_then_eblc():
     mask = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3.npy')
     # mask_for_cl = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
     mask_eblc = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/BIN_C1_5APO_3.npy')
-    lmax_eblc = lmax - 100
+    lmax_eblc = lmax
     def _calc(sim_mode):
         pcfn, cfn, cf, n = gen_map_all(beam=beam, freq=freq, lmax=lmax, rlz_idx=rlz_idx, mode=sim_mode)
 
         sm_pcfn = smooth_tqu(map_in=pcfn, lmax=lmax, beam_in=beam, beam_out=beam_base)
 
-        obj_pcfn = EBLeakageCorrection(m=sm_pcfn, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc)
+        slope = np.load(f'../155GHz/slope_eblc/pcfn/{rlz_idx}.npy')
+        obj_pcfn = EBLeakageCorrection(m=sm_pcfn, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
         _, _, cln_pcfn = obj_pcfn.run_eblc()
-        slope = obj_pcfn.return_slope()
-        Path(f'./slope_eblc/pcfn').mkdir(exist_ok=True, parents=True)
-        np.save(f'./slope_eblc/pcfn/{rlz_idx}.npy', slope)
         Path(f'./fit_res/sm_eblc/{sim_mode}/pcfn').mkdir(exist_ok=True, parents=True)
         np.save(f'./fit_res/sm_eblc/{sim_mode}/pcfn/{rlz_idx}.npy', cln_pcfn)
+        del obj_pcfn
 
         sm_cfn = smooth_tqu(map_in=cfn, lmax=lmax, beam_in=beam, beam_out=beam_base)
-        obj_cfn = EBLeakageCorrection(m=sm_cfn, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc)
+        obj_cfn = EBLeakageCorrection(m=sm_cfn, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
         _, _, cln_cfn = obj_cfn.run_eblc()
         Path(f'./fit_res/sm_eblc/{sim_mode}/cfn').mkdir(exist_ok=True, parents=True)
         np.save(f'./fit_res/sm_eblc/{sim_mode}/cfn/{rlz_idx}.npy', cln_cfn)
 
+        del obj_cfn
+
         sm_cf = smooth_tqu(map_in=cf, lmax=lmax, beam_in=beam, beam_out=beam_base)
-        obj_cf = EBLeakageCorrection(m=sm_cf, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc)
+        obj_cf = EBLeakageCorrection(m=sm_cf, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
         _, _, cln_cf = obj_cf.run_eblc()
         Path(f'./fit_res/sm_eblc/{sim_mode}/cf').mkdir(exist_ok=True, parents=True)
         np.save(f'./fit_res/sm_eblc/{sim_mode}/cf/{rlz_idx}.npy', cln_cf)
 
+        del obj_cf
+
         sm_n = smooth_tqu(map_in=n, lmax=lmax, beam_in=beam, beam_out=beam_base)
-        obj_n = EBLeakageCorrection(m=sm_n, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc)
+        obj_n = EBLeakageCorrection(m=sm_n, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
         _, _, cln_n = obj_n.run_eblc()
         Path(f'./fit_res/sm_eblc/{sim_mode}/n').mkdir(exist_ok=True, parents=True)
         np.save(f'./fit_res/sm_eblc/{sim_mode}/n/{rlz_idx}.npy', cln_n)
 
+        del obj_n
 
         rmv_q = np.load(f'./fit_res/{sim_mode}/3sigma/map_q_{rlz_idx}.npy')
         rmv_u = np.load(f'./fit_res/{sim_mode}/3sigma/map_u_{rlz_idx}.npy')
         rmv_t = np.zeros_like(rmv_q)
         sm_rmv = smooth_tqu(map_in=np.asarray([rmv_t, rmv_q, rmv_u]), lmax=lmax, beam_in=beam, beam_out=beam_base)
 
-        obj_rmv = EBLeakageCorrection(m=sm_rmv, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc)
+        obj_rmv = EBLeakageCorrection(m=sm_rmv, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
         _, _, cln_rmv = obj_rmv.run_eblc()
         Path(f'./fit_res/sm_eblc/{sim_mode}/rmv').mkdir(exist_ok=True, parents=True)
         np.save(f'./fit_res/sm_eblc/{sim_mode}/rmv/{rlz_idx}.npy', cln_rmv)
+
+        del obj_rmv
 
         n_rmv_q = np.load(f'./fit_res/noise/3sigma/map_q_{rlz_idx}.npy')
         n_rmv_u = np.load(f'./fit_res/noise/3sigma/map_u_{rlz_idx}.npy')
         n_rmv_t = np.zeros_like(n_rmv_q)
         sm_n_rmv = smooth_tqu(map_in=np.asarray([n_rmv_t, n_rmv_q, n_rmv_u]), lmax=lmax, beam_in=beam, beam_out=beam_base)
 
-        obj_n_rmv = EBLeakageCorrection(m=sm_n_rmv, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc)
+        obj_n_rmv = EBLeakageCorrection(m=sm_n_rmv, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
         _, _, cln_n_rmv = obj_n_rmv.run_eblc()
 
         Path(f'./fit_res/sm_eblc/{sim_mode}/n_rmv').mkdir(exist_ok=True, parents=True)
         np.save(f'./fit_res/sm_eblc/{sim_mode}/n_rmv/{rlz_idx}.npy', cln_n_rmv)
 
+        del obj_n_rmv
+
     _calc(sim_mode='std')
+
+def check_smooth_then_eblc():
+    rlz_idx = 0
+    pcfn = np.load(f'./fit_res/sm_eblc/std/pcfn/{rlz_idx}.npy')
+    cfn = np.load(f'./fit_res/sm_eblc/std/cfn/{rlz_idx}.npy')
+    rmv = np.load(f'./fit_res/sm_eblc/std/rmv/{rlz_idx}.npy')
+    n = np.load(f'./fit_res/sm_eblc/std/n/{rlz_idx}.npy')
+    hp.orthview(pcfn, rot=[100,50,0])
+    hp.orthview(cfn, rot=[100,50,0])
+    hp.orthview(rmv, rot=[100,50,0])
+    hp.orthview(n, rot=[100,50,0])
+    plt.show()
+
+def check_smooth_then_eblc_cl():
+    rlz_idx = 0
+    beam_out = 17
+    bl_in = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
+    bl_out = hp.gauss_beam(fwhm=np.deg2rad(beam_out)/60, lmax=lmax, pol=True)[:,2]
+    sim_mode = 'std'
+    mask_check = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
+
+    pcfn = np.load(f'./fit_res/{sim_mode}/pcfn/{rlz_idx}.npy')
+    # cfn = np.load(f'./fit_res/{sim_mode}/cfn/{rlz_idx}.npy')
+    # cf = np.load(f'./fit_res/{sim_mode}/cf/{rlz_idx}.npy')
+    # rmv = np.load(f'./fit_res/{sim_mode}/rmv/{rlz_idx}.npy')
+    # inp = hp.read_map(f'./inpainting/output_m2_{sim_mode}/{rlz_idx}.fits')
+
+    sm_pcfn = np.load(f'./fit_res/sm_eblc/{sim_mode}/pcfn/{rlz_idx}.npy')
+    # sm_cfn = np.load(f'./fit_res/sm_eblc/{sim_mode}/cfn/{rlz_idx}.npy')
+    # sm_cf = np.load(f'./fit_res/sm_eblc/{sim_mode}/cf/{rlz_idx}.npy')
+    # sm_rmv = np.load(f'./fit_res/sm_eblc/{sim_mode}/rmv/{rlz_idx}.npy')
+    # sm_inp = np.load(f'./fit_res/sm_eblc/{sim_mode}/inp/{rlz_idx}.npy')
+
+    # n = np.load(f'./fit_res/std//n/{rlz_idx}.npy')
+    # n_inp = hp.read_map(f'./inpainting/output_m2_n/{rlz_idx}.fits')
+    # n_rmv = np.load(f'./fit_res/noise/rmv/{rlz_idx}.npy')
+    # sm_n = np.load(f'./fit_res/sm_eblc/noise/n/{rlz_idx}.npy')
+    # sm_n_inp = np.load(f'./fit_res/sm_eblc/noise/n_inp/{rlz_idx}.npy')
+    # sm_n_rmv = np.load(f'./fit_res/sm_eblc/noise/n_rmv/{rlz_idx}.npy')
+
+    cl_pcfn = hp.anafast(pcfn*mask_check, lmax=lmax)
+    cl_sm_pcfn = hp.anafast(sm_pcfn*mask_check, lmax=lmax)
+    plt.loglog(cl_pcfn/bl_in**2, label='pcfn in')
+    plt.loglog(cl_sm_pcfn/bl_out**2, label='pcfn out')
+    plt.legend()
+    plt.show()
+
+    cl_cfn = hp.anafast(cfn*mask_check, lmax=lmax)
+    cl_sm_cfn = hp.anafast(sm_cfn*mask_check, lmax=lmax)
+    plt.loglog(cl_cfn/bl_in**2, label='cfn in')
+    plt.loglog(cl_sm_cfn/bl_out**2, label='cfn out')
+    plt.legend()
+    plt.show()
+
+    cl_cf = hp.anafast(cf*mask_check, lmax=lmax)
+    cl_sm_cf = hp.anafast(sm_cf*mask_check, lmax=lmax)
+    plt.loglog(cl_cf/bl_in**2, label='cf in')
+    plt.loglog(cl_sm_cf/bl_out**2, label='cf out')
+    plt.legend()
+    plt.show()
+
+    cl_rmv = hp.anafast(rmv*mask_check, lmax=lmax)
+    cl_sm_rmv = hp.anafast(sm_rmv*mask_check, lmax=lmax)
+    plt.loglog(cl_rmv/bl_in**2, label='rmv in')
+    plt.loglog(cl_sm_rmv/bl_out**2, label='rmv out')
+    plt.legend()
+    plt.show()
+
+    cl_inp = hp.anafast(inp*mask_check, lmax=lmax)
+    cl_sm_inp = hp.anafast(sm_inp*mask_check, lmax=lmax)
+    plt.loglog(cl_inp/bl_in**2, label='inp in')
+    plt.loglog(cl_sm_inp/bl_out**2, label='inp out')
+    plt.legend()
+    plt.show()
+
+    cl_n = hp.anafast(n*mask_check, lmax=lmax)
+    cl_sm_n = hp.anafast(sm_n*mask_check, lmax=lmax)
+    plt.loglog(cl_n/bl_in**2, label='n in')
+    plt.loglog(cl_sm_n/bl_out**2, label='n out')
+    plt.legend()
+    plt.show()
+    cl_n_inp = hp.anafast(n_inp*mask_check, lmax=lmax)
+    cl_sm_n_inp = hp.anafast(sm_n_inp*mask_check, lmax=lmax)
+    plt.loglog(cl_n_inp/bl_in**2, label='n_inp in')
+    plt.loglog(cl_sm_n_inp/bl_out**2, label='n_inp out')
+    plt.legend()
+    plt.show()
+    cl_n_rmv = hp.anafast(n_rmv*mask_check, lmax=lmax)
+    cl_sm_n_rmv = hp.anafast(sm_n_rmv*mask_check, lmax=lmax)
+    plt.loglog(cl_n_rmv/bl_in**2, label='n_rmv in')
+    plt.loglog(cl_sm_n_rmv/bl_out**2, label='n_rmv out')
+    plt.legend()
+    plt.show()
+
 
 
 if __name__ == '__main__':
@@ -971,7 +1073,9 @@ if __name__ == '__main__':
     # smooth_all()
     # smooth_check_all()
 
-    smooth_then_eblc()
+    # smooth_then_eblc()
+    check_smooth_then_eblc()
+    check_smooth_then_eblc_cl()
     pass
 
 
