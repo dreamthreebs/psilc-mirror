@@ -18,6 +18,7 @@
 /**/submit_pcn_*.sh
 /**/submit_pcfn_*.sh
 /**/*.so
+/**/chains
 tags
 
 
