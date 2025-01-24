@@ -37,10 +37,11 @@ binned_cl_r = bin_dl.bin_cell(cls_in=cl_r[:lmax+1,2])[1:9]
 binned_cl_AL = bin_dl.bin_cell(cls_in=cl_AL[:lmax+1,2])[1:9]
 
 def load_data_inv_cov():
-    _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res2/std/pcfn/{rlz_idx}.npy')[1:9] for rlz_idx in range(1,200)])
-    _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res2/std/n_pcfn/{rlz_idx}.npy')[1:9] for rlz_idx in range(1,200)])
+    _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res2/std/rmv/{rlz_idx}.npy')[1:9] for rlz_idx in range(1,200)])
+    _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res2/std/n_rmv/{rlz_idx}.npy')[1:9] for rlz_idx in range(1,200)])
     _data = _data_method - _data_noise
     _data_mean = np.mean(_data, axis=0)
+
     print(f'{np.size(_data_method, axis=1)=}')
     cov = np.zeros(shape=(8,8))
     for i in np.arange(np.size(_data_method, axis=1)):
@@ -66,23 +67,23 @@ plt.loglog(ell_arr, data, label='data')
 plt.legend()
 plt.show()
 
-def r_AL_likelihood(r, AL):
+def r_AL_likelihood(r):
     # remember to / -2
-    model = r * binned_cl_r + AL * binned_cl_AL
+    model = r * binned_cl_r + binned_cl_AL
     diff = data - model
     # print(f'{r=}, {AL=}')
     log_l = -0.5 * (diff @ inv_cov @ diff)
     print(f'{log_l=}')
     return log_l
 
-r_AL_likelihood(r=0, AL=1.0)
+r_AL_likelihood(r=0)
 
 info = {"likelihood": {"r&AL": r_AL_likelihood}}
 info["params"] = {
     "r":  {"prior": {"min": -0.1, "max": 0.1}, "ref": 0.0, "proposal": 0.001},
-    "AL": {"prior": {"min": 0.8, "max": 1.2}, "ref": 1.0, "proposal": 0.01}}
+    }
 
-info["sampler"] = {"mcmc": {"Rminus1_stop": 0.0001, "max_tries": 10000000}}
+info["sampler"] = {"mcmc": {"Rminus1_stop": 0.001, "max_tries": 10000000}}
 # info["sampler"] = {"minimize": {}}
 info["output"] = "chains/r_AL"
 updated_info, sampler = run(info)

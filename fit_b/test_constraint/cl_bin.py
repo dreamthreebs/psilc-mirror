@@ -19,7 +19,8 @@ cls = np.load(f'../../src/cmbsim/cmbdata/cmbcl_8k.npy').T[0]
 nside = 512
 lmax = 2 * nside
 
-mask = np.load(f'../../src/mask/north/APOMASKC1_5.npy')
+# mask = np.load(f'../../src/mask/north/APOMASKC1_5.npy')
+mask = np.ones(hp.nside2npix(nside))
 # hp.orthview(mask, rot=[100,50,0])
 # plt.show()
 
@@ -44,8 +45,8 @@ def try_sca_mode(rlz_idx):
 
     cmb = gen_sim(rlz_idx)
     dl = calc_dl_from_scalar_map(scalar_map=cmb, apo_mask=mask, bin_dl=bin_dl, masked_on_input=False)
-    Path('./test_data/cmb_dl').mkdir(exist_ok=True, parents=True)
-    np.save(f'./test_data/cmb_dl/{rlz_idx}.npy', dl)
+    Path('./test_data/cmb_dl_full').mkdir(exist_ok=True, parents=True)
+    np.save(f'./test_data/cmb_dl_full/{rlz_idx}.npy', dl)
 
 def try_bin_cell():
     print(f'try bin cell')
@@ -56,7 +57,7 @@ def try_bin_cell():
     return dl
 
 def calc_dl():
-    for i in range(375,10000):
+    for i in range(0,10000):
         print(f'{i=}')
         try_sca_mode(rlz_idx=i)
 
@@ -64,11 +65,14 @@ def calc_dl():
 def cpr_res():
 
     dl_bin_cell = try_bin_cell()
-    dl_sca = np.mean([np.load(f'./test_data/cmb_dl/{rlz_idx}.npy') for rlz_idx in range(3000)], axis=0)
+    dl_sca = np.mean([np.load(f'./test_data/cmb_dl/{rlz_idx}.npy') for rlz_idx in range(200)], axis=0)
+    dl_sca_full = np.mean([np.load(f'./test_data/cmb_dl_full/{rlz_idx}.npy') for rlz_idx in range(200)], axis=0)
 
     plt.loglog(ell_arr, dl_bin_cell, label='bin cell')
     plt.loglog(ell_arr, dl_sca, label='scalar mode')
+    plt.loglog(ell_arr, dl_sca_full, label='scalar mode with full sky')
     plt.loglog(ell_arr, np.abs(dl_sca-dl_bin_cell)/dl_bin_cell, label='relative error')
+    plt.loglog(ell_arr, np.abs(dl_sca_full-dl_bin_cell)/dl_bin_cell, label='relative error for full sky')
     plt.legend()
     plt.show()
 
