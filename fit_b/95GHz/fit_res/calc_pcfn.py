@@ -18,8 +18,9 @@ threshold = 3
 df = pd.read_csv('../../../FGSim/FreqBand')
 print(f'{freq=}, {beam=}')
 
-bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
-apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
+bin_mask = np.load('../../../src/mask/north/BINMASKG2048.npy')
+# bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
+apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/north/APOMASKC_5.npy')
 # ps_mask = np.load(f'../inpainting/mask/apo_ps_mask.npy')
 
 noise_seeds = np.load('../../seeds_noise_2k.npy')
@@ -92,12 +93,13 @@ def gen_map(rlz_idx=0, mode='mean', return_noise=False):
 def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
-    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    # l_min_edges, l_max_edges = generate_bins(l_min_start=10, delta_l_min=30, l_max=lmax+1, fold=0.2)
     # delta_ell = 30
     # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
-    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=30, is_Dell=True)
-    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
+    print(f'{ell_arr=}')
 
     # m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
     # m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
@@ -130,10 +132,10 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     dl_cf = calc_dl_from_pol_map(m_q=m_cf_q, m_u=m_cf_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     dl_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    path_dl_qu_pcfn = Path(f'pcfn_dl/STD/pcfn')
-    path_dl_qu_cfn = Path(f'pcfn_dl/STD/cfn')
-    path_dl_qu_cf = Path(f'pcfn_dl/STD/cf')
-    path_dl_qu_n = Path(f'pcfn_dl/STD/n')
+    path_dl_qu_pcfn = Path(f'pcfn_dl2/STD/pcfn')
+    path_dl_qu_cfn = Path(f'pcfn_dl2/STD/cfn')
+    path_dl_qu_cf = Path(f'pcfn_dl2/STD/cf')
+    path_dl_qu_n = Path(f'pcfn_dl2/STD/n')
     path_dl_qu_pcfn.mkdir(parents=True, exist_ok=True)
     path_dl_qu_cfn.mkdir(parents=True, exist_ok=True)
     path_dl_qu_cf.mkdir(parents=True, exist_ok=True)

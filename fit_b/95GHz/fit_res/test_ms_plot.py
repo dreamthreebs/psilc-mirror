@@ -58,6 +58,7 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
 
 l_min_edges, l_max_edges = generate_bins(l_min_start=10, delta_l_min=30, l_max=lmax+1, fold=0.2)
 bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
 print(f'{ell_arr.shape=}')
 
@@ -65,19 +66,19 @@ def mean_and_std(sim_mode):
     for rlz_idx in range(1,200):
         print(f'{rlz_idx=}')
 
-        n_qu = np.load(f'./pcfn_dl1/{sim_mode}/n/{rlz_idx}.npy')
-        pcfn = np.load(f'./pcfn_dl1/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
-        cfn = np.load(f'./pcfn_dl1/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
-        cf = np.load(f'./pcfn_dl1/{sim_mode}/cf/{rlz_idx}.npy')
+        n_qu = np.load(f'./pcfn_dl2/{sim_mode}/n/{rlz_idx}.npy')
+        pcfn = np.load(f'./pcfn_dl2/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
+        cfn = np.load(f'./pcfn_dl2/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
+        cf = np.load(f'./pcfn_dl2/{sim_mode}/cf/{rlz_idx}.npy')
 
-        n_rmv = np.load(f'./pcfn_dl1/RMV/n/{rlz_idx}.npy')
-        rmv_qu = np.load(f'./pcfn_dl1/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
+        # n_rmv = np.load(f'./pcfn_dl1/RMV/n/{rlz_idx}.npy')
+        # rmv_qu = np.load(f'./pcfn_dl1/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
 
-        n_ps_mask = np.load(f'./pcfn_dl1/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
-        ps_mask = np.load(f'./pcfn_dl1/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
+        # n_ps_mask = np.load(f'./pcfn_dl1/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
+        # ps_mask = np.load(f'./pcfn_dl1/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
 
-        n_inp = np.load(f'./pcfn_dl1/INP/noise/{rlz_idx}.npy')
-        inp = np.load(f'./pcfn_dl1/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
+        # n_inp = np.load(f'./pcfn_dl1/INP/noise/{rlz_idx}.npy')
+        # inp = np.load(f'./pcfn_dl1/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
 
         # plt.loglog(ell_arr, pcfn, label='pcfn')
         # plt.loglog(ell_arr, cfn, label='cfn')
@@ -97,28 +98,28 @@ def mean_and_std(sim_mode):
         cfn_list.append(cfn)
         pcfn_list.append(pcfn)
 
-        rmv_list.append(rmv_qu)
-        ps_mask_list.append(ps_mask)
-        inp_list.append(inp)
+        # rmv_list.append(rmv_qu)
+        # ps_mask_list.append(ps_mask)
+        # inp_list.append(inp)
 
 
     pcfn_mean = np.mean(pcfn_list, axis=0)
     cfn_mean = np.mean(cfn_list, axis=0)
     cf_mean = np.mean(cf_list, axis=0)
 
-    rmv_mean = np.mean(rmv_list, axis=0)
-    ps_mask_mean = np.mean(ps_mask_list, axis=0)
-    inp_mean = np.mean(inp_list, axis=0)
+    # rmv_mean = np.mean(rmv_list, axis=0)
+    # ps_mask_mean = np.mean(ps_mask_list, axis=0)
+    # inp_mean = np.mean(inp_list, axis=0)
 
     pcfn_std = np.std(pcfn_list, axis=0)
     cfn_std = np.std(cfn_list, axis=0)
     cf_std = np.std(cf_list, axis=0)
 
-    rmv_std = np.std(rmv_list, axis=0)
-    ps_mask_std = np.std(ps_mask_list, axis=0)
-    inp_std = np.std(inp_list, axis=0)
+    # rmv_std = np.std(rmv_list, axis=0)
+    # ps_mask_std = np.std(ps_mask_list, axis=0)
+    # inp_std = np.std(inp_list, axis=0)
 
-    return pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std
+    return pcfn_mean, cfn_mean, cf_mean, pcfn_std, cfn_std, cf_std
 
 # pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, _, _, _, _, _, _ = mean_and_std(sim_mode='MEAN')
 
@@ -137,22 +138,22 @@ def mean_and_std(sim_mode):
 # plt.title('mean')
 
 # _, _, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
-pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean ,pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
+pcfn_mean, cfn_mean, cf_mean, pcfn_std, cfn_std, cf_std = mean_and_std(sim_mode='STD')
 
-plt.figure(2)
-plt.scatter(ell_arr, pcfn_std, label='pcfn', marker='.')
-plt.scatter(ell_arr, cfn_std, label='cfn', marker='.')
-plt.scatter(ell_arr, cf_std, label='cf', marker='.')
-plt.scatter(ell_arr, rmv_std, label='rmv', marker='.')
-plt.scatter(ell_arr, ps_mask_std, label='ps_mask', marker='.')
-plt.scatter(ell_arr, inp_std, label='inp', marker='.')
-plt.xlabel('$\\ell$')
-plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
+# plt.figure(2)
+# plt.scatter(ell_arr, pcfn_std, label='pcfn', marker='.')
+# plt.scatter(ell_arr, cfn_std, label='cfn', marker='.')
+# plt.scatter(ell_arr, cf_std, label='cf', marker='.')
+# plt.scatter(ell_arr, rmv_std, label='rmv', marker='.')
+# plt.scatter(ell_arr, ps_mask_std, label='ps_mask', marker='.')
+# plt.scatter(ell_arr, inp_std, label='inp', marker='.')
+# plt.xlabel('$\\ell$')
+# plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
 
-plt.loglog()
-plt.legend()
-plt.title('standard deviation')
-plt.show()
+# plt.loglog()
+# plt.legend()
+# plt.title('standard deviation')
+# plt.show()
 
 lmax_eff = calc_lmax(beam=beam)
 lmax_ell_arr = find_left_nearest_index_np(ell_arr, target=lmax_eff)
@@ -179,9 +180,10 @@ ax_sub.set_xscale('log')
 # Plot mean values in the main axis (no error bars here)
 ax_main.scatter(ell_arr, pcfn_mean[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
 ax_main.scatter(ell_arr, cfn_mean[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
-ax_main.scatter(ell_arr, rmv_mean[:lmax_ell_arr], s=s, label='Template Fitting method')
-ax_main.scatter(ell_arr, ps_mask_mean[:lmax_ell_arr], s=s, label='Mask on QU')
-ax_main.scatter(ell_arr, inp_mean[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
+ax_main.scatter(ell_arr, cf_mean[:lmax_ell_arr], s=s, label='CMB + FG')
+# ax_main.scatter(ell_arr, rmv_mean[:lmax_ell_arr], s=s, label='Template Fitting method')
+# ax_main.scatter(ell_arr, ps_mask_mean[:lmax_ell_arr], s=s, label='Mask on QU')
+# ax_main.scatter(ell_arr, inp_mean[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
 # ax_main.plot(l, l*(l+1)*cl_cmb[2,:lmax_eff+1]/(2*np.pi), label='CMB input', color='black')
 
 # Set labels and title for the main plot
@@ -194,9 +196,7 @@ ax_main.legend()
 # Plot standard deviation in the subfigure (using scatter with no error bars)
 ax_sub.scatter(ell_arr, pcfn_std[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
 ax_sub.scatter(ell_arr, cfn_std[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
-ax_sub.scatter(ell_arr, rmv_std[:lmax_ell_arr], s=s, label='Template Fitting method')
-ax_sub.scatter(ell_arr, ps_mask_std[:lmax_ell_arr], s=s, label='Mask on QU')
-ax_sub.scatter(ell_arr, inp_std[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
+ax_sub.scatter(ell_arr, cf_std[:lmax_ell_arr], s=s, label='CMB + FG')
 
 # Set labels for the subfigure (only xlabel here)
 ax_sub.set_xlabel('$\\ell$')

@@ -31,18 +31,18 @@ bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
 print(f'{ell_arr=}')
 print(f'{ell_arr[1:8]=}')
-ell_arr = ell_arr[1:9]
+ell_arr = ell_arr[1:8]
 
-binned_cl_r = bin_dl.bin_cell(cls_in=cl_r[:lmax+1,2])[1:9]
-binned_cl_AL = bin_dl.bin_cell(cls_in=cl_AL[:lmax+1,2])[1:9]
+binned_cl_r = bin_dl.bin_cell(cls_in=cl_r[:lmax+1,2])[1:8]
+binned_cl_AL = bin_dl.bin_cell(cls_in=cl_AL[:lmax+1,2])[1:8]
 
 def load_data_inv_cov():
-    _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res2/std/pcfn/{rlz_idx}.npy')[1:9] for rlz_idx in range(1,200)])
-    _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res2/std/n_pcfn/{rlz_idx}.npy')[1:9] for rlz_idx in range(1,200)])
+    _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res1/std/cfn/{rlz_idx}.npy')[1:8] for rlz_idx in range(1,200)])
+    _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res1/std/n_cfn/{rlz_idx}.npy')[1:8] for rlz_idx in range(1,200)])
     _data = _data_method - _data_noise
     _data_mean = np.mean(_data, axis=0)
     print(f'{np.size(_data_method, axis=1)=}')
-    cov = np.zeros(shape=(8,8))
+    cov = np.zeros(shape=(7,7))
     for i in np.arange(np.size(_data_method, axis=1)):
 
         print(f'{i=}')
@@ -82,7 +82,7 @@ info["params"] = {
     "r":  {"prior": {"min": -0.1, "max": 0.1}, "ref": 0.0, "proposal": 0.001},
     "AL": {"prior": {"min": 0.8, "max": 1.2}, "ref": 1.0, "proposal": 0.01}}
 
-info["sampler"] = {"mcmc": {"Rminus1_stop": 0.0001, "max_tries": 10000000}}
+info["sampler"] = {"mcmc": {"Rminus1_stop": 0.001, "max_tries": 10000000}}
 # info["sampler"] = {"minimize": {}}
 info["output"] = "chains/r_AL"
 updated_info, sampler = run(info)

@@ -55,7 +55,7 @@ def calc_dl_from_scalar_map(scalar_map, bl, apo_mask, bin_dl, masked_on_input):
 def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
-    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    l_min_edges, l_max_edges = generate_bins(l_min_start=10, delta_l_min=30, l_max=lmax+1, fold=0.2)
     # delta_ell = 30
     # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
     # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=30, is_Dell=True)
@@ -72,9 +72,9 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     print('begin calc dl...')
 
-    path_dl_mean = Path(f'pcfn_dl/INP/MEAN')
-    path_dl_std = Path(f'pcfn_dl/INP/STD')
-    path_dl_n = Path(f'pcfn_dl/INP/noise')
+    path_dl_mean = Path(f'pcfn_dl1/INP/MEAN')
+    path_dl_std = Path(f'pcfn_dl1/INP/STD')
+    path_dl_n = Path(f'pcfn_dl1/INP/noise')
     path_dl_mean.mkdir(parents=True, exist_ok=True)
     path_dl_std.mkdir(parents=True, exist_ok=True)
     path_dl_n.mkdir(parents=True, exist_ok=True)

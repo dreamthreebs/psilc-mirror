@@ -90,7 +90,7 @@ def gen_map(rlz_idx=0, mode='mean', return_noise=False):
 def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
-    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    l_min_edges, l_max_edges = generate_bins(l_min_start=10, delta_l_min=30, l_max=lmax+1, fold=0.2)
     # delta_ell = 30
     # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
     # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=30, is_Dell=True)
@@ -118,9 +118,9 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     dl_qu_std = calc_dl_from_pol_map(m_q=m_std_q, m_u=m_std_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     dl_qu_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    path_dl_qu = Path(f'pcfn_dl/RMV/MEAN')
-    path_dl_qu_std = Path(f'pcfn_dl/RMV/STD')
-    path_dl_qu_n = Path(f'pcfn_dl/RMV/n')
+    path_dl_qu = Path(f'pcfn_dl1/RMV/MEAN')
+    path_dl_qu_std = Path(f'pcfn_dl1/RMV/STD')
+    path_dl_qu_n = Path(f'pcfn_dl1/RMV/n')
     path_dl_qu.mkdir(parents=True, exist_ok=True)
     path_dl_qu_std.mkdir(parents=True, exist_ok=True)
     path_dl_qu_n.mkdir(parents=True, exist_ok=True)

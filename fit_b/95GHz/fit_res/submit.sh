@@ -25,7 +25,7 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=32
 #SBATCH --mem=20GB
 #SBATCH --exclude=aliws[005-020]
 # SBATCH --mem-per-cpu=2000
@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./run.py
+mpiexec python -u ./test_dipole.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)
