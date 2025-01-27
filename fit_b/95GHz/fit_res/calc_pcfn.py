@@ -18,9 +18,10 @@ threshold = 3
 df = pd.read_csv('../../../FGSim/FreqBand')
 print(f'{freq=}, {beam=}')
 
-bin_mask = np.load('../../../src/mask/north/BINMASKG2048.npy')
-# bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
-apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/north/APOMASKC_5.npy')
+# bin_mask = np.load('../../../src/mask/north/BINMASKG2048.npy')
+bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/BIN_C1_3_C1_3.npy')
+apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5APO_3.npy')
+print(f'{np.sum(apo_mask)/np.size(apo_mask)=}')
 # ps_mask = np.load(f'../inpainting/mask/apo_ps_mask.npy')
 
 noise_seeds = np.load('../../seeds_noise_2k.npy')
@@ -132,10 +133,10 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     dl_cf = calc_dl_from_pol_map(m_q=m_cf_q, m_u=m_cf_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     dl_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    path_dl_qu_pcfn = Path(f'pcfn_dl2/STD/pcfn')
-    path_dl_qu_cfn = Path(f'pcfn_dl2/STD/cfn')
-    path_dl_qu_cf = Path(f'pcfn_dl2/STD/cf')
-    path_dl_qu_n = Path(f'pcfn_dl2/STD/n')
+    path_dl_qu_pcfn = Path(f'pcfn_dl4/STD/pcfn')
+    path_dl_qu_cfn = Path(f'pcfn_dl4/STD/cfn')
+    path_dl_qu_cf = Path(f'pcfn_dl4/STD/cf')
+    path_dl_qu_n = Path(f'pcfn_dl4/STD/n')
     path_dl_qu_pcfn.mkdir(parents=True, exist_ok=True)
     path_dl_qu_cfn.mkdir(parents=True, exist_ok=True)
     path_dl_qu_cf.mkdir(parents=True, exist_ok=True)

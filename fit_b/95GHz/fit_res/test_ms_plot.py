@@ -66,10 +66,10 @@ def mean_and_std(sim_mode):
     for rlz_idx in range(1,200):
         print(f'{rlz_idx=}')
 
-        n_qu = np.load(f'./pcfn_dl2/{sim_mode}/n/{rlz_idx}.npy')
-        pcfn = np.load(f'./pcfn_dl2/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
-        cfn = np.load(f'./pcfn_dl2/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
-        cf = np.load(f'./pcfn_dl2/{sim_mode}/cf/{rlz_idx}.npy')
+        n_qu = np.load(f'./pcfn_dl4/{sim_mode}/n/{rlz_idx}.npy')
+        pcfn = np.load(f'./pcfn_dl4/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
+        cfn = np.load(f'./pcfn_dl4/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
+        cf = np.load(f'./pcfn_dl4/{sim_mode}/cf/{rlz_idx}.npy')
 
         # n_rmv = np.load(f'./pcfn_dl1/RMV/n/{rlz_idx}.npy')
         # rmv_qu = np.load(f'./pcfn_dl1/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv

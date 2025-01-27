@@ -10,7 +10,7 @@ mask_C1_5 = np.load(f'../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_
 fsky_C1_5 = np.sum(mask_C1_5) / np.size(mask_C1_5)
 print(f'{fsky_C1_5=}')
 
-mask_out = np.load(f'../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/BIN_C1_5APO_3APO_5.npy')
+mask_out = np.load(f'../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy')
 fsky_out = np.sum(mask_out) / np.size(mask_out)
 print(f'{fsky_out=}')
 

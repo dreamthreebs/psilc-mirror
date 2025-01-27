@@ -2,8 +2,7 @@
 
 #=====================================================
 #===== Modify the following options for your job =====
-#=====    DON'T remove the #! /bin/bash lines    =====
-#=====      DON'T comment #SBATCH lines          =====
+#=====    DON'T remove the #! /bin/bash lines    ===== #=====      DON'T comment #SBATCH lines          =====
 #=====        of partition,account and           =====
 #=====                qos                        =====
 #=====================================================
@@ -27,7 +26,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=40GB
-#SBATCH --exclude=aliws005
+# SBATCH --exclude=aliws005
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 

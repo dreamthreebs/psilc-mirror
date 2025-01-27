@@ -1,0 +1,5 @@
+pcfn_dl 0: change bin 30 30 0.2
+1: bin 10 30 0.2
+2: bin lmax nlb:40 mask: origin and C1 5
+3: bin lmax nlb:40 mask: origin and C1 3 3 3
+4: bin lmax nlb:40 mask: origin and C1 5 3 5 3
