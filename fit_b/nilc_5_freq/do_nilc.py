@@ -170,15 +170,54 @@ def do_nilc_eblc():
     # print(f'MAN, do cfn nilc!')
     # _calc(sim_mode='std', method='cfn')
 
+def do_nilc_new():
+
+    mask = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3.npy')
+    # m = np.load(f'../30GHz/fit_res/sm_new/std//cf/n_/{rlz_idx}.npy')
+
+    def _calc(sim_mode, method):
+        pcfn = np.asarray([np.load(f'../{freq}GHz/fit_res/sm_new/{sim_mode}/{method}/{rlz_idx}.npy') for freq in freq_list])
+        if method == 'pcfn' or method == 'cfn':
+            n = np.asarray([np.load(f'../{freq}GHz/fit_res/sm_new/{sim_mode}/n/{rlz_idx}.npy') for freq in freq_list])
+        elif method == 'cf':
+            pass
+        else:
+            n = np.asarray([np.load(f'../{freq}GHz/fit_res/sm_new/{sim_mode}/n_{method}/{rlz_idx}.npy') for freq in freq_list])
+
+        # do nilc and save the weights in map
+        time0 = time.time()
+        obj_nilc = NILC(bandinfo='./band_info.csv', needlet_config='./needlets/0.csv', weights_name=f'./weight/{sim_mode}/{method}/{rlz_idx}.npz', Sm_maps=pcfn, mask=mask, lmax=lmax, nside=nside, n_iter=3, weight_in_alm=False)
+        cln_pcfn = obj_nilc.run_nilc()
+        Path(f'./data2/{sim_mode}/{method}').mkdir(exist_ok=True, parents=True)
+        np.save(f'./data2/{sim_mode}/{method}/{rlz_idx}.npy', cln_pcfn)
+        print(f'{time.time()-time0=}')
+
+        if method == 'cf':
+            pass
+        else:
+            obj_noise = NILC(bandinfo='./band_info.csv', needlet_config='./needlets/0.csv', weights_config=f'./weight/{sim_mode}/{method}/{rlz_idx}.npz', Sm_maps=n, mask=mask, lmax=lmax, nside=nside, n_iter=3, weight_in_alm=False)
+            cln_n = obj_noise.run_nilc()
+            Path(f'./data2/{sim_mode}/n_{method}').mkdir(exist_ok=True, parents=True)
+            np.save(f'./data2/{sim_mode}/n_{method}/{rlz_idx}.npy', cln_n)
+    print(f'MAN, do cf nilc!')
+    _calc(sim_mode='std', method='cf')
+    print(f'MAN, do rmv nilc!')
+    _calc(sim_mode='std', method='rmv')
+    print(f'MAN, do pcfn nilc!')
+    _calc(sim_mode='std', method='pcfn')
+    print(f'MAN, do cfn nilc!')
+    _calc(sim_mode='std', method='cfn')
+
+
 def check_do_pcfn():
     mask = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
     fsky = np.sum(mask) / np.size(mask)
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam_base)/60, lmax=lmax, pol=True)[:,2]
     df_ps = pd.read_csv(f'../95GHz/mask/95_after_filter.csv')
-    cln_pcfn = np.load(f'./data1/std/pcfn/0.npy')
-    cln_cfn = np.load(f'./data1/std/cfn/0.npy')
-    cln_rmv = np.load(f'./data1/std/rmv/0.npy')
-    cln_inp = np.load(f'./data1/std/cf/0.npy')
+    cln_pcfn = np.load(f'./data2/std/pcfn/0.npy')
+    cln_cfn = np.load(f'./data2/std/cfn/0.npy')
+    cln_rmv = np.load(f'./data2/std/rmv/0.npy')
+    cln_inp = np.load(f'./data2/std/cf/0.npy')
     # cln_n = np.load(f'./data/mean/n/0.npy')
     hp.orthview(cln_pcfn, rot=[100,50,0], title='pcfn')
     hp.orthview(cln_cfn, rot=[100,50,0], title='cfn')
@@ -295,9 +334,10 @@ if __name__ == "__main__":
     # check_try_nilc()
     # do_nilc()
     # do_nilc_eblc()
-    # check_do_pcfn()
+    # do_nilc_new()
+    check_do_pcfn()
     # gen_fiducial_cmb()
-    gen_fiducial_ps()
+    # gen_fiducial_ps()
 
     pass
 

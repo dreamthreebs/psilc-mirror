@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./fit_qu_no_const.py"
+original_file="./pp.py"
 
 # 复制文件的数量
 copies=200
@@ -14,7 +14,7 @@ for i in $(seq 0 $copies); do
     cp $original_file $new_file
 
     # 在第10行替换文本
-    sed -i "817s/rlz_idx = 0/rlz_idx = $i/" $new_file
+    sed -i "1012s/rlz_idx = 0/rlz_idx = $i/" $new_file
 done
 
 

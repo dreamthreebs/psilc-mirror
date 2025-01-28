@@ -1240,9 +1240,9 @@ if __name__ == '__main__':
     # check_smooth_then_eblc()
     # check_smooth_then_eblc_cl()
 
-    new_smooth_then_eblc()
-    # new_check_smooth_then_eblc()
-    # new_check_smooth_then_eblc_cl()
+    # new_smooth_then_eblc()
+    new_check_smooth_then_eblc()
+    new_check_smooth_then_eblc_cl()
     pass
 
 
