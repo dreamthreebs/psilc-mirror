@@ -16,8 +16,8 @@ threshold = 3
 # apo_scale = beam * 8 / 60
 
 df = pd.read_csv(f'../mask/{freq}_after_filter.csv')
-ori_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
-ori_apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
+ori_mask = np.load('../../../src/mask/north/BINMASKG2048.npy')
+ori_apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy')
 
 rlz_idx = 0
 print(f'{rlz_idx=}')
@@ -54,7 +54,7 @@ plt.show()
 # path_ps_mask = Path(f'./3sigma/apo_mask/apo_c1_1')
 # path_ps_mask.mkdir(exist_ok=True, parents=True)
 # np.save(path_ps_mask / Path(f'{rlz_idx}.npy'), apo_ps_mask)
-np.save('./mask/apo_ps_mask.npy', apo_ps_mask)
+np.save('./new_mask/apo_ps_mask.npy', apo_ps_mask)
 
 
 
