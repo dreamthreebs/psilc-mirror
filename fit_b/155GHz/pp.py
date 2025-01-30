@@ -20,7 +20,6 @@ logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.INFO)
-
 def gen_fg_cl():
     cl_fg = np.load('./data/debeam_full_b/cl_fg.npy')
     Cl_TT = cl_fg[0]
@@ -968,6 +967,28 @@ def new_check_smooth_then_eblc():
 
     plt.show()
 
+def smooth_new():
+    rlz_idx = 0
+    beam_out = 17
+    mask = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3.npy')
+    # mask_check = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
+    def calc_smooth(sim_mode):
+        n_inp = hp.read_map(f'./inpainting/output_m3_n_new/{rlz_idx}.fits')
+
+        path_n_inp = Path(f'./fit_res/sm_new/{sim_mode}/n_inp')
+
+        path_n_inp.mkdir(exist_ok=True, parents=True)
+        np.save(path_n_inp / Path(f'{rlz_idx}.npy'), n_inp)
+
+        inp = hp.read_map(f'./inpainting/output_m3_{sim_mode}_new/{rlz_idx}.fits')
+
+        path_inp = Path(f'./fit_res/sm_new/{sim_mode}/inp')
+        path_inp.mkdir(exist_ok=True, parents=True)
+
+        np.save(path_inp / Path(f'{rlz_idx}.npy'), inp)
+
+    calc_smooth(sim_mode='std')
+
 
 if __name__ == '__main__':
     # gen_pix_idx(flux_idx=0)
@@ -993,7 +1014,9 @@ if __name__ == '__main__':
     # check_smooth_then_eblc()
 
     # new_smooth_then_eblc()
-    new_check_smooth_then_eblc()
+    # new_check_smooth_then_eblc()
+
+    smooth_new()
 
 
     pass

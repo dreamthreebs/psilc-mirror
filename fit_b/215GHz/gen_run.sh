@@ -14,7 +14,7 @@ for i in $(seq 0 $copies); do
     cp $original_file $new_file
 
     # 在第10行替换文本
-    sed -i "1021s/rlz_idx = 0/rlz_idx = $i/" $new_file
+    sed -i "1184s/rlz_idx = 0/rlz_idx = $i/" $new_file
 done
 
 

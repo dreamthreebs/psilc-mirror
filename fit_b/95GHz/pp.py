@@ -1214,6 +1214,32 @@ def new_check_smooth_then_eblc_cl():
     plt.legend()
     plt.show()
 
+def smooth_new():
+    rlz_idx = 0
+    beam_out = 17
+    mask = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3.npy')
+    # mask_check = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
+    def calc_smooth(sim_mode):
+        n_inp = hp.read_map(f'./inpainting/output_m3_n_new/{rlz_idx}.fits')
+
+        sm_n_inp = smooth_map(map_in=n_inp, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+
+        path_n_inp = Path(f'./fit_res/sm_new/{sim_mode}/n_inp')
+
+        path_n_inp.mkdir(exist_ok=True, parents=True)
+        np.save(path_n_inp / Path(f'{rlz_idx}.npy'), sm_n_inp)
+
+        inp = hp.read_map(f'./inpainting/output_m3_{sim_mode}_new/{rlz_idx}.fits')
+        sm_inp = smooth_map(map_in=inp, mask=mask, lmax=lmax, beam_in=beam, beam_out=beam_out)
+
+        path_inp = Path(f'./fit_res/sm_new/{sim_mode}/inp')
+        path_inp.mkdir(exist_ok=True, parents=True)
+
+        np.save(path_inp / Path(f'{rlz_idx}.npy'), sm_inp)
+
+    calc_smooth(sim_mode='std')
+
+
 
 
 if __name__ == '__main__':
@@ -1241,8 +1267,10 @@ if __name__ == '__main__':
     # check_smooth_then_eblc_cl()
 
     # new_smooth_then_eblc()
-    new_check_smooth_then_eblc()
-    new_check_smooth_then_eblc_cl()
+    # new_check_smooth_then_eblc()
+    # new_check_smooth_then_eblc_cl()
+
+    smooth_new()
     pass
 
 

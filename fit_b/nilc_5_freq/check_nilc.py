@@ -186,11 +186,13 @@ def calc_dl3():
     # _calc_dl(sim_mode='mean', method='cfn')
     # _calc_dl(sim_mode='mean', method='rmv')
     # _calc_dl(sim_mode='mean', method='inp')
-    _calc_dl(sim_mode='std', method='pcfn')
-    _calc_dl(sim_mode='std', method='cfn')
-    _calc_dl(sim_mode='std', method='rmv')
-    _calc_dl(sim_mode='std', method='cf')
-    # _calc_dl(sim_mode='std', method='inp')
+
+    # _calc_dl(sim_mode='std', method='pcfn')
+    # _calc_dl(sim_mode='std', method='cfn')
+    # _calc_dl(sim_mode='std', method='rmv')
+    # _calc_dl(sim_mode='std', method='cf')
+
+    _calc_dl(sim_mode='std', method='inp')
 
 
 
@@ -565,18 +567,18 @@ def plot_ms4():
     cfn_std = np.std([np.load(f'./dl_res3/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res3/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     rmv_mean = np.mean([np.load(f'./dl_res3/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res3/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     rmv_std = np.std([np.load(f'./dl_res3/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res3/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    inp_mean = np.mean([np.load(f'./dl_res/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    inp_std = np.std([np.load(f'./dl_res/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    inp_mean = np.mean([np.load(f'./dl_res3/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res3/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    inp_std = np.std([np.load(f'./dl_res3/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res3/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     print(f'mean std over')
-    fid_mean = np.mean([np.load(f'./dl_res/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    fid_std = np.std([np.load(f'./dl_res/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    fid_mean = np.mean([np.load(f'./dl_res3/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    fid_std = np.std([np.load(f'./dl_res3/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     ps_mean = np.mean([np.load(f'./dl_res/fid_ps_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     cf_mean = np.mean([np.load(f'./dl_res3/std/cf/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
 
-    # bias_std_2_pcfn = np.sqrt((pcfn_mean-fid_mean)**2 + pcfn_std**2)
-    # bias_std_2_cfn = np.sqrt((cfn_mean-fid_mean)**2 + cfn_std**2)
-    # bias_std_2_rmv = np.sqrt((rmv_mean-fid_mean)**2 + rmv_std**2)
-    # bias_std_2_inp= np.sqrt((inp_mean-fid_mean)**2 + inp_std**2)
+    bias_std_2_pcfn = np.sqrt((pcfn_mean-fid_mean)**2 + pcfn_std**2)
+    bias_std_2_cfn = np.sqrt((cfn_mean-fid_mean)**2 + cfn_std**2)
+    bias_std_2_rmv = np.sqrt((rmv_mean-fid_mean)**2 + rmv_std**2)
+    bias_std_2_inp= np.sqrt((inp_mean-fid_mean)**2 + inp_std**2)
 
     # Create figure with 2 subplots (main and subfigure), sharing the x-axis
     fig, (ax_main, ax_sub) = plt.subplots(2, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
@@ -591,11 +593,11 @@ def plot_ms4():
 
     # Plot mean values in the main axis (no error bars here)
 
-    # ax_main.errorbar(ell_arr, fid_mean[:lmax_ell_arr], yerr=fid_std[:lmax_ell_arr], fmt='.', capsize=s, label='Fiducial CMB', color='black')
+    ax_main.errorbar(ell_arr, fid_mean[:lmax_ell_arr], yerr=fid_std[:lmax_ell_arr], fmt='.', capsize=s, label='Fiducial CMB', color='black')
     ax_main.errorbar(ell_arr+5.0, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='PS + CMB + FG + NOISE')
     ax_main.errorbar(ell_arr+10.0, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='CMB + FG + NOISE')
     ax_main.errorbar(ell_arr+15.0, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='Template fitting method')
-    # ax_main.errorbar(ell_arr+20.0, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='Recycling + Inpainting on B')
+    ax_main.errorbar(ell_arr+20.0, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='Recycling + Inpainting on B')
 
     # Set labels and title for the main plot
     ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
@@ -606,10 +608,11 @@ def plot_ms4():
 
 
     # Plot standard deviation in the subfigure (using scatter with no error bars)
-    # ax_sub.scatter(ell_arr+5.0, bias_std_2_pcfn[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
-    # ax_sub.scatter(ell_arr+10.0, bias_std_2_cfn[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
-    # ax_sub.scatter(ell_arr+15.0, bias_std_2_rmv[:lmax_ell_arr], s=s, label='Template Fitting method')
-    # ax_sub.scatter(ell_arr+20.0, bias_std_2_inp[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
+
+    ax_sub.scatter(ell_arr+5.0, bias_std_2_pcfn[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
+    ax_sub.scatter(ell_arr+10.0, bias_std_2_cfn[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
+    ax_sub.scatter(ell_arr+15.0, bias_std_2_rmv[:lmax_ell_arr], s=s, label='Template Fitting method')
+    ax_sub.scatter(ell_arr+20.0, bias_std_2_inp[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
 
     # Set labels for the subfigure (only xlabel here)
     ax_sub.set_xlabel('$\\ell$')

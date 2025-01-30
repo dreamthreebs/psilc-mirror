@@ -199,14 +199,17 @@ def do_nilc_new():
             cln_n = obj_noise.run_nilc()
             Path(f'./data2/{sim_mode}/n_{method}').mkdir(exist_ok=True, parents=True)
             np.save(f'./data2/{sim_mode}/n_{method}/{rlz_idx}.npy', cln_n)
-    print(f'MAN, do cf nilc!')
-    _calc(sim_mode='std', method='cf')
-    print(f'MAN, do rmv nilc!')
-    _calc(sim_mode='std', method='rmv')
-    print(f'MAN, do pcfn nilc!')
-    _calc(sim_mode='std', method='pcfn')
-    print(f'MAN, do cfn nilc!')
-    _calc(sim_mode='std', method='cfn')
+
+    # print(f'MAN, do cf nilc!')
+    # _calc(sim_mode='std', method='cf')
+    # print(f'MAN, do rmv nilc!')
+    # _calc(sim_mode='std', method='rmv')
+    # print(f'MAN, do pcfn nilc!')
+    # _calc(sim_mode='std', method='pcfn')
+    # print(f'MAN, do cfn nilc!')
+    # _calc(sim_mode='std', method='cfn')
+    print(f'MAN, do inp nilc!')
+    _calc(sim_mode='std', method='inp')
 
 
 def check_do_pcfn():
@@ -217,12 +220,12 @@ def check_do_pcfn():
     cln_pcfn = np.load(f'./data2/std/pcfn/0.npy')
     cln_cfn = np.load(f'./data2/std/cfn/0.npy')
     cln_rmv = np.load(f'./data2/std/rmv/0.npy')
-    cln_inp = np.load(f'./data2/std/cf/0.npy')
+    cln_inp = np.load(f'./data2/std/inp/0.npy')
     # cln_n = np.load(f'./data/mean/n/0.npy')
     hp.orthview(cln_pcfn, rot=[100,50,0], title='pcfn')
     hp.orthview(cln_cfn, rot=[100,50,0], title='cfn')
     hp.orthview(cln_rmv, rot=[100,50,0], title='rmv')
-    hp.orthview(cln_inp, rot=[100,50,0], title='cf')
+    hp.orthview(cln_inp, rot=[100,50,0], title='inp')
     plt.show()
 
     for flux_idx in np.arange(len(df_ps)):
@@ -231,7 +234,7 @@ def check_do_pcfn():
         hp.gnomview(cln_pcfn, rot=[lon, lat, 0], title='pcfn')
         hp.gnomview(cln_cfn, rot=[lon, lat, 0], title='cfn')
         hp.gnomview(cln_rmv, rot=[lon, lat, 0], title='rmv')
-        hp.gnomview(cln_inp, rot=[lon, lat, 0], title='cf')
+        hp.gnomview(cln_inp, rot=[lon, lat, 0], title='inp')
         # hp.gnomview(cln_cf, rot=[lon, lat, 0], title='cf')
         plt.show()
 
@@ -271,30 +274,30 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     return bins_edges[:-1], bins_edges[1:]
 
 def gen_fiducial_cmb():
-    l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    # l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
     # delta_ell = 30
     # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
-    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=30, is_Dell=True)
-    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
     cmb_seed = np.load(f'../seeds_cmb_2k.npy')
     cls = np.load(f'../../src/cmbsim/cmbdata/cmbcl_8k.npy')
     np.random.seed(seed=cmb_seed[rlz_idx])
     cmb_iqu = hp.synfast(cls.T, nside=nside, new=True, lmax=3*nside-1)
-    mask = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
+    mask = np.load('../../src/mask/north/BINMASKG2048.npy')
     obj_eblc = EBLeakageCorrection(m=cmb_iqu, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
     _, _, cln_cmb = obj_eblc.run_eblc()
 
-    hp.orthview(cln_cmb, rot=[100,50,0])
-    plt.show()
+    # hp.orthview(cln_cmb, rot=[100,50,0])
+    # plt.show()
 
 
-    # mask_cl = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5APO_3.npy')
-    # dl_cmb = calc_dl_from_scalar_map(scalar_map=cln_cmb, apo_mask=mask_cl, bin_dl=bin_dl, masked_on_input=False)
-    # path_fid_cmb = Path(f'./dl_res/fid_cmb')
-    # path_fid_cmb.mkdir(exist_ok=True, parents=True)
-    # np.save(path_fid_cmb / Path(f'{rlz_idx}.npy'), dl_cmb)
+    mask_cl = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy')
+    dl_cmb = calc_dl_from_scalar_map(scalar_map=cln_cmb, apo_mask=mask_cl, bin_dl=bin_dl, masked_on_input=False)
+    path_fid_cmb = Path(f'./dl_res3/fid_cmb')
+    path_fid_cmb.mkdir(exist_ok=True, parents=True)
+    np.save(path_fid_cmb / Path(f'{rlz_idx}.npy'), dl_cmb)
 
 def gen_fiducial_ps():
     l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
@@ -335,8 +338,8 @@ if __name__ == "__main__":
     # do_nilc()
     # do_nilc_eblc()
     # do_nilc_new()
-    check_do_pcfn()
-    # gen_fiducial_cmb()
+    # check_do_pcfn()
+    gen_fiducial_cmb()
     # gen_fiducial_ps()
 
     pass

@@ -38,8 +38,8 @@ binned_cl_r = bin_dl.bin_cell(cls_in=cl_r[:lmax+1,2])[1:8]
 binned_cl_AL = bin_dl.bin_cell(cls_in=cl_AL[:lmax+1,2])[1:8]
 
 def load_data_inv_cov():
-    _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res3/std/rmv/{rlz_idx}.npy')[1:8] for rlz_idx in range(1,200)])
-    _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res3/std/n_rmv/{rlz_idx}.npy')[1:8] for rlz_idx in range(1,200)])
+    _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res3/std/inp/{rlz_idx}.npy')[1:8] for rlz_idx in range(1,200)])
+    _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res3/std/n_inp/{rlz_idx}.npy')[1:8] for rlz_idx in range(1,200)])
     _data = _data_method - _data_noise
     _data_mean = np.mean(_data, axis=0)
     print(f'{np.size(_data_method, axis=1)=}')
