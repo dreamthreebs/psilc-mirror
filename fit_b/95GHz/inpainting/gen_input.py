@@ -57,39 +57,26 @@ def gen_map(rlz_idx=0, mode='mean', return_noise=False):
     n = noise
     return pcfn, noise
 
-m_pcfn, m_n = gen_map(rlz_idx=rlz_idx, mode='mean')
+m_pcfn, m_n = gen_map(rlz_idx=rlz_idx, mode='std')
 # m_b = hp.alm2map(hp.map2alm(m)[2], nside=2048)
 
-# path_m = Path(f'./n')
-# path_m.mkdir(exist_ok=True, parents=True)
-
-# hp.write_map(path_m / Path(f'{rlz_idx}.npy'), m_b)
-# slope_in = np.load(f'./eblc_slope/{rlz_idx}.npy')
-# mask = hp.read_map(f'./mask/mask.fits')
-mask = hp.read_map(f'./mask/mask_only_edge.fits')
+mask = hp.read_map(f'./new_mask/mask_only_edge.fits')
 
 obj = EBLeakageCorrection(m_pcfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
 _,_,cln_b_pcfn = obj.run_eblc()
 slope_in = obj.return_slope()
 
-path_input = Path('./input_mean')
+path_input = Path('./input_std_new')
 path_input.mkdir(exist_ok=True, parents=True)
 hp.write_map(path_input / Path(f'{rlz_idx}.fits'), cln_b_pcfn, overwrite=True)
 
 obj = EBLeakageCorrection(m_n, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope_in)
 _,_,cln_b_n = obj.run_eblc()
 
-path_input = Path('./input_n')
+path_input = Path('./input_n_new')
 path_input.mkdir(exist_ok=True, parents=True)
 hp.write_map(path_input / Path(f'{rlz_idx}.fits'), cln_b_n, overwrite=True)
 
-m_pcfn, m_n = gen_map(rlz_idx=rlz_idx, mode='std')
-obj = EBLeakageCorrection(m_pcfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope_in)
-_,_,cln_b_pcfn = obj.run_eblc()
-
-path_input = Path('./input_std')
-path_input.mkdir(exist_ok=True, parents=True)
-hp.write_map(path_input / Path(f'{rlz_idx}.fits'), cln_b_pcfn, overwrite=True)
 
 
 

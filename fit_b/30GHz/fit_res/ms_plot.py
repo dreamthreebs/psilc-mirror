@@ -56,8 +56,9 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     bins_edges.append(l_max)
     return bins_edges[:-1], bins_edges[1:]
 
-l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
-bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+# l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+# bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
 print(f'{ell_arr.shape=}')
 
@@ -65,19 +66,19 @@ def mean_and_std(sim_mode):
     for rlz_idx in range(1,200):
         print(f'{rlz_idx=}')
 
-        n_qu = np.load(f'./pcfn_dl/{sim_mode}/n/{rlz_idx}.npy')
-        pcfn = np.load(f'./pcfn_dl/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
-        cfn = np.load(f'./pcfn_dl/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
-        cf = np.load(f'./pcfn_dl/{sim_mode}/cf/{rlz_idx}.npy')
+        n_qu = np.load(f'./pcfn_dl3/{sim_mode}/n/{rlz_idx}.npy')
+        pcfn = np.load(f'./pcfn_dl3/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
+        cfn = np.load(f'./pcfn_dl3/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
+        cf = np.load(f'./pcfn_dl3/{sim_mode}/cf/{rlz_idx}.npy')
 
-        n_rmv = np.load(f'./pcfn_dl/RMV/n/{rlz_idx}.npy')
-        rmv_qu = np.load(f'./pcfn_dl/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
+        n_rmv = np.load(f'./pcfn_dl3/RMV/n/{rlz_idx}.npy')
+        rmv_qu = np.load(f'./pcfn_dl3/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
 
-        n_ps_mask = np.load(f'./pcfn_dl/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
-        ps_mask = np.load(f'./pcfn_dl/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
+        n_ps_mask = np.load(f'./pcfn_dl3/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
+        ps_mask = np.load(f'./pcfn_dl3/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
 
-        n_inp = np.load(f'./pcfn_dl/INP/noise/{rlz_idx}.npy')
-        inp = np.load(f'./pcfn_dl/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
+        n_inp = np.load(f'./pcfn_dl3/INP/noise/{rlz_idx}.npy')
+        inp = np.load(f'./pcfn_dl3/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
 
         # plt.loglog(ell_arr, pcfn, label='pcfn')
         # plt.loglog(ell_arr, cfn, label='cfn')
@@ -163,6 +164,7 @@ print(f'{lmax_ell_arr=}')
 cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_8k.npy').T
 print(f'{cl_cmb.shape=}')
 l = np.arange(lmax_eff+1)
+cmb_binned = bin_dl.bin_cell(cls_in=cl_cmb[2,:lmax+1])
 
 # Create figure with 2 subplots (main and subfigure), sharing the x-axis
 fig, (ax_main, ax_sub) = plt.subplots(2, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
@@ -180,6 +182,7 @@ ax_main.scatter(ell_arr, rmv_mean[:lmax_ell_arr], s=s, label='Template Fitting m
 ax_main.scatter(ell_arr, ps_mask_mean[:lmax_ell_arr], s=s, label='Mask on QU')
 ax_main.scatter(ell_arr, inp_mean[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
 # ax_main.plot(l, l*(l+1)*cl_cmb[2,:lmax_eff+1]/(2*np.pi), label='CMB input', color='black')
+# ax_main.scatter(ell_arr, cmb_binned[:lmax_ell_arr], s=s, label='CMB input', color='black')
 
 # Set labels and title for the main plot
 ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')

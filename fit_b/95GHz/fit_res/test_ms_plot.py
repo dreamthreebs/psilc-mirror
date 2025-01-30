@@ -66,13 +66,13 @@ def mean_and_std(sim_mode):
     for rlz_idx in range(1,200):
         print(f'{rlz_idx=}')
 
-        n_qu = np.load(f'./pcfn_dl4/{sim_mode}/n/{rlz_idx}.npy')
-        pcfn = np.load(f'./pcfn_dl4/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
-        cfn = np.load(f'./pcfn_dl4/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
-        cf = np.load(f'./pcfn_dl4/{sim_mode}/cf/{rlz_idx}.npy')
+        n_qu = np.load(f'./pcfn_dl3/{sim_mode}/n/{rlz_idx}.npy')
+        pcfn = np.load(f'./pcfn_dl3/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
+        cfn = np.load(f'./pcfn_dl3/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
+        cf = np.load(f'./pcfn_dl3/{sim_mode}/cf/{rlz_idx}.npy')
 
-        # n_rmv = np.load(f'./pcfn_dl1/RMV/n/{rlz_idx}.npy')
-        # rmv_qu = np.load(f'./pcfn_dl1/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
+        n_rmv = np.load(f'./pcfn_dl3/RMV/n/{rlz_idx}.npy')
+        rmv_qu = np.load(f'./pcfn_dl3/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
 
         # n_ps_mask = np.load(f'./pcfn_dl1/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
         # ps_mask = np.load(f'./pcfn_dl1/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
@@ -98,7 +98,7 @@ def mean_and_std(sim_mode):
         cfn_list.append(cfn)
         pcfn_list.append(pcfn)
 
-        # rmv_list.append(rmv_qu)
+        rmv_list.append(rmv_qu)
         # ps_mask_list.append(ps_mask)
         # inp_list.append(inp)
 
@@ -107,7 +107,7 @@ def mean_and_std(sim_mode):
     cfn_mean = np.mean(cfn_list, axis=0)
     cf_mean = np.mean(cf_list, axis=0)
 
-    # rmv_mean = np.mean(rmv_list, axis=0)
+    rmv_mean = np.mean(rmv_list, axis=0)
     # ps_mask_mean = np.mean(ps_mask_list, axis=0)
     # inp_mean = np.mean(inp_list, axis=0)
 
@@ -115,11 +115,11 @@ def mean_and_std(sim_mode):
     cfn_std = np.std(cfn_list, axis=0)
     cf_std = np.std(cf_list, axis=0)
 
-    # rmv_std = np.std(rmv_list, axis=0)
+    rmv_std = np.std(rmv_list, axis=0)
     # ps_mask_std = np.std(ps_mask_list, axis=0)
     # inp_std = np.std(inp_list, axis=0)
 
-    return pcfn_mean, cfn_mean, cf_mean, pcfn_std, cfn_std, cf_std
+    return pcfn_mean, cfn_mean, cf_mean, rmv_mean, pcfn_std, cfn_std, cf_std, rmv_std
 
 # pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, _, _, _, _, _, _ = mean_and_std(sim_mode='MEAN')
 
@@ -138,7 +138,7 @@ def mean_and_std(sim_mode):
 # plt.title('mean')
 
 # _, _, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
-pcfn_mean, cfn_mean, cf_mean, pcfn_std, cfn_std, cf_std = mean_and_std(sim_mode='STD')
+pcfn_mean, cfn_mean, cf_mean, rmv_mean, pcfn_std, cfn_std, cf_std, rmv_std = mean_and_std(sim_mode='STD')
 
 # plt.figure(2)
 # plt.scatter(ell_arr, pcfn_std, label='pcfn', marker='.')
@@ -181,7 +181,7 @@ ax_sub.set_xscale('log')
 ax_main.scatter(ell_arr, pcfn_mean[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
 ax_main.scatter(ell_arr, cfn_mean[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
 ax_main.scatter(ell_arr, cf_mean[:lmax_ell_arr], s=s, label='CMB + FG')
-# ax_main.scatter(ell_arr, rmv_mean[:lmax_ell_arr], s=s, label='Template Fitting method')
+ax_main.scatter(ell_arr, rmv_mean[:lmax_ell_arr], s=s, label='Template Fitting method')
 # ax_main.scatter(ell_arr, ps_mask_mean[:lmax_ell_arr], s=s, label='Mask on QU')
 # ax_main.scatter(ell_arr, inp_mean[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
 # ax_main.plot(l, l*(l+1)*cl_cmb[2,:lmax_eff+1]/(2*np.pi), label='CMB input', color='black')
@@ -197,6 +197,7 @@ ax_main.legend()
 ax_sub.scatter(ell_arr, pcfn_std[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
 ax_sub.scatter(ell_arr, cfn_std[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
 ax_sub.scatter(ell_arr, cf_std[:lmax_ell_arr], s=s, label='CMB + FG')
+ax_sub.scatter(ell_arr, rmv_std[:lmax_ell_arr], s=s, label='Template Fittng')
 
 # Set labels for the subfigure (only xlabel here)
 ax_sub.set_xlabel('$\\ell$')

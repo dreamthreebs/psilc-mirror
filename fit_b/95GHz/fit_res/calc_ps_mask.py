@@ -18,9 +18,9 @@ threshold = 3
 df = pd.read_csv('../../../FGSim/FreqBand')
 print(f'{freq=}, {beam=}')
 
-bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
-apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
-ps_mask = np.load(f'../inpainting/mask/apo_ps_mask.npy')
+bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/BIN_C1_3.npy')
+# apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.n')
+ps_mask = np.load(f'../inpainting/new_mask/apo_ps_mask.npy')
 
 noise_seeds = np.load('../../seeds_noise_2k.npy')
 cmb_seeds = np.load('../../seeds_cmb_2k.npy')
@@ -92,11 +92,11 @@ def gen_map(rlz_idx=0, mode='mean', return_noise=False):
 def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
-    l_min_edges, l_max_edges = generate_bins(l_min_start=10, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    # l_min_edges, l_max_edges = generate_bins(l_min_start=10, delta_l_min=30, l_max=lmax+1, fold=0.2)
     # delta_ell = 30
     # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
-    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=30, is_Dell=True)
-    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
     # m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
@@ -114,11 +114,11 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     m_pcfn_q = m_pcfn[1].copy() * bin_mask
     m_pcfn_u = m_pcfn[2].copy() * bin_mask
 
-    m_cfn_q = m_cfn[1].copy() * bin_mask
-    m_cfn_u = m_cfn[2].copy() * bin_mask
+    # m_cfn_q = m_cfn[1].copy() * bin_mask
+    # m_cfn_u = m_cfn[2].copy() * bin_mask
 
-    m_cf_q = m_cf[1].copy() * bin_mask
-    m_cf_u = m_cf[2].copy() * bin_mask
+    # m_cf_q = m_cf[1].copy() * bin_mask
+    # m_cf_u = m_cf[2].copy() * bin_mask
 
     m_n_q = m_n[1].copy() * bin_mask
     m_n_u = m_n[2].copy() * bin_mask
@@ -126,28 +126,28 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     print('begin calc dl...')
 
     dl_pcfn = calc_dl_from_pol_map(m_q=m_pcfn_q, m_u=m_pcfn_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    dl_cfn = calc_dl_from_pol_map(m_q=m_cfn_q, m_u=m_cfn_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    dl_cf = calc_dl_from_pol_map(m_q=m_cf_q, m_u=m_cf_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    # dl_cfn = calc_dl_from_pol_map(m_q=m_cfn_q, m_u=m_cfn_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    # dl_cf = calc_dl_from_pol_map(m_q=m_cf_q, m_u=m_cf_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     dl_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    path_dl_qu_pcfn = Path(f'pcfn_dl1/PS_MASK/STD/pcfn')
-    path_dl_qu_cfn = Path(f'pcfn_dl1/PS_MASK/STD/cfn')
-    path_dl_qu_cf = Path(f'pcfn_dl1/PS_MASK/STD/cf')
-    path_dl_qu_n = Path(f'pcfn_dl1/PS_MASK/STD/n')
+    path_dl_qu_pcfn = Path(f'pcfn_dl3/PS_MASK/STD/pcfn')
+    # path_dl_qu_cfn = Path(f'pcfn_dl3/PS_MASK/STD/cfn')
+    # path_dl_qu_cf = Path(f'pcfn_dl3/PS_MASK/STD/cf')
+    path_dl_qu_n = Path(f'pcfn_dl3/PS_MASK/STD/n')
     path_dl_qu_pcfn.mkdir(parents=True, exist_ok=True)
-    path_dl_qu_cfn.mkdir(parents=True, exist_ok=True)
-    path_dl_qu_cf.mkdir(parents=True, exist_ok=True)
+    # path_dl_qu_cfn.mkdir(parents=True, exist_ok=True)
+    # path_dl_qu_cf.mkdir(parents=True, exist_ok=True)
     path_dl_qu_n.mkdir(parents=True, exist_ok=True)
 
     np.save(path_dl_qu_pcfn / Path(f'{rlz_idx}.npy'), dl_pcfn)
-    np.save(path_dl_qu_cfn / Path(f'{rlz_idx}.npy'), dl_cfn)
-    np.save(path_dl_qu_cf / Path(f'{rlz_idx}.npy'), dl_cf)
+    # np.save(path_dl_qu_cfn / Path(f'{rlz_idx}.npy'), dl_cfn)
+    # np.save(path_dl_qu_cf / Path(f'{rlz_idx}.npy'), dl_cf)
     np.save(path_dl_qu_n / Path(f'{rlz_idx}.npy'), dl_n)
 
 
 def main():
 
-    cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=apo_mask)
+    cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=ps_mask)
 
 main()
 

@@ -23,6 +23,7 @@ pcfn_list = []
 
 rmv_list = []
 ps_mask_list = []
+inp_list = []
 
 def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     bins_edges = []
@@ -50,10 +51,15 @@ for rlz_idx in range(1,200):
     cf = np.load(f'./pcfn_dl/MEAN/cf/{rlz_idx}.npy')
 
     n_rmv = np.load(f'./pcfn_dl/RMV/n/{rlz_idx}.npy')
-    rmv_qu = np.load(f'./pcfn_dl/RMV/mean/{rlz_idx}.npy') - n_rmv
+    rmv_qu = np.load(f'./pcfn_dl/RMV/MEAN/{rlz_idx}.npy') - n_rmv
 
     n_ps_mask = np.load(f'./pcfn_dl/PS_MASK/MEAN/n/{rlz_idx}.npy')
     ps_mask = np.load(f'./pcfn_dl/PS_MASK/MEAN/pcfn/{rlz_idx}.npy') - n_rmv
+
+
+    n_inp = np.load(f'./pcfn_dl/INP/noise/{rlz_idx}.npy')
+    inp = np.load(f'./pcfn_dl/INP/MEAN/{rlz_idx}.npy') - n_inp
+
 
     # plt.loglog(pcfn, label='pcfn')
     # plt.loglog(cfn, label='cfn')
@@ -71,6 +77,7 @@ for rlz_idx in range(1,200):
 
     rmv_list.append(rmv_qu)
     ps_mask_list.append(ps_mask)
+    inp_list.append(inp)
 
 
 pcfn_arr = np.asarray(pcfn_list)
@@ -79,6 +86,7 @@ cf_arr = np.asarray(cf_list)
 
 rmv_arr = np.asarray(rmv_list)
 ps_mask_arr = np.asarray(ps_mask_list)
+inp_arr = np.asarray(inp_list)
 print(f"{rmv_arr.shape=}")
 
 nsim = np.size(pcfn_arr, axis=0)
@@ -89,6 +97,7 @@ print(f'{pcfn_rmse.shape=}')
 rmv_rmse = np.sqrt(np.sum((rmv_arr-cf_arr) ** 2, axis=0) / nsim)
 # inp_eb_rmse = np.sqrt(np.sum((inp_eb_arr-cf_arr) ** 2, axis=0) / nsim)
 ps_mask_rmse = np.sqrt(np.sum((ps_mask_arr-cf_arr) ** 2, axis=0) / nsim)
+inp_rmse = np.sqrt(np.sum((inp_arr-cf_arr) ** 2, axis=0) / nsim)
 
 
 plt.figure(1)
@@ -96,6 +105,7 @@ plt.scatter(ell_arr, pcfn_rmse, label='pcfn', marker='.')
 # plt.scatter(ell_arr, cfn_rmse, label='cfn', marker='.')
 plt.scatter(ell_arr, rmv_rmse, label='rmv', marker='.')
 plt.scatter(ell_arr, ps_mask_rmse, label='ps_mask', marker='.')
+plt.scatter(ell_arr, inp_rmse, label='inp', marker='.')
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
 

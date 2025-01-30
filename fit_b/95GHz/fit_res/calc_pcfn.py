@@ -20,7 +20,7 @@ print(f'{freq=}, {beam=}')
 
 # bin_mask = np.load('../../../src/mask/north/BINMASKG2048.npy')
 bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/BIN_C1_3_C1_3.npy')
-apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5APO_3.npy')
+apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy')
 print(f'{np.sum(apo_mask)/np.size(apo_mask)=}')
 # ps_mask = np.load(f'../inpainting/mask/apo_ps_mask.npy')
 

@@ -25,9 +25,9 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=16
-#SBATCH --mem=20GB
-#SBATCH --exclude=aliws[005-010]
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=50GB
+# SBATCH --exclude=aliws[005-020]
 # SBATCH --mem-per-cpu=2000
 # SBATCH --nodelist=aliws010
 
@@ -42,13 +42,11 @@
 date +%m-%d_%H-%M
 threshold=3
 number="0"
-mkdir -p output_m2_mean
-mkdir -p output_m2_std
-mkdir -p output_m2_n
+mkdir -p output_m3_std_new
+mkdir -p output_m3_n_new
 # mrs_alm_inpainting -v ./input/pcn/2sigma/${number}.fits ./mask/pcn/2sigma/${number}.fits ./output/pcn/2sigma/${number}.fits
-mrs_alm_inpainting -v -m 2 -l 1300 ./input_mean/${number}.fits ./mask/mask1d8.fits ./output_m2_mean/${number}.fits
-mrs_alm_inpainting -v -m 2 -l 1300 ./input_std/${number}.fits ./mask/mask1d8.fits ./output_m2_std/${number}.fits
-mrs_alm_inpainting -v -m 2 -l 1300 ./input_n/${number}.fits ./mask/mask1d8.fits ./output_m2_n/${number}.fits
+mrs_alm_inpainting -v -m 3 -l 1300 ./input_std_new/${number}.fits ./new_mask/mask2d5.fits ./output_m3_std_new/${number}.fits
+mrs_alm_inpainting -v -m 3 -l 1300 ./input_n_new/${number}.fits ./new_mask/mask2d5.fits ./output_m3_n_new/${number}.fits
 
 
 date +%m-%d_%H-%M
@@ -56,6 +54,7 @@ DATE=$(date +%m%d%H%M)
 
 # mv /afs/ihep.ac.cn/users/w/wangyiming25/tmp/slurmlogs/output*.log /afs/ihep.ac.cn/users/w/wangyiming25/tmp/slurmlogs/out@${DATE}.txt
 # mv /afs/ihep.ac.cn/users/w/wangyiming25/tmp/slurmlogs/error*.log /afs/ihep.ac.cn/users/w/wangyiming25/tmp/slurmlogs/err@${DATE}.txt
+
 
 
 

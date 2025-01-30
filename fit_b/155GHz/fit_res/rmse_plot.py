@@ -54,10 +54,12 @@ for rlz_idx in range(1,200):
     rmv_qu = np.load(f'./pcfn_dl/RMV/MEAN/{rlz_idx}.npy') - n_rmv
 
     n_ps_mask = np.load(f'./pcfn_dl/PS_MASK/MEAN/n/{rlz_idx}.npy')
-    ps_mask = np.load(f'./pcfn_dl/PS_MASK/MEAN/pcfn/{rlz_idx}.npy') - n_ps_mask
+    ps_mask = np.load(f'./pcfn_dl/PS_MASK/MEAN/pcfn/{rlz_idx}.npy') - n_rmv
+
 
     n_inp = np.load(f'./pcfn_dl/INP/noise/{rlz_idx}.npy')
     inp = np.load(f'./pcfn_dl/INP/MEAN/{rlz_idx}.npy') - n_inp
+
 
     # plt.loglog(pcfn, label='pcfn')
     # plt.loglog(cfn, label='cfn')
