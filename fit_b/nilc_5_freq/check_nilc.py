@@ -590,40 +590,46 @@ def plot_ms4():
     # Set the y-axis to logarithmic scale for both the main plot and subfigure
     ax_main.set_yscale('log')
     ax_sub.set_yscale('log')
+    # ax_main.set_xscale('log')
+    # ax_sub.set_xscale('log')
+
 
     # Plot mean values in the main axis (no error bars here)
+    mk_s = 5
 
-    ax_main.errorbar(ell_arr, fid_mean[:lmax_ell_arr], yerr=fid_std[:lmax_ell_arr], fmt='.', capsize=s, label='Fiducial CMB', color='black')
-    ax_main.errorbar(ell_arr+5.0, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='PS + CMB + FG + NOISE')
-    ax_main.errorbar(ell_arr+10.0, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='CMB + FG + NOISE')
-    ax_main.errorbar(ell_arr+15.0, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='Template fitting method')
-    ax_main.errorbar(ell_arr+20.0, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='Recycling + Inpainting on B')
+    ax_main.errorbar(ell_arr, fid_mean[:lmax_ell_arr], yerr=fid_std[:lmax_ell_arr], fmt='.', capsize=s, label='Fiducial CMB', color='black', markersize=mk_s)
+    ax_main.errorbar(ell_arr+5.0, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='PS + CMB + FG + NOISE', markersize=mk_s)
+    ax_main.errorbar(ell_arr+10.0, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='CMB + FG + NOISE', markersize=mk_s)
+    ax_main.errorbar(ell_arr+15.0, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='Template fitting method', markersize=mk_s)
+    ax_main.errorbar(ell_arr+20.0, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='Recycling + Inpainting on B', markersize=mk_s)
 
     # Set labels and title for the main plot
     ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
-    # ax_main.set_xlim(2, lmax_eff)
-    # ax_main.set_ylim(, lmax_eff)
+    ax_main.set_xlim(50, 1290)
+    ax_main.set_ylim(9e-4, 2e-1)
     ax_main.set_title('Debiased power spectra')
     ax_main.legend()
 
 
     # Plot standard deviation in the subfigure (using scatter with no error bars)
 
-    ax_sub.scatter(ell_arr+5.0, bias_std_2_pcfn[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
-    ax_sub.scatter(ell_arr+10.0, bias_std_2_cfn[:lmax_ell_arr], s=s, label='CMB + FG + NOISE')
-    ax_sub.scatter(ell_arr+15.0, bias_std_2_rmv[:lmax_ell_arr], s=s, label='Template Fitting method')
-    ax_sub.scatter(ell_arr+20.0, bias_std_2_inp[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B')
+    ax_sub.scatter(ell_arr, fid_std[:lmax_ell_arr], s=s, label='Fiducial CMB', color='black', marker='.')
+    ax_sub.scatter(ell_arr+5.0, bias_std_2_pcfn[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE', marker='.')
+    ax_sub.scatter(ell_arr+10.0, bias_std_2_cfn[:lmax_ell_arr], s=s, label='CMB + FG + NOISE', marker='.')
+    ax_sub.scatter(ell_arr+15.0, bias_std_2_rmv[:lmax_ell_arr], s=s, label='Template Fitting method', marker='.')
+    ax_sub.scatter(ell_arr+20.0, bias_std_2_inp[:lmax_ell_arr], s=s, label='Recycling + Inpaint on B', marker='.')
 
     # Set labels for the subfigure (only xlabel here)
     ax_sub.set_xlabel('$\\ell$')
     ax_sub.set_ylabel('Sqrt of (bias^2 + std^2)')
+    # ax_sub.set_ylim(5e-4, 3e-2)
     # ax_sub.set_ylim(5e-4, 3e-2)
 
     # Adjust layout for better spacing
     plt.tight_layout()
     plt.subplots_adjust(hspace=0)
 
-    # plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250120/nilc_res.png', dpi=300)
+    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250131/nilc_res.png', dpi=300)
 
     # Show plot
     plt.show()

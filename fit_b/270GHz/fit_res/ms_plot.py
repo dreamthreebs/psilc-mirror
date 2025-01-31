@@ -173,6 +173,9 @@ s = 5
 # Set the y-axis to logarithmic scale for both the main plot and subfigure
 ax_main.set_yscale('log')
 ax_sub.set_yscale('log')
+# ax_main.set_xscale('log')
+# ax_sub.set_xscale('log')
+
 
 # Plot mean values in the main axis (no error bars here)
 ax_main.scatter(ell_arr, pcfn_mean[:lmax_ell_arr], s=s, label='PS + CMB + FG + NOISE')
@@ -184,9 +187,9 @@ ax_main.scatter(ell_arr, inp_mean[:lmax_ell_arr], s=s, label='Recycling + Inpain
 
 # Set labels and title for the main plot
 ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
-# ax_main.set_xlim(2, lmax_eff)
+ax_main.set_xlim(50, lmax_eff)
 # ax_main.set_ylim(, lmax_eff)
-ax_main.set_title('Debiased power spectra')
+ax_main.set_title(f'Debiased power spectra {freq}GHz')
 ax_main.legend()
 
 # Plot standard deviation in the subfigure (using scatter with no error bars)
@@ -205,9 +208,9 @@ ax_sub.set_ylabel('Standard Deviation')
 plt.tight_layout()
 plt.subplots_adjust(hspace=0)
 
-# path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250120')
-# path_fig.mkdir(exist_ok=True, parents=True)
-# plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
+path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250131')
+path_fig.mkdir(exist_ok=True, parents=True)
+plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
 
 # Show plot
 plt.show()
