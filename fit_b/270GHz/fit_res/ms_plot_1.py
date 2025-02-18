@@ -73,28 +73,28 @@ ell_arr = bin_dl.get_effective_ells()
 print(f'{l_min_edges=}, {l_max_edges=}')
 print(f'{ell_arr=}')
 
-bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40)
-ell_arr = bin_dl.get_effective_ells()
+# bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40)
+# ell_arr = bin_dl.get_effective_ells()
 print(f'{ell_arr.shape=}')
 print(f'{ell_arr=}')
 
 def mean_and_std(sim_mode):
-    for rlz_idx in range(1,200):
+    for rlz_idx in range(1,100):
         print(f'{rlz_idx=}')
 
-        n_qu = np.load(f'./pcfn_dl3/{sim_mode}/n/{rlz_idx}.npy')
-        pcfn = np.load(f'./pcfn_dl3/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
-        cfn = np.load(f'./pcfn_dl3/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
-        cf = np.load(f'./pcfn_dl3/{sim_mode}/cf/{rlz_idx}.npy')
+        n_qu = np.load(f'./pcfn_dl4/{sim_mode}/n/{rlz_idx}.npy')
+        pcfn = np.load(f'./pcfn_dl4/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
+        cfn = np.load(f'./pcfn_dl4/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
+        cf = np.load(f'./pcfn_dl4/{sim_mode}/cf/{rlz_idx}.npy')
 
-        n_rmv = np.load(f'./pcfn_dl3/RMV/n/{rlz_idx}.npy')
-        rmv_qu = np.load(f'./pcfn_dl3/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
+        n_rmv = np.load(f'./pcfn_dl4/RMV/n/{rlz_idx}.npy')
+        rmv_qu = np.load(f'./pcfn_dl4/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
 
-        n_ps_mask = np.load(f'./pcfn_dl3/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
-        ps_mask = np.load(f'./pcfn_dl3/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
+        n_ps_mask = np.load(f'./pcfn_dl4/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
+        ps_mask = np.load(f'./pcfn_dl4/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
 
-        n_inp = np.load(f'./pcfn_dl3/INP/noise/{rlz_idx}.npy')
-        inp = np.load(f'./pcfn_dl3/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
+        n_inp = np.load(f'./pcfn_dl4/INP/noise/{rlz_idx}.npy')
+        inp = np.load(f'./pcfn_dl4/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
 
         # plt.loglog(ell_arr, pcfn, label='pcfn')
         # plt.loglog(ell_arr, cfn, label='cfn')
@@ -188,7 +188,7 @@ s = 5
 
 # Set the y-axis to logarithmic scale for both the main plot and subfigure
 ax_main.set_yscale('log')
-# ax_main.set_xscale('log')
+ax_main.set_xscale('log')
 # ax_sub.set_xscale('log')
 
 
