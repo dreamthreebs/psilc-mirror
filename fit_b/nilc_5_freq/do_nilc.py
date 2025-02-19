@@ -8,12 +8,12 @@ from pathlib import Path
 from nilc import NILC
 from eblc_base_slope import EBLeakageCorrection
 
+rlz_idx = 0
 freq_list = [30, 95, 155, 215, 270]
 beam_list = [67, 30, 17, 11, 9]
 beam_base = 17 #arcmin
 lmax = 1500
 nside = 2048
-rlz_idx = 0
 
 def calc_lmax():
     for freq, beam in zip(freq_list, beam_list):
@@ -258,11 +258,20 @@ def calc_dl_from_scalar_map_bl(scalar_map, apo_mask, bl, bin_dl, masked_on_input
     dl = nmt.compute_full_master(scalar_field, scalar_field, bin_dl)
     return dl[0]
 
-
-def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
+def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3, l_threshold=None):
     bins_edges = []
     l_min = l_min_start  # starting l_min
 
+    # Fixed binning until l_threshold if provided
+    if l_threshold is not None:
+        while l_min < l_threshold:
+            l_next = l_min + delta_l_min
+            if l_next > l_threshold:
+                break
+            bins_edges.append(l_min)
+            l_min = l_next
+
+    # Transition to dynamic binning
     while l_min < l_max:
         delta_l = max(delta_l_min, int(fold * l_min))
         l_next = l_min + delta_l
@@ -274,11 +283,11 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
     return bins_edges[:-1], bins_edges[1:]
 
 def gen_fiducial_cmb():
-    # l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
     # delta_ell = 30
     # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
-    bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
-    # bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
     cmb_seed = np.load(f'../seeds_cmb_2k.npy')
@@ -295,7 +304,7 @@ def gen_fiducial_cmb():
 
     mask_cl = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy')
     dl_cmb = calc_dl_from_scalar_map(scalar_map=cln_cmb, apo_mask=mask_cl, bin_dl=bin_dl, masked_on_input=False)
-    path_fid_cmb = Path(f'./dl_res3/fid_cmb')
+    path_fid_cmb = Path(f'./dl_res4/fid_cmb')
     path_fid_cmb.mkdir(exist_ok=True, parents=True)
     np.save(path_fid_cmb / Path(f'{rlz_idx}.npy'), dl_cmb)
 
