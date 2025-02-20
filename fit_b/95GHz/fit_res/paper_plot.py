@@ -154,6 +154,9 @@ def mean_and_std(sim_mode):
 # _, _, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
 pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
 
+print(f'{ell_arr.shape=}')
+print(f'{pcfn_std.shape=}')
+
 plt.figure(2)
 plt.scatter(ell_arr, pcfn_std, label='pcfn', marker='.')
 plt.scatter(ell_arr, cfn_std, label='cfn', marker='.')
@@ -204,8 +207,8 @@ ax_main.errorbar(ell_arr*1.025, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_
 
 # Set labels and title for the main plot
 ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
-ax_main.set_xlim(58, lmax_eff*1.05)
-ax_main.set_ylim(1e-3, 4e-1)
+ax_main.set_xlim(58, lmax_eff)
+ax_main.set_ylim(1e-3, 2e-1)
 ax_main.set_title(f'Debiased power spectra {freq}GHz')
 ax_main.legend()
 

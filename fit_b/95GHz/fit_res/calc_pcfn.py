@@ -28,10 +28,20 @@ noise_seeds = np.load('../../seeds_noise_2k.npy')
 cmb_seeds = np.load('../../seeds_cmb_2k.npy')
 fg_seeds = np.load('../../seeds_fg_2k.npy')
 
-def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
+def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3, l_threshold=None):
     bins_edges = []
     l_min = l_min_start  # starting l_min
 
+    # Fixed binning until l_threshold if provided
+    if l_threshold is not None:
+        while l_min < l_threshold:
+            l_next = l_min + delta_l_min
+            if l_next > l_threshold:
+                break
+            bins_edges.append(l_min)
+            l_min = l_next
+
+    # Transition to dynamic binning
     while l_min < l_max:
         delta_l = max(delta_l_min, int(fold * l_min))
         l_next = l_min + delta_l
@@ -95,10 +105,11 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
     # l_min_edges, l_max_edges = generate_bins(l_min_start=10, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
     # delta_ell = 30
     # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
-    bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
-    # bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
     print(f'{ell_arr=}')
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./calc_ps_mask.py"
+original_file="./calc_inp.py"
 
 # 复制文件的数量
 copies=200

@@ -204,8 +204,8 @@ ax_main.errorbar(ell_arr*1.025, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_
 
 # Set labels and title for the main plot
 ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
-ax_main.set_xlim(58, lmax_eff*1.05)
-ax_main.set_ylim(1e-3, 4e-1)
+ax_main.set_xlim(58, lmax_eff)
+# ax_main.set_ylim(1e-3, 4e-1)
 ax_main.set_title(f'Debiased power spectra {freq}GHz')
 ax_main.legend()
 
