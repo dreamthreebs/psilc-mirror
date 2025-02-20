@@ -808,7 +808,7 @@ def plot_ms5():
     # ax_main.grid(which='major', linestyle='-', linewidth=2)
     # ax_main.grid(which='minor', linestyle='dashed', linewidth=0.9)
     for axis in ['top','bottom','left','right']:
-        ax_main.spines[axis].set_linewidth(3)
+        ax_main.spines[axis].set_linewidth(2)
 
     ax_sub.tick_params(axis='both', which='major', labelsize=label_size)
     ax_sub.tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);

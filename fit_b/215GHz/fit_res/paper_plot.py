@@ -193,19 +193,19 @@ ax_sub.set_xscale('log')
 
 
 # Plot mean values in the main axis (no error bars here)
-ax_main.errorbar(ell_arr*0.99, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='PS + CMB + FG + NOISE', fmt='.', color='blue')
+ax_main.errorbar(ell_arr*0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='PS + CMB + FG + NOISE', fmt='.', color='blue')
 ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='CMB + FG + NOISE', fmt='.', color='purple')
 ax_main.plot(ell_arr, dl_in[:lmax_ell_arr], label='Fiducial CMB', color='black')
 ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='Template Fitting method', fmt='.', color='green')
-ax_main.errorbar(ell_arr*1.01, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='Mask on QU', fmt='.', color='orange')
-ax_main.errorbar(ell_arr*1.015, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='Recycling + Inpaint on B', fmt='.', color='red')
+ax_main.errorbar(ell_arr*1.015, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='Mask on QU', fmt='.', color='orange')
+ax_main.errorbar(ell_arr*1.025, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='Recycling + Inpaint on B', fmt='.', color='red')
 # ax_main.plot(l, l*(l+1)*cl_cmb[2,:lmax_eff+1]/(2*np.pi), label='CMB input', color='black')
 
 
 # Set labels and title for the main plot
 ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
-ax_main.set_xlim(58, lmax_eff*1.05)
-# ax_main.set_ylim(, lmax_eff)
+ax_main.set_xlim(58, lmax_eff*1.1)
+ax_main.set_ylim(1e-3, 4e-1)
 ax_main.set_title(f'Debiased power spectra {freq}GHz')
 ax_main.legend()
 
@@ -268,4 +268,5 @@ plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
 
 # Show plot
 plt.show()
+
 
