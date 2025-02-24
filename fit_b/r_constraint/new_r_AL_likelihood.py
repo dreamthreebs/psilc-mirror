@@ -11,10 +11,20 @@ lmax = 1500
 print(f'{cl_r.shape=}')
 print(f'{cl_AL.shape=}')
 
-def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
+def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3, l_threshold=None):
     bins_edges = []
     l_min = l_min_start  # starting l_min
 
+    # Fixed binning until l_threshold if provided
+    if l_threshold is not None:
+        while l_min < l_threshold:
+            l_next = l_min + delta_l_min
+            if l_next > l_threshold:
+                break
+            bins_edges.append(l_min)
+            l_min = l_next
+
+    # Transition to dynamic binning
     while l_min < l_max:
         delta_l = max(delta_l_min, int(fold * l_min))
         l_next = l_min + delta_l
@@ -27,19 +37,20 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
 
 # generate bin
 # l_min_edges, l_max_edges = generate_bins(l_min_start=10, delta_l_min=30, l_max=lmax+1, fold=0.2)
-# bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
-bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
+l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
+bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+# bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
 print(f'{ell_arr=}')
-print(f'{ell_arr[1:8]=}')
-ell_arr = ell_arr[1:8]
+print(f'{ell_arr[0:7]=}')
+ell_arr = ell_arr[0:7]
 
-binned_cl_r = bin_dl.bin_cell(cls_in=cl_r[:lmax+1,2])[1:8]
-binned_cl_AL = bin_dl.bin_cell(cls_in=cl_AL[:lmax+1,2])[1:8]
+binned_cl_r = bin_dl.bin_cell(cls_in=cl_r[:lmax+1,2])[0:7]
+binned_cl_AL = bin_dl.bin_cell(cls_in=cl_AL[:lmax+1,2])[0:7]
 
 def load_data_inv_cov():
-    _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res3/std/pcfn/{rlz_idx}.npy')[1:8] for rlz_idx in range(1,200)])
-    _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res3/std/n_pcfn/{rlz_idx}.npy')[1:8] for rlz_idx in range(1,200)])
+    _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res4/std/inp/{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
+    _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res4/std/n_inp/{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
     _data = _data_method - _data_noise
     _data_mean = np.mean(_data, axis=0)
     print(f'{np.size(_data_method, axis=1)=}')
@@ -100,3 +111,12 @@ print(mean)
 print(f'{lowerlimit=}')
 print("Standard error:")
 print(np.sqrt(covmat))
+likestats = gd_sample.getLatex(limit=2)
+print(f'{likestats=}')
+
+stats = gd_sample.getMargeStats()
+lim_r = stats.parWithName('r').limits
+print(f'{lim_r[1].lower=}')
+print(f'{lim_r[1].upper=}')
+
+
