@@ -751,7 +751,6 @@ def plot_ms5():
     # Create figure with 2 subplots (main and subfigure), sharing the x-axis
     fig, (ax_main, ax_sub) = plt.subplots(2, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
 
-    s = 3
     lmax_ell_arr = len(ell_arr) - 2
     ell_arr = ell_arr[:-2]
 
@@ -763,10 +762,12 @@ def plot_ms5():
 
 
     # Plot mean values in the main axis (no error bars here)
+    s = 3
     mk_s = 5
+    cap_s = 3
 
     # ax_main.errorbar(ell_arr, fid_mean[:lmax_ell_arr], yerr=fid_std[:lmax_ell_arr], capsize=s, label='Fiducial CMB', color='black', markersize=mk_s)
-    ax_main.plot(ell_arr, dl_in[:lmax_ell_arr], label='Fiducial CMB', color='black')
+    ax_main.plot(ell_arr, dl_in[:lmax_ell_arr], label='Fiducial CMB', color='black', linewidth=2.5)
     ax_main.errorbar(ell_arr*0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='PS + CMB + FG + NOISE', markersize=mk_s, color='blue')
     ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='CMB + FG + NOISE', markersize=mk_s, color='purple')
     ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='Template fitting method', markersize=mk_s, color='green')
@@ -829,7 +830,7 @@ def plot_ms5():
     plt.tight_layout()
     plt.subplots_adjust(hspace=0)
 
-    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250219/nilc_res.png', dpi=300)
+    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250224/nilc_res.png', dpi=300)
 
     # Show plot
     plt.show()
