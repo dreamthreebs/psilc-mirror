@@ -9,17 +9,17 @@ mask_2d5 = hp.read_map('./new_mask/mask2d5.fits')
 fsky = np.sum(apo_ps_mask) / np.size(apo_ps_mask)
 print(f'{fsky=}')
 
-hp.orthview(mask, rot=[100,50,0], title='mask')
-hp.orthview(apo_ps_mask, rot=[100,50,0], title='apo_ps_mask')
-hp.orthview(mask_2d5, rot=[100,50,0], title='mask2d5')
-plt.show()
+# hp.orthview(mask, rot=[100,50,0], title='mask')
+# hp.orthview(apo_ps_mask, rot=[100,50,0], title='apo_ps_mask')
+# hp.orthview(mask_2d5, rot=[100,50,0], title='mask2d5')
+# plt.show()
 
 
-input_std = hp.read_map('./input_std_new/1.fits')
-input_n = hp.read_map('./input_n_new/1.fits')
+input_std = hp.read_map('./input_std_new/10.fits')
+input_n = hp.read_map('./input_n_new/10.fits')
 
-output_std = hp.read_map('./output_m3_std_new/1.fits')
-output_n = hp.read_map('./output_m3_n_new/1.fits')
+output_std = hp.read_map('./output_m4_std_new/10.fits')
+output_n = hp.read_map('./output_m4_n_new/10.fits')
 
 hp.orthview(input_std, rot=[100,50,0], title='input std', half_sky=True)
 hp.orthview(input_n, rot=[100,50,0], title='input n', half_sky=True)

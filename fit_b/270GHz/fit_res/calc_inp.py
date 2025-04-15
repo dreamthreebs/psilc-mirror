@@ -80,16 +80,16 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
 
 
-    m_inp_std = hp.read_map(f'../inpainting/output_m3_std_new/{rlz_idx}.fits') * bin_mask
-    m_inp_n = hp.read_map(f'../inpainting/output_m3_n_new/{rlz_idx}.fits') * bin_mask
+    m_inp_std = hp.read_map(f'../inpainting/output_m3_std_new_20/{rlz_idx}.fits') * bin_mask
+    m_inp_n = hp.read_map(f'../inpainting/output_m3_n_new_20/{rlz_idx}.fits') * bin_mask
 
     dl_inp_std = calc_dl_from_scalar_map(m_inp_std, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
     dl_inp_n = calc_dl_from_scalar_map(m_inp_n, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
     print('begin calc dl...')
 
-    path_dl_std = Path(f'pcfn_dl4/INP/STD')
-    path_dl_n = Path(f'pcfn_dl4/INP/noise')
+    path_dl_std = Path(f'pcfn_dl4/INP_20/STD')
+    path_dl_n = Path(f'pcfn_dl4/INP_20/noise')
     path_dl_std.mkdir(parents=True, exist_ok=True)
     path_dl_n.mkdir(parents=True, exist_ok=True)
 

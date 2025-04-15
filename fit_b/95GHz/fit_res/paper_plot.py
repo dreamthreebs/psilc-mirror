@@ -196,12 +196,12 @@ ax_sub.set_xscale('log')
 
 
 # Plot mean values in the main axis (no error bars here)
-ax_main.errorbar(ell_arr*0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='PS + CMB + FG + NOISE', fmt='.', color='blue')
-ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='CMB + FG + NOISE', fmt='.', color='purple')
+ax_main.errorbar(ell_arr*0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='with-PS baseline', fmt='.', color='blue')
+ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='no-PS baseline', fmt='.', color='purple')
 ax_main.plot(ell_arr, dl_in[:lmax_ell_arr], label='Fiducial CMB', color='black')
-ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='Template Fitting method', fmt='.', color='green')
-ax_main.errorbar(ell_arr*1.015, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='Mask on QU', fmt='.', color='orange')
-ax_main.errorbar(ell_arr*1.025, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='Recycling + Inpaint on B', fmt='.', color='red')
+ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='TF', fmt='.', color='green')
+ax_main.errorbar(ell_arr*1.015, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='M-QU', fmt='.', color='orange')
+ax_main.errorbar(ell_arr*1.025, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='RI-B', fmt='.', color='red')
 # ax_main.plot(l, l*(l+1)*cl_cmb[2,:lmax_eff+1]/(2*np.pi), label='CMB input', color='black')
 
 
@@ -265,7 +265,7 @@ ax_sub.legend(handles=[res_line, std_line])
 plt.tight_layout()
 plt.subplots_adjust(hspace=0)
 
-path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250219')
+path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323')
 path_fig.mkdir(exist_ok=True, parents=True)
 plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
 

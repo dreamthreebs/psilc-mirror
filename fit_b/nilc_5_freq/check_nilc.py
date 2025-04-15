@@ -768,10 +768,10 @@ def plot_ms5():
 
     # ax_main.errorbar(ell_arr, fid_mean[:lmax_ell_arr], yerr=fid_std[:lmax_ell_arr], capsize=s, label='Fiducial CMB', color='black', markersize=mk_s)
     ax_main.plot(ell_arr, dl_in[:lmax_ell_arr], label='Fiducial CMB', color='black', linewidth=2.5)
-    ax_main.errorbar(ell_arr*0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='PS + CMB + FG + NOISE', markersize=mk_s, color='blue')
-    ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='CMB + FG + NOISE', markersize=mk_s, color='purple')
-    ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='Template fitting method', markersize=mk_s, color='green')
-    ax_main.errorbar(ell_arr*1.015, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='Recycling + Inpainting on B', markersize=mk_s, color='red')
+    ax_main.errorbar(ell_arr*0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='with-PS baseline', markersize=mk_s, color='blue')
+    ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='no-PS baseline', markersize=mk_s, color='purple')
+    ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='TF', markersize=mk_s, color='green')
+    ax_main.errorbar(ell_arr*1.015, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='RI-B', markersize=mk_s, color='red')
 
     # Set labels and title for the main plot
     ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
@@ -791,15 +791,15 @@ def plot_ms5():
 
     # ax_sub.plot(ell_arr, fid_std[:lmax_ell_arr], s=s, label='Fiducial CMB', color='black', marker='.')
 
-    ax_sub.plot(ell_arr, res_pcfn[:lmax_ell_arr], label='PS + CMB + FG + NOISE', marker='.', color='blue')
-    ax_sub.plot(ell_arr, res_cfn[:lmax_ell_arr], label='CMB + FG + NOISE', marker='.', color='purple')
-    ax_sub.plot(ell_arr, res_rmv[:lmax_ell_arr], label='Template Fitting method', marker='.', color='green')
-    ax_sub.plot(ell_arr, res_inp[:lmax_ell_arr], label='Recycling + Inpaint on B', marker='.', color='red')
+    ax_sub.plot(ell_arr, res_pcfn[:lmax_ell_arr], label='with-PS baseline', marker='.', color='blue')
+    ax_sub.plot(ell_arr, res_cfn[:lmax_ell_arr], label='no-PS baseline', marker='.', color='purple')
+    ax_sub.plot(ell_arr, res_rmv[:lmax_ell_arr], label='TF', marker='.', color='green')
+    ax_sub.plot(ell_arr, res_inp[:lmax_ell_arr], label='RI-B', marker='.', color='red')
 
-    ax_sub.plot(ell_arr, pcfn_std[:lmax_ell_arr], label='PS + CMB + FG + NOISE', marker='.', linestyle=':', color='blue')
-    ax_sub.plot(ell_arr, cfn_std[:lmax_ell_arr], label='CMB + FG + NOISE', marker='.', linestyle=':', color='purple')
-    ax_sub.plot(ell_arr, rmv_std[:lmax_ell_arr], label='Template Fitting method', marker='.', linestyle=':', color='green')
-    ax_sub.plot(ell_arr, inp_std[:lmax_ell_arr], label='Recycling + Inpaint on B', marker='.', linestyle=':', color='red')
+    ax_sub.plot(ell_arr, pcfn_std[:lmax_ell_arr], label='with-PS baseline', marker='.', linestyle=':', color='blue')
+    ax_sub.plot(ell_arr, cfn_std[:lmax_ell_arr], label='no-PS baseline', marker='.', linestyle=':', color='purple')
+    ax_sub.plot(ell_arr, rmv_std[:lmax_ell_arr], label='TF', marker='.', linestyle=':', color='green')
+    ax_sub.plot(ell_arr, inp_std[:lmax_ell_arr], label='RI-B', marker='.', linestyle=':', color='red')
 
     
     label_size = 10
@@ -830,7 +830,7 @@ def plot_ms5():
     plt.tight_layout()
     plt.subplots_adjust(hspace=0)
 
-    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250224/nilc_res.png', dpi=300)
+    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323/nilc_res.png', dpi=300)
 
     # Show plot
     plt.show()

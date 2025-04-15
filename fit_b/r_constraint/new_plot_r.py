@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Define methods (reversed order)
-method_list = ['Recycling + Inpaint on B', 'Template fitting', 'FG + CMB + NOISE', 'PS + FG + CMB + NOISE']
+method_list = ['RI-B', 'TF', 'no-PS baseline', 'with-PS baseline']
 
 # Define mean r values (corresponding to reversed methods)
 r_mean_list = [1.06e-2, 1.71e-3, 1.45e-3, 3.23e-3]
@@ -49,7 +49,7 @@ ax.grid(True, which="both", linestyle="--", alpha=0.6)
 # ax.legend(loc='lower right')
 plt.tight_layout()
 
-plt.savefig("/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250219/r_constraints.png", dpi=300, bbox_inches="tight")
+plt.savefig("/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323/r_constraints.png", dpi=300, bbox_inches="tight")
 
 plt.show()
 

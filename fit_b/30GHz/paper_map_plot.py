@@ -4,10 +4,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from pathlib import Path
-from config import freq, nside, beam
+from config import freq, lmax, nside, beam
 from eblc_base_slope import EBLeakageCorrection
 
-lmax = 1500
 rlz_idx = 0
 
 mask = np.load('../../src/mask/north/BINMASKG2048.npy')
@@ -16,19 +15,7 @@ noise_seed = np.load('../seeds_noise_2k.npy')
 cmb_seed = np.load('../seeds_cmb_2k.npy')
 fg_seed = np.load('../seeds_fg_2k.npy')
 
-flux_idx = 1
-
-def gen_cmb_b():
-    beam_base = 17
-    cmb_seed = np.load('../seeds_cmb_2k.npy')
-    cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
-
-    np.random.seed(seed=cmb_seed[0])
-    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam_base)/60, new=True, lmax=3*nside-1)
-    cmb_b = hp.alm2map(hp.map2alm(cmb_iqu, lmax=lmax)[2], nside=nside)
-    np.save(f'./paper/B_map_1500/cmb_b_{rlz_idx}.npy', cmb_b)
-    return cmb_b
-
+flux_idx = 2
 
 def gen_map(rlz_idx=0, mode='mean', return_noise=False):
     # mode can be mean or std
@@ -74,6 +61,7 @@ def gen_ps(rlz_idx=0):
 
     ps = ps + noise
 
+
     return ps
 
 
@@ -95,7 +83,7 @@ def convert_to_B():
     obj_rmv = EBLeakageCorrection(m_rmv, lmax=lmax, nside=nside, mask=mask, post_mask=mask)
     _,_,cln_b_rmv = obj_rmv.run_eblc()
 
-    path_map = Path('./paper/B_map_1500')
+    path_map = Path('./paper/B_map')
     path_map.mkdir(exist_ok=True, parents=True)
 
     np.save(path_map / Path(f'pcfn_{rlz_idx}.npy'), cln_b_pcfn)
@@ -107,22 +95,20 @@ def plot_each_freq_map():
     m_cfn = np.load(f'./paper/B_map/cfn_{rlz_idx}.npy')
     m_rmv = np.load(f'./paper/B_map/rmv_{rlz_idx}.npy')
     m_inp = hp.read_map(f'./inpainting/output_m3_std_new/{rlz_idx}.fits')
-    m_cmb_b = np.load(f'./paper/B_map_1500/cmb_b_0.npy')
 
     fig = plt.figure(figsize=(12,8))
 
-    df = pd.read_csv('./mask/155_after_filter.csv')
+    df = pd.read_csv(f'./mask/{freq}_after_filter.csv')
     lon = np.rad2deg(df.at[flux_idx, 'lon'])
     lat = np.rad2deg(df.at[flux_idx, 'lat'])
 
-    vmin = -0.8
-    vmax = 0.8
+    vmin = -4
+    vmax = 4
 
-    hp.gnomview(m_pcfn, rot=[lon, lat, 0], sub=(141), notext=True, cbar=False, title='with-PS baseline', xsize=120, min=vmin, max=vmax)
-    hp.gnomview(m_cfn, rot=[lon, lat, 0], sub=(142), notext=True, cbar=False, title='no-PS baseline', xsize=120, min=vmin, max=vmax)
-    # hp.gnomview(m_cmb_b, rot=[lon, lat, 0], sub=(153), notext=True, cbar=False, title='Fiducial CMB', xsize=120, min=vmin, max=vmax)
-    hp.gnomview(m_rmv, rot=[lon, lat, 0], sub=(143), notext=True, cbar=False, title='TF', xsize=120, min=vmin, max=vmax)
-    hp.gnomview(m_inp, rot=[lon, lat, 0], sub=(144), notext=True, cbar=False, title='RI-B', xsize=120, min=vmin, max=vmax)
+    hp.gnomview(m_pcfn, rot=[lon, lat, 0], sub=(141), notext=True, cbar=False, title='with-PS baseline', xsize=250, min=vmin, max=vmax)
+    hp.gnomview(m_cfn, rot=[lon, lat, 0], sub=(142), notext=True, cbar=False, title='no-PS baseline', xsize=250, min=vmin, max=vmax)
+    hp.gnomview(m_rmv, rot=[lon, lat, 0], sub=(143), notext=True, cbar=False, title='TF', xsize=250, min=vmin, max=vmax)
+    hp.gnomview(m_inp, rot=[lon, lat, 0], sub=(144), notext=True, cbar=False, title='RI-B', xsize=250, min=vmin, max=vmax)
 
 
     # Add a shared colorbar
@@ -144,7 +130,7 @@ def plot_QU():
     # m_pcfn, m_cfn, m_cf, m_n= gen_map(rlz_idx=rlz_idx, mode='std')
     m_p = gen_ps()
 
-    df = pd.read_csv('./mask/155_after_filter.csv')
+    df = pd.read_csv('./mask/{freq}_after_filter.csv')
     lon = np.rad2deg(df.at[flux_idx, 'lon'])
     lat = np.rad2deg(df.at[flux_idx, 'lat'])
 
@@ -157,7 +143,6 @@ def plot_QU():
 
 
 # convert_to_B()
-# gen_cmb_b()
 plot_each_freq_map()
 # plot_QU()
 

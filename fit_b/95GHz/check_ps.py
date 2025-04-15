@@ -14,15 +14,15 @@ print(f'{df=}')
 
 # m_ps = np.load('../data/ps/ps_b.npy')
 m_ps = np.load('./data/ps/ps.npy')
-hp.orthview(m_ps[1], rot=[100,50,0])
-print(f'{len(df)=}')
+# hp.orthview(m_ps[2], rot=[100,50,0])
+# print(f'{len(df)=}')
 
 for flux_idx in range(len(df)):
     print(f'{flux_idx=}')
     lon = np.rad2deg(df.at[flux_idx, 'lon'])
     lat = np.rad2deg(df.at[flux_idx, 'lat'])
 
-    hp.gnomview(m_ps[1], rot=[lon, lat, 0], reso=1.5, title=f'{flux_idx}')
+    hp.gnomview(m_ps[2], rot=[lon, lat, 0], reso=1.5, title=f'{flux_idx}')
     plt.show()
 
 

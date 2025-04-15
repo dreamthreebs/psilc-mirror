@@ -55,10 +55,10 @@ for flux_idx in range(len(df)):
 # hp.gnomview(delta_q_map, rot=[lon, lat, 0], reso=1)
 # plt.show()
 
-m_ps = hp.smoothing(map_in=[delta_t_map, delta_q_map, delta_u_map], fwhm=np.deg2rad(beam)/60, pol=True)
-path_ps = Path('./data/ps')
-path_ps.mkdir(exist_ok=True, parents=True)
-np.save('./data/ps/ps.npy', m_ps)
+# m_ps = hp.smoothing(map_in=[delta_t_map, delta_q_map, delta_u_map], fwhm=np.deg2rad(beam)/60, pol=True)
+# path_ps = Path('./data/ps')
+# path_ps.mkdir(exist_ok=True, parents=True)
+# np.save('./data/ps/ps.npy', m_ps)
 
 
 

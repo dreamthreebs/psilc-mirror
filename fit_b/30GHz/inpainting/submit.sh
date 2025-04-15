@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./prod_apo_mask.py
+mpiexec python -u ./gen_input.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)
