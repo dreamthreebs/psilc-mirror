@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./calc_inp.py"
+original_file="./see_components.py"
 
 # 复制文件的数量
 copies=200
