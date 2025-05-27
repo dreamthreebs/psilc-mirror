@@ -77,77 +77,79 @@ bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
 print(f'{ell_arr.shape=}')
 
-def mean_and_std(sim_mode):
-    for rlz_idx in range(1,200):
-        print(f'{rlz_idx=}')
+sim_mode = "STD"
 
-        if rlz_idx > 200:
-            n_ps_mask = np.load(f'./pcfn_dl4/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
-            ps_mask = np.load(f'./pcfn_dl4/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
-            print(f'{rlz_idx=}')
+rlz_range = np.arange(1, 200)
+rlz_range_1k = np.arange(1, 5000)
+base_path = f'./pcfn_dl4/{sim_mode}'
 
-            ps_mask_list.append(ps_mask)
-        else:
-            n_qu = np.load(f'./pcfn_dl4/{sim_mode}/n/{rlz_idx}.npy')
-            pcfn = np.load(f'./pcfn_dl4/{sim_mode}/pcfn/{rlz_idx}.npy') - n_qu
-            cfn = np.load(f'./pcfn_dl4/{sim_mode}/cfn/{rlz_idx}.npy') - n_qu
-            cf = np.load(f'./pcfn_dl4/{sim_mode}/cf/{rlz_idx}.npy')
-            p = pcfn - cf
+cf_list = [np.load(f'{base_path}/cf/{rlz_idx}.npy') for rlz_idx in rlz_range]
+n_qu_list = [np.load(f'{base_path}/n/{rlz_idx}.npy') for rlz_idx in rlz_range]
 
-            n_rmv = np.load(f'./pcfn_dl4/RMV/n/{rlz_idx}.npy')
-            rmv_qu = np.load(f'./pcfn_dl4/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
+pcfn_list = [np.load(f'{base_path}/pcfn/{rlz_idx}.npy') - n_qu for rlz_idx, n_qu in zip(rlz_range, n_qu_list)]
+cfn_list = [np.load(f'{base_path}/cfn/{rlz_idx}.npy') - n_qu for rlz_idx, n_qu in zip(rlz_range, n_qu_list)]
+cf_list = [cf for cf in cf_list]
 
-            n_ps_mask = np.load(f'./pcfn_dl4/PS_MASK_1/{sim_mode}/n/{rlz_idx}.npy')
-            ps_mask = np.load(f'./pcfn_dl4/PS_MASK_1/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
+rmv_list = [
+    np.load(f'./pcfn_dl4/RMV/{sim_mode}/{rlz_idx}.npy') - np.load(f'./pcfn_dl4/RMV/n/{rlz_idx}.npy')
+    for rlz_idx in rlz_range
+]
 
-            n_inp = np.load(f'./pcfn_dl4/INP/noise/{rlz_idx}.npy')
-            inp = np.load(f'./pcfn_dl4/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
+ps_mask_list = [
+    np.load(f'./pcfn_dl4/PS_MASK_1/{sim_mode}/pcfn/{rlz_idx}.npy') -
+    np.load(f'./pcfn_dl4/PS_MASK_1/{sim_mode}/n/{rlz_idx}.npy')
+    for rlz_idx in rlz_range
+]
 
-            # plt.loglog(ell_arr, pcfn, label='pcfn')
-            # plt.loglog(ell_arr, cfn, label='cfn')
-            # plt.loglog(ell_arr, cf, label='cf')
-            # plt.loglog(ell_arr, rmv_qu, label='rmv_qu')
-            # plt.loglog(ell_arr, n_qu, label='n_qu')
-            # plt.loglog(ell_arr, n_rmv, label='n_rmv')
-            # plt.loglog(ell_arr, n_ps_mask, label='n_ps_mask')
-            # plt.loglog(ell_arr, n_inp, label='n_inp')
-            # plt.loglog(ell_arr, inp, label='inp')
-            # plt.loglog(ell_arr, ps_mask, label='ps_mask')
+ps_mask_cf_list = [
+    np.load(f'./pcfn_dl4/PS_MASK_1/{sim_mode}/cf/{rlz_idx}.npy')
+    for rlz_idx in rlz_range
+]
 
-            # plt.legend()
-            # plt.show()
+ps_mask_list_1 = [
+    np.load(f'./pcfn_dl4/PS_MASK_1/{sim_mode}/pcfn/{rlz_idx}.npy') -
+    np.load(f'./pcfn_dl4/PS_MASK_1/{sim_mode}/n/{rlz_idx}.npy')
+    for rlz_idx in rlz_range
+]
 
-            cf_list.append(cf)
-            cfn_list.append(cfn)
-            pcfn_list.append(pcfn)
-            p_list.append(p)
+inp_list = [
+    np.load(f'./pcfn_dl4/INP/{sim_mode}/{rlz_idx}.npy') -
+    np.load(f'./pcfn_dl4/INP/noise/{rlz_idx}.npy')
+    for rlz_idx in rlz_range
+]
 
-            rmv_list.append(rmv_qu)
-            ps_mask_list.append(ps_mask)
-            inp_list.append(inp)
+# test_list = [
+#     np.load(f'./pcfn_dl4/TEST/cfn/{rlz_idx}.npy') -
+#     np.load(f'./pcfn_dl4/TEST/n/{rlz_idx}.npy') -
+#     np.load(f'./pcfn_dl4/TEST/cf/{rlz_idx}.npy')
+#     for rlz_idx in rlz_range
+# ]
 
+print(f"{len(ps_mask_list)=}")
+pcfn_mean = np.mean(pcfn_list, axis=0)
+cfn_mean = np.mean(cfn_list, axis=0)
+cf_mean = np.mean(cf_list, axis=0)
 
-    print(f"{len(ps_mask_list)=}")
-    p_mean = np.mean(p_list, axis=0)
-    pcfn_mean = np.mean(pcfn_list, axis=0)
-    cfn_mean = np.mean(cfn_list, axis=0)
-    cf_mean = np.mean(cf_list, axis=0)
+rmv_mean = np.mean(rmv_list, axis=0)
+ps_mask_mean = np.mean(ps_mask_list, axis=0)
+ps_mask_mean_1 = np.mean(ps_mask_list_1, axis=0)
+ps_mask_cf_mean = np.mean(ps_mask_cf_list, axis=0)
+inp_mean = np.mean(inp_list, axis=0)
+# test_mean = np.mean(test_list, axis=0)
 
-    rmv_mean = np.mean(rmv_list, axis=0)
-    ps_mask_mean = np.mean(ps_mask_list, axis=0)
-    inp_mean = np.mean(inp_list, axis=0)
+pcfn_std = np.std(pcfn_list, axis=0)
+cfn_std = np.std(cfn_list, axis=0)
+cf_std = np.std(cf_list, axis=0)
 
-    pcfn_std = np.std(pcfn_list, axis=0)
-    cfn_std = np.std(cfn_list, axis=0)
-    cf_std = np.std(cf_list, axis=0)
+rmv_std = np.std(rmv_list, axis=0)
+ps_mask_std = np.std(ps_mask_list, axis=0)
+ps_mask_std_1 = np.std(ps_mask_list_1, axis=0)
+inp_std = np.std(inp_list, axis=0)
+# test_std = np.std(test_list, axis=0)
 
-    rmv_std = np.std(rmv_list, axis=0)
-    ps_mask_std = np.std(ps_mask_list, axis=0)
-    inp_std = np.std(inp_list, axis=0)
+dl_ps = np.load(f'./BIAS/pcfn/0.npy')
+dl_unresolved_ps = np.load(f'./BIAS/unresolved_ps/0.npy')
 
-    return pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std, p_mean
-
-# pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, _, _, _, _, _, _ = mean_and_std(sim_mode='MEAN')
 
 # plt.figure(1)
 # plt.scatter(ell_arr, pcfn_mean, label='pcfn', marker='.')
@@ -162,9 +164,6 @@ def mean_and_std(sim_mode):
 # plt.loglog()
 # plt.legend()
 # plt.title('mean')
-
-# _, _, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
-pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std, p_mean = mean_and_std(sim_mode='STD')
 
 print(f'{ell_arr.shape=}')
 print(f'{pcfn_std.shape=}')
@@ -195,6 +194,13 @@ print(f'{cl_cmb.shape=}')
 l = np.arange(lmax_eff+1)
 dl_in = bin_dl.bin_cell(cl_cmb[2,:lmax+1])
 
+plt.figure(1)
+plt.scatter(ell_arr, dl_ps[:lmax_ell_arr], label='ps', marker='.')
+plt.scatter(ell_arr, dl_unresolved_ps[:lmax_ell_arr], label='unresolved_ps', marker='.')
+plt.scatter(ell_arr, dl_in[:lmax_ell_arr], label='cmb', marker='.')
+plt.show()
+
+
 # Create figure with 2 subplots (main and subfigure), sharing the x-axis
 fig, ax_main= plt.subplots(figsize=(10, 8))
 
@@ -202,7 +208,7 @@ s = 5
 
 # Set the y-axis to logarithmic scale for both the main plot and subfigure
 # ax_main.set_yscale('log')
-# ax_main.set_xscale('log')
+ax_main.set_xscale('log')
 
 
 # Plot mean values in the main axis (no error bars here)
@@ -216,9 +222,9 @@ s = 5
 
 
 # Set labels and title for the main plot
-ax_main.set_ylabel('$(D_\\ell^{BB}-D_\\ell^{BB input} )/ D_\\ell^{input}$')
+ax_main.set_ylabel('$(D_\\ell^{BB}-D_\\ell^{BB FG,CMB,NOISE} )/ D_\\ell^{input}$')
 ax_main.set_xlim(58, lmax_eff)
-# ax_main.set_ylim(1e-3, 2e-1)
+ax_main.set_ylim(-0.6,0.6)
 ax_main.set_title(f'relative bias and std')
 
 res_pcfn = np.abs(pcfn_mean - dl_in)
@@ -230,17 +236,22 @@ res_ps_mask = np.abs(ps_mask_mean - dl_in)
 # res_line = mlines.Line2D([], [], color='black', linestyle='-', label='Residual')
 # std_line = mlines.Line2D([], [], color='black', linestyle=':', label='Std Deviation')
 
-ax_main.plot(ell_arr, (pcfn_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='with-PS baseline ps contribution', color='blue')
-ax_main.plot(ell_arr, (cfn_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='no-PS baseline ps contribution', color='purple')
-ax_main.plot(ell_arr, (rmv_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='TF ps contribution', color='green')
-ax_main.plot(ell_arr, (ps_mask_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='M-QU ps contribution', color='orange')
-ax_main.plot(ell_arr, (inp_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='RI-B ps contribution', color='red')
-ax_main.plot(ell_arr, (p_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='ps contribution', color='black')
+ax_main.plot(ell_arr, (pcfn_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='with-PS baseline ps bias', color='blue')
+ax_main.plot(ell_arr, (cfn_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='no-PS baseline ps bias', color='purple')
+ax_main.plot(ell_arr, (rmv_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='TF ps bias', color='green')
+ax_main.plot(ell_arr, (ps_mask_mean[:lmax_ell_arr] - ps_mask_cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='Masking ps bias', color='orange')
+ax_main.plot(ell_arr, (ps_mask_mean_1[:lmax_ell_arr]-cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='Masking 2 degree ps bias', color='black')
+ax_main.plot(ell_arr, (inp_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='Inpainting ps bias', color='red')
+ax_main.plot(ell_arr, dl_ps[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='ps bias', color='pink')
+ax_main.plot(ell_arr, dl_unresolved_ps[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='unresolved ps bias', color='yellow')
+# ax_main.plot(ell_arr, (test_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='fsky smaller ps bias', color='grey')
 
 # ax_main.plot(ell_arr, pcfn_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='with-PS baseline std', color='blue', linestyle='--')
-ax_main.plot(ell_arr, cfn_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='no-PS baseline std', color='purple', linestyle='--')
-ax_main.fill_between(ell_arr, -cfn_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], cfn_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='no-PS baseline std', alpha=0.4, color='purple')
-ax_main.plot(ell_arr, ps_mask_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='M-QU std', color='orange', linestyle='--')
+ax_main.plot(ell_arr, cfn_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], color='purple', linestyle='--')
+ax_main.plot(ell_arr, -cfn_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], color='purple', linestyle='--')
+ax_main.fill_between(ell_arr, -cfn_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], cfn_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='no-PS baseline std', alpha=0.1, color='purple')
+ax_main.plot(ell_arr, ps_mask_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='M-QU std ps mask 1 degree', color='orange', linestyle='--')
+ax_main.plot(ell_arr, ps_mask_std_1[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='M-QU std ps mask 2 degree', color='grey', linestyle='--')
 # ax_main.plot(ell_arr, rmv_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='TF std', color='green', linestyle='--')
 # ax_main.plot(ell_arr, inp_std[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='RI-B std', color='red', linestyle='--')
 ax_main.legend()
