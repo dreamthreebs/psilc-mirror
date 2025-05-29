@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-mpiexec python -u ./test_mask.py
+mpiexec python -u ./calc_bias.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

@@ -22,12 +22,14 @@ print(f'{freq=}, {beam=}')
 bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/BIN_C1_3_C1_3.npy')
 apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy')
 print(f'{np.sum(apo_mask)/np.size(apo_mask)=}')
-# ps_mask = np.load(f'../inpainting/mask/apo_ps_mask.npy')
+ps_mask = np.load(f'../inpainting/mask/apo_ps_mask.npy')
 
 noise_seed = np.load('../../seeds_noise_2k.npy')
 cmb_seed = np.load('../../seeds_cmb_2k.npy')
 fg_seed = np.load('../../seeds_fg_2k.npy')
 
+
+# utils
 def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3, l_threshold=None):
     bins_edges = []
     l_min = l_min_start  # starting l_min
@@ -58,6 +60,11 @@ def calc_dl_from_pol_map(m_q, m_u, bl, apo_mask, bin_dl, masked_on_input, purify
     # dl = nmt.workspaces.compute_full_master(pol_field, pol_field, b=bin_dl)
     dl = w22p.decouple_cell(nmt.compute_coupled_cell(f2p, f2p))[3]
     return dl
+
+def calc_dl_from_scalar_map(scalar_map, bl, apo_mask, bin_dl, masked_on_input):
+    scalar_field = nmt.NmtField(apo_mask, [scalar_map], beam=bl, masked_on_input=masked_on_input, lmax=lmax, lmax_mask=lmax)
+    dl = nmt.compute_full_master(scalar_field, scalar_field, bin_dl)
+    return dl[0]
 
 def gen_fg_cl():
     cl_fg = np.load('../data/debeam_full_b/cl_fg.npy')
@@ -98,6 +105,18 @@ def gen_map(rlz_idx=0, mode='mean', return_noise=False):
     n = noise
     return pcfn, cfn, cf, n
 
+# initialize the band power
+bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
+# l_min_edges, l_max_edges = generate_bins(l_min_start=10, delta_l_min=30, l_max=lmax+1, fold=0.2)
+l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
+# delta_ell = 30
+# bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
+# bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
+bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+ell_arr = bin_dl.get_effective_ells()
+print(f'{ell_arr=}')
+
+# calc bias of 3 different methods
 def bias_pcfn():
     ps = np.load(f'../../../fitdata/2048/PS/{freq}/ps.npy')
 
@@ -130,16 +149,6 @@ def bias_pcfn():
 def bias_unresolved():
     ps = np.load(f'../data/ps/unresolved_ps.npy')
 
-    bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
-    # l_min_edges, l_max_edges = generate_bins(l_min_start=10, delta_l_min=30, l_max=lmax+1, fold=0.2)
-    l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
-    # delta_ell = 30
-    # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
-    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
-    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
-    ell_arr = bin_dl.get_effective_ells()
-    print(f'{ell_arr=}')
-
     m_ps_q = ps[1].copy() * bin_mask
     m_ps_u = ps[2].copy() * bin_mask
 
@@ -156,9 +165,92 @@ def bias_unresolved():
 
     np.save(path_dl_qu_pcfn / Path(f'{rlz_idx}.npy'), dl_ps)
 
+def bias_rmv():
+    # calc bias from unresolved ps + model bias and individual terms. bias_all: rmv - cfn. bias_model: pcfn - rmv - resolved_ps bias_unresolved: unresolved_ps
+
+    df = pd.read_csv(f"../mask/95_after_filter.csv")
+    flux_idx = 6
+    lon = np.rad2deg(df.at[flux_idx, 'lon'])
+    lat = np.rad2deg(df.at[flux_idx, 'lat'])
+
+    ps_resolved = np.load(f'../data/ps/resolved_ps.npy')
+    m_resolved_ps_q = ps_resolved[1].copy() * bin_mask
+    m_resolved_ps_u = ps_resolved[2].copy() * bin_mask
+
+    ps_unresolved = np.load(f'../data/ps/unresolved_ps.npy')
+    m_unresolved_ps_q = ps_unresolved[1].copy() * bin_mask
+    m_unresolved_ps_u = ps_unresolved[2].copy() * bin_mask
+
+    # hp.orthview(m_resolved_ps_q, rot=[100,50,0], half_sky=True)
+    # hp.orthview(m_resolved_ps_u, rot=[100,50,0], half_sky=True)
+    # plt.show()
+    # hp.orthview(m_unresolved_ps_q, rot=[100,50,0], half_sky=True)
+    # hp.orthview(m_unresolved_ps_u, rot=[100,50,0], half_sky=True)
+    # plt.show()
+
+    m_pcfn, m_cfn, _, _= gen_map(rlz_idx=rlz_idx, mode='std')
+    # np.save(f"./test_data/pcfn_{rlz_idx}.npy", m_pcfn)
+    # np.save(f"./test_data/cfn_{rlz_idx}.npy", m_cfn)
+
+    # m_pcfn = np.load(f"./test_data/pcfn_0.npy")
+    # m_cfn = np.load(f"./test_data/cfn_0.npy")
+
+    m_rmv_q = np.load(f'./std/3sigma/map_q_{rlz_idx}.npy') * bin_mask
+    m_rmv_u = np.load(f'./std/3sigma/map_u_{rlz_idx}.npy') * bin_mask
+
+    m_bias_model_q = m_pcfn[1].copy() * bin_mask - m_rmv_q - m_resolved_ps_q
+    m_bias_model_u = m_pcfn[2].copy() * bin_mask - m_rmv_u - m_resolved_ps_u
+    m_bias_all_q = m_rmv_q - m_cfn[1].copy() * bin_mask
+    m_bias_all_u = m_rmv_u - m_cfn[2].copy() * bin_mask
+
+    # hp.orthview(m_unresolved_ps_q, rot=[100,50,0], half_sky=True, title='bias unresolved ps')
+    # hp.orthview(m_resolved_ps_q, rot=[100,50,0], half_sky=True, title='bias resolved ps')
+    # hp.orthview(m_bias_all_q, rot=[100,50,0], half_sky=True, title='bias all q')
+    # hp.orthview(m_bias_model_q, rot=[100,50,0], half_sky=True, title='bias model q')
+    # plt.show()
+
+    # hp.gnomview(m_unresolved_ps_q, rot=[lon,lat,0],  title='unresolved ps')
+    # hp.gnomview(m_resolved_ps_q, rot=[lon,lat,0],  title='resolved ps')
+    # hp.gnomview(m_bias_all_q, rot=[lon,lat,0],  title='bias all q')
+    # hp.gnomview(m_bias_model_q, rot=[lon,lat,0],  title='bias model q')
+    # plt.show()
+
+
+    dl_bias_all = calc_dl_from_pol_map(m_q=m_bias_all_q, m_u=m_bias_all_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_bias_model = calc_dl_from_pol_map(m_q=m_bias_model_q, m_u=m_bias_model_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+
+    path_dl_qu_rmv = Path(f'BIAS/rmv')
+    path_dl_qu_rmv.mkdir(parents=True, exist_ok=True)
+    np.save(path_dl_qu_rmv / Path(f'bias_all_{rlz_idx}.npy'), dl_bias_all)
+    np.save(path_dl_qu_rmv / Path(f'bias_model_{rlz_idx}.npy'), dl_bias_model)
+
+def bias_inp():
+    # calc bias from inpainting. bias all:inp - cfn
+    # map is B mode in inpainting method
+    m_inp = hp.read_map(f"../inpainting/output_m3_std_new/{rlz_idx}.fits")
+    m_cfn = hp.read_map(f"../inpainting/input_cfn_new/{rlz_idx}.fits")
+    m_bias_all = m_inp - m_cfn
+
+    dl_bias_all = calc_dl_from_scalar_map(m_bias_all, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
+    path_dl_qu_inp = Path(f'BIAS/inp')
+    path_dl_qu_inp.mkdir(parents=True, exist_ok=True)
+    np.save(path_dl_qu_inp/ Path(f'bias_all_{rlz_idx}.npy'), dl_bias_all)
+
+def bias_mask():
+    # calc bias after masking bias: pcfn - cfn
+    ps = np.load(f'../../../fitdata/2048/PS/{freq}/ps.npy')
+
+    dl_bias_all = calc_dl_from_pol_map(m_q=ps[1], m_u=ps[2], bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    path_dl_qu_mask = Path(f'BIAS/mask')
+    path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
+    np.save(path_dl_qu_mask/ Path(f'bias_all_{rlz_idx}.npy'), dl_bias_all)
 
 
 
 if __name__ == "__main__":
     # bias_pcfn()
-    bias_unresolved()
+    # bias_unresolved()
+    # bias_rmv()
+    # bias_inp()
+    bias_mask()

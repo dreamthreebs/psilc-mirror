@@ -18,9 +18,11 @@ threshold = 3
 df = pd.read_csv('../../../FGSim/FreqBand')
 print(f'{freq=}, {beam=}')
 
-bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/BIN_C1_3.npy')
-# apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.n')
-ps_mask = np.load(f'../inpainting/new_mask/apo_ps_mask_2.npy')
+# bin_mask = np.load('../../../src/mask/north/BINMASKG2048.npy')
+bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/BIN_C1_3_C1_3.npy')
+apo_mask = np.load('./apo_mask_test.npy')
+print(f'{np.sum(apo_mask)/np.size(apo_mask)=}')
+# ps_mask = np.load(f'../inpainting/mask/apo_ps_mask.npy')
 
 noise_seeds = np.load('../../seeds_noise_2k.npy')
 cmb_seeds = np.load('../../seeds_cmb_2k.npy')
@@ -109,6 +111,7 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
+    print(f'{ell_arr=}')
 
     # m_c = np.load(f'../../../../fitdata/2048/CMB/{freq}/{rlz_idx}.npy')
     # m_cn = np.load(f'../../../../fitdata/synthesis_data/2048/CMBNOISE/{freq}/{rlz_idx}.npy')
@@ -136,15 +139,15 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
     print('begin calc dl...')
 
-    # dl_pcfn = calc_dl_from_pol_map(m_q=m_pcfn_q, m_u=m_pcfn_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    # dl_cfn = calc_dl_from_pol_map(m_q=m_cfn_q, m_u=m_cfn_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    dl_cf = calc_dl_from_pol_map(m_q=m_cf_q, m_u=m_cf_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
-    # dl_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    # dl_pcfn = calc_dl_from_pol_map(m_q=m_pcfn_q, m_u=m_pcfn_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    # dl_cfn = calc_dl_from_pol_map(m_q=m_cfn_q, m_u=m_cfn_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_cf = calc_dl_from_pol_map(m_q=m_cf_q, m_u=m_cf_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    # dl_n = calc_dl_from_pol_map(m_q=m_n_q, m_u=m_n_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    # path_dl_qu_pcfn = Path(f'pcfn_dl4/PS_MASK/STD/pcfn')
-    # path_dl_qu_cfn = Path(f'pcfn_dl4/PS_MASK/STD/cfn')
-    path_dl_qu_cf = Path(f'pcfn_dl4/PS_MASK_1/STD/cf')
-    # path_dl_qu_n = Path(f'pcfn_dl4/PS_MASK/STD/n')
+    # path_dl_qu_pcfn = Path(f'pcfn_dl4/TEST/pcfn')
+    # path_dl_qu_cfn = Path(f'pcfn_dl4/TEST/cfn')
+    path_dl_qu_cf = Path(f'pcfn_dl4/TEST/cf')
+    # path_dl_qu_n = Path(f'pcfn_dl4/TEST/n')
     # path_dl_qu_pcfn.mkdir(parents=True, exist_ok=True)
     # path_dl_qu_cfn.mkdir(parents=True, exist_ok=True)
     path_dl_qu_cf.mkdir(parents=True, exist_ok=True)
@@ -158,7 +161,7 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
 
 def main():
 
-    cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=ps_mask)
+    cpr_spectrum_pcn_b(bin_mask=bin_mask, apo_mask=apo_mask)
 
 main()
 
