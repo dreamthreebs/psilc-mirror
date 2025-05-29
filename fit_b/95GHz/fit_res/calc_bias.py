@@ -168,7 +168,7 @@ def bias_unresolved():
 def bias_rmv():
     # calc bias from unresolved ps + model bias and individual terms. bias_all: rmv - cfn. bias_model: pcfn - rmv - resolved_ps bias_unresolved: unresolved_ps
 
-    df = pd.read_csv(f"../mask/95_after_filter.csv")
+    df = pd.read_csv(f"../mask/{freq}_after_filter.csv")
     flux_idx = 6
     lon = np.rad2deg(df.at[flux_idx, 'lon'])
     lat = np.rad2deg(df.at[flux_idx, 'lat'])
