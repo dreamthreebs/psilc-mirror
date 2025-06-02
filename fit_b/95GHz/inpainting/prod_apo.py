@@ -32,6 +32,8 @@ mask = np.ones_like(ori_mask)
 # mask_edge[(ori_apo_mask > 0) & (ori_apo_mask < 1)] = 1
 
 for flux_idx in range(len(df)):
+    if flux_idx > 3:
+        break
     print(f'{flux_idx=}')
     lon = np.rad2deg(df.at[flux_idx, 'lon'])
     lat = np.rad2deg(df.at[flux_idx, 'lat'])
@@ -47,14 +49,14 @@ for flux_idx in range(len(df)):
 # hp.orthview(mask, rot=[100,50, 0], title='mask', xsize=2000)
 # plt.show()
 
-apo_ps_mask = nmt.mask_apodization(mask, aposize=1, apotype='C1') * ori_apo_mask
+apo_ps_mask = nmt.mask_apodization(mask, aposize=2, apotype='C1') * ori_apo_mask
 hp.orthview(apo_ps_mask, rot=[100,50, 0], title='mask', xsize=2000)
 plt.show()
 
 # path_ps_mask = Path(f'./3sigma/apo_mask/apo_c1_1')
 # path_ps_mask.mkdir(exist_ok=True, parents=True)
 # np.save(path_ps_mask / Path(f'{rlz_idx}.npy'), apo_ps_mask)
-np.save('./new_mask/apo_ps_mask.npy', apo_ps_mask)
+np.save('./new_mask/one_apo_ps_mask_2.npy', apo_ps_mask)
 
 
 

@@ -54,10 +54,11 @@ def gen_map(rlz_idx=0, mode='mean', return_noise=False):
     cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
 
     pcfn = noise + ps + cmb_iqu + fg
+    cfn = noise + cmb_iqu + fg
     n = noise
-    return pcfn, noise
+    return pcfn, noise, cfn
 
-m_pcfn, m_n = gen_map(rlz_idx=rlz_idx, mode='std')
+m_pcfn, m_n, m_cfn = gen_map(rlz_idx=rlz_idx, mode='std')
 # m_b = hp.alm2map(hp.map2alm(m)[2], nside=2048)
 
 mask = hp.read_map(f'./new_mask/mask_only_edge.fits')
@@ -70,12 +71,21 @@ path_input = Path('./input_std_new')
 path_input.mkdir(exist_ok=True, parents=True)
 hp.write_map(path_input / Path(f'{rlz_idx}.fits'), cln_b_pcfn, overwrite=True)
 
-obj = EBLeakageCorrection(m_n, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope_in)
-_,_,cln_b_n = obj.run_eblc()
+obj = EBLeakageCorrection(m_cfn, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope_in)
+_,_,cln_b_cfn = obj.run_eblc()
 
-path_input = Path('./input_n_new')
+path_input = Path('./input_cfn_new')
 path_input.mkdir(exist_ok=True, parents=True)
-hp.write_map(path_input / Path(f'{rlz_idx}.fits'), cln_b_n, overwrite=True)
+hp.write_map(path_input / Path(f'{rlz_idx}.fits'), cln_b_cfn, overwrite=True)
+
+# obj = EBLeakageCorrection(m_n, lmax=lmax, nside=nside, mask=mask, post_mask=mask, slope_in=slope_in)
+# _,_,cln_b_n = obj.run_eblc()
+
+# path_input = Path('./input_n_new')
+# path_input.mkdir(exist_ok=True, parents=True)
+# hp.write_map(path_input / Path(f'{rlz_idx}.fits'), cln_b_n, overwrite=True)
+
+
 
 
 

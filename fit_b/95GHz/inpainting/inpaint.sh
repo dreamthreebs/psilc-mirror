@@ -43,10 +43,10 @@ date +%m-%d_%H-%M
 threshold=3
 number="0"
 mkdir -p output_m3_std_new
-mkdir -p output_m3_n_new
+# mkdir -p output_m3_n_new
 # mrs_alm_inpainting -v ./input/pcn/2sigma/${number}.fits ./mask/pcn/2sigma/${number}.fits ./output/pcn/2sigma/${number}.fits
 mrs_alm_inpainting -v -m 3 -l 1300 ./input_std_new/${number}.fits ./new_mask/mask2d5.fits ./output_m3_std_new/${number}.fits
-mrs_alm_inpainting -v -m 3 -l 1300 ./input_n_new/${number}.fits ./new_mask/mask2d5.fits ./output_m3_n_new/${number}.fits
+# mrs_alm_inpainting -v -m 3 -l 1300 ./input_n_new/${number}.fits ./new_mask/mask2d5.fits ./output_m3_n_new/${number}.fits
 
 
 date +%m-%d_%H-%M

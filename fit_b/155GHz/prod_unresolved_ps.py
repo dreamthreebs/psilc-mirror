@@ -40,7 +40,7 @@ resolved_idx_set = set(df_resolved["flux_idx"])
 
 # generate map
 for flux_idx in range(len(df)):
-    if df.at[flux_idx, "flux_idx"] not in resolved_idx_set:
+    if df.at[flux_idx, "flux_idx"] in resolved_idx_set:
         print(f'{df.at[flux_idx, "flux_idx"]} is resolved point source, continue!')
         continue
     print(f'{flux_idx=}')
@@ -63,7 +63,7 @@ for flux_idx in range(len(df)):
 m_ps = hp.smoothing(map_in=[delta_t_map, delta_q_map, delta_u_map], fwhm=np.deg2rad(beam)/60, pol=True)
 path_ps = Path('./data/ps')
 path_ps.mkdir(exist_ok=True, parents=True)
-np.save('./data/ps/resolved_ps.npy', m_ps)
+np.save('./data/ps/unresolved_ps.npy', m_ps)
 
 
 

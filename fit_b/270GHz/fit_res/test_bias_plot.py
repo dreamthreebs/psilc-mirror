@@ -1,3 +1,4 @@
+# maybe smoothing may lose information of the unresolved point sources. better to use psm - resolved ps to get good result.
 import numpy as np
 import healpy as hp
 import matplotlib.pyplot as plt
@@ -87,7 +88,7 @@ base_path = f'./pcfn_dl4/{sim_mode}'
 n_qu_list = [np.load(f'{base_path}/n/{rlz_idx}.npy') for rlz_idx in rlz_range]
 
 pcfn_list = [np.load(f'{base_path}/pcfn/{rlz_idx}.npy') for rlz_idx, n_qu in zip(rlz_range, n_qu_list)]
-cfn_list = [np.load(f'{base_path}/cfn/{rlz_idx}.npy') - n_qu for rlz_idx, n_qu in zip(rlz_range, n_qu_list)]
+# cfn_list = [np.load(f'{base_path}/cfn/{rlz_idx}.npy') - n_qu for rlz_idx, n_qu in zip(rlz_range, n_qu_list)]
 # cf_list = [cf for cf in cf_list]
 
 rmv_bias_all_list = [
@@ -100,14 +101,10 @@ rmv_bias_model_list = [
     for rlz_idx in rlz_range
 ]
 
-# inp_bias_all_list = [
-#     np.load(f'./BIAS/inp/bias_all_{rlz_idx}.npy')
-#     for rlz_idx in rlz_range
-# ]
-
-inp_list = [np.load(f'./pcfn_dl4/INP/STD/{rlz_idx}.npy') for rlz_idx in rlz_range]
-cfn_b_list = [np.load(f'./BIAS/inp/cfn_{rlz_idx}.npy') for rlz_idx in rlz_range]
-
+inp_bias_all_list = [
+    np.load(f'./BIAS/inp/bias_all_{rlz_idx}.npy')
+    for rlz_idx in rlz_range
+]
 
 # print(f"{rmv_bias_all_list=}")
 # print(f"{rmv_bias_model_list=}")
@@ -132,53 +129,39 @@ cfn_b_list = [np.load(f'./BIAS/inp/cfn_{rlz_idx}.npy') for rlz_idx in rlz_range]
 
 # print(f"{len(ps_mask_list)=}")
 pcfn_mean = np.mean(pcfn_list, axis=0)
+# cfn_mean = np.mean(cfn_list, axis=0)
+# cf_mean = np.mean(cf_list, axis=0)
 
+# rmv_mean = np.mean(rmv_list, axis=0)
 rmv_bias_all_mean = np.mean(rmv_bias_all_list, axis=0)
 rmv_bias_model_mean = np.mean(rmv_bias_model_list, axis=0)
-# inp_bias_all_mean = np.mean(inp_bias_all_list, axis=0)
-inp_mean = np.mean(inp_list, axis=0)
-cfn_b_mean = np.mean(cfn_b_list, axis=0)
+inp_bias_all_mean = np.mean(inp_bias_all_list, axis=0)
+# ps_mask_mean = np.mean(ps_mask_list, axis=0)
+# ps_mask_mean_1 = np.mean(ps_mask_list_1, axis=0)
+# ps_mask_cf_mean = np.mean(ps_mask_cf_list, axis=0)
+# inp_mean = np.mean(inp_list, axis=0)
+
+# test_mean = np.mean(test_list, axis=0)
+
+# pcfn_std = np.std(pcfn_list, axis=0)
+# cfn_std = np.std(cfn_list, axis=0)
+# cf_std = np.std(cf_list, axis=0)
+
+# rmv_std = np.std(rmv_list, axis=0)
+# ps_mask_std = np.std(ps_mask_list, axis=0)
+# ps_mask_std_1 = np.std(ps_mask_list_1, axis=0)
+# inp_std = np.std(inp_list, axis=0)
+# # test_std = np.std(test_list, axis=0)
 
 dl_ps = np.load(f'./BIAS/pcfn/0.npy')
 dl_unresolved_ps = np.load(f'./BIAS/unresolved_ps/0.npy')
 dl_mask = np.load(f'./BIAS/mask/bias_all_0.npy')
 # dl_resolved_ps = np.load(f'./BIAS//0.npy')
 
-cfn_std = np.std(cfn_list, axis=0)
-
-
-# plt.figure(1)
-# plt.scatter(ell_arr, pcfn_mean, label='pcfn', marker='.')
-# plt.scatter(ell_arr, cfn_mean, label='cfn', marker='.')
-# plt.scatter(ell_arr, cf_mean, label='cf', marker='.') 
-# plt.scatter(ell_arr, rmv_mean, label='rmv', marker='.')
-# plt.scatter(ell_arr, ps_mask_mean, label='ps_mask', marker='.')
-# plt.scatter(ell_arr, inp_mean, label='inp', marker='.')
-# plt.xlabel('$\\ell$')
-# plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
-
-# plt.loglog()
-# plt.legend()
-# plt.title('mean')
-
-print(f'{ell_arr.shape=}')
-# print(f'{pcfn_std.shape=}')
-
-# plt.figure(2)
-# plt.scatter(ell_arr, pcfn_std, label='pcfn', marker='.')
-# plt.scatter(ell_arr, cfn_std, label='cfn', marker='.')
-# plt.scatter(ell_arr, cf_std, label='cf', marker='.')
-# plt.scatter(ell_arr, rmv_std, label='rmv', marker='.')
-# plt.scatter(ell_arr, ps_mask_std, label='ps_mask', marker='.')
-# plt.scatter(ell_arr, inp_std, label='inp', marker='.')
-# plt.xlabel('$\\ell$')
-# plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
-
-# plt.loglog()
-# plt.legend()
-# plt.title('standard deviation')
-# plt.show()
-
+dl_psm = np.load(f"./BIAS/test/ps_psm.npy")
+dl_smooth = np.load(f"./BIAS/test/ps_smooth.npy")
+dl_resolved_ps = np.load(f"./BIAS/test/ps_resolved.npy")
+dl_psm_subtract_resolved_ps = np.load(f"./BIAS/test/ps_unresolved.npy")
 
 lmax_eff = calc_lmax(beam=beam)
 lmax_ell_arr = find_left_nearest_index_np(ell_arr, target=lmax_eff)
@@ -191,44 +174,28 @@ print(f'{cl_cmb.shape=}')
 l = np.arange(lmax_eff+1)
 dl_in = bin_dl.bin_cell(cl_cmb[2,:lmax+1])
 
-inp_bias = inp_mean[:lmax_ell_arr] - cfn_b_mean[:lmax_ell_arr]
-
-
 plt.figure(1)
 # plt.plot(ell_arr, pcfn_mean[:lmax_ell_arr], label='pcfn', marker='.')
 plt.plot(ell_arr, dl_in[:lmax_ell_arr], label='CMB', marker='.', color='black')
-plt.plot(ell_arr, dl_unresolved_ps[:lmax_ell_arr], label='unresolved ps', marker='.')
-plt.plot(ell_arr, dl_ps[:lmax_ell_arr], label='all ps contribution', marker='.')
-plt.plot(ell_arr, rmv_bias_all_mean[:lmax_ell_arr], label='bias rmv model + unresolved ps', marker='.')
-plt.plot(ell_arr, rmv_bias_model_mean[:lmax_ell_arr], label='bias rmv from model', marker='.')
-plt.plot(ell_arr, rmv_bias_all_mean[:lmax_ell_arr] - rmv_bias_model_mean[:lmax_ell_arr], label='bias rmv unresolved ps', marker='.')
-plt.plot(ell_arr, inp_bias, label='bias inp', marker='.')
+plt.plot(ell_arr, dl_psm[:lmax_ell_arr], label='ps psm', marker='.')
+plt.plot(ell_arr, dl_smooth[:lmax_ell_arr], label='ps smooth', marker='.')
+plt.plot(ell_arr, dl_resolved_ps[:lmax_ell_arr], label='ps resolved', marker='.')
+plt.plot(ell_arr, dl_unresolved_ps[:lmax_ell_arr], label='ps unresolved', marker='.')
+plt.plot(ell_arr, dl_psm_subtract_resolved_ps[:lmax_ell_arr], label='psm - resolved', marker='.')
+
+# plt.plot(ell_arr, dl_unresolved_ps[:lmax_ell_arr], label='unresolved ps', marker='.')
+# plt.plot(ell_arr, dl_ps[:lmax_ell_arr], label='all ps contribution', marker='.')
+# plt.plot(ell_arr, rmv_bias_model_mean[:lmax_ell_arr], label='bias rmv from model', marker='.')
+# plt.plot(ell_arr, rmv_bias_all_mean[:lmax_ell_arr], label='bias rmv model + unresolved ps', marker='.')
+# plt.plot(ell_arr, rmv_bias_all_mean[:lmax_ell_arr] - rmv_bias_model_mean[:lmax_ell_arr], label='bias rmv unresolved ps', marker='.')
+# plt.plot(ell_arr, inp_bias_all_mean[:lmax_ell_arr], label='bias inp', marker='.')
 plt.plot(ell_arr, dl_mask[:lmax_ell_arr], label='bias mask', marker='.')
-plt.fill_between(ell_arr, -cfn_std, cfn_std)
-# plt.loglog()
-plt.yscale('symlog', linthresh=1e-4)
+plt.loglog()
 plt.xlabel(r"$\ell$")
 plt.ylabel(r"$D_\ell^{BB}$")
 plt.title(f"{freq=}GHz")
 plt.legend()
 plt.show()
-
-# plt.figure(2)
-# # plt.plot(ell_arr, pcfn_mean[:lmax_ell_arr], label='pcfn', marker='.')
-# # plt.plot(ell_arr, dl_in[:lmax_ell_arr], label='CMB', marker='.', color='black')
-# plt.plot(ell_arr, dl_unresolved_ps[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='unresolved ps', marker='.')
-# plt.plot(ell_arr, dl_ps[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='all ps contribution', marker='.')
-# plt.plot(ell_arr, rmv_bias_all_mean[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='bias rmv model + unresolved ps', marker='.')
-# plt.plot(ell_arr, rmv_bias_model_mean[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='bias rmv from model', marker='.')
-# plt.plot(ell_arr, (rmv_bias_all_mean[:lmax_ell_arr] - rmv_bias_model_mean[:lmax_ell_arr])/dl_in[:lmax_ell_arr], label='bias rmv unresolved ps', marker='.')
-# plt.plot(ell_arr, inp_bias/dl_in[:lmax_ell_arr], label='bias inp', marker='.')
-# plt.plot(ell_arr, dl_mask[:lmax_ell_arr]/dl_in[:lmax_ell_arr], label='bias mask', marker='.')
-# plt.xlabel(r"$\ell$")
-# plt.ylabel(r"relative $D_\ell^{BB}$")
-# plt.title(f"{freq=}GHz")
-# plt.legend()
-# plt.show()
-
 
 
 ## Create figure with 2 subplots (main and subfigure), sharing the x-axis
@@ -320,5 +287,6 @@ plt.show()
 
 ## Show plot
 #plt.show()
+
 
 

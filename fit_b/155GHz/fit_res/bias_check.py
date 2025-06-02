@@ -91,8 +91,8 @@ def mean_and_std(sim_mode):
         n_ps_mask = np.load(f'./pcfn_dl4/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
         ps_mask = np.load(f'./pcfn_dl4/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
 
-        n_inp = np.load(f'./pcfn_dl4/INP_300/noise/{rlz_idx}.npy')
-        inp = np.load(f'./pcfn_dl4/INP_300/{sim_mode}/{rlz_idx}.npy') - n_inp
+        n_inp = np.load(f'./pcfn_dl4/INP/noise/{rlz_idx}.npy')
+        inp = np.load(f'./pcfn_dl4/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
 
         # plt.loglog(ell_arr, pcfn, label='pcfn')
         # plt.loglog(ell_arr, cfn, label='cfn')
@@ -201,6 +201,13 @@ ax_main.errorbar(ell_arr*1.015, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:l
 ax_main.errorbar(ell_arr*1.025, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='RI-B', fmt='.', color='red')
 # ax_main.plot(l, l*(l+1)*cl_cmb[2,:lmax_eff+1]/(2*np.pi), label='CMB input', color='black')
 
+ax_main.plot(ell_arr, np.abs(pcfn_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr]), label='with-PS baseline ps contribution', color='blue')
+ax_main.plot(ell_arr, np.abs(cfn_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr]), label='no-PS baseline ps contribution', color='purple')
+ax_main.plot(ell_arr, np.abs(rmv_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr]), label='TF ps contribution', color='green')
+ax_main.plot(ell_arr, np.abs(ps_mask_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr]), label='M-QU ps contribution', color='orange')
+ax_main.plot(ell_arr, np.abs(inp_mean[:lmax_ell_arr]-cf_mean[:lmax_ell_arr]), label='RI-B ps contribution', color='red')
+
+
 
 # Set labels and title for the main plot
 ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
@@ -262,9 +269,9 @@ ax_sub.legend(handles=[res_line, std_line])
 plt.tight_layout()
 plt.subplots_adjust(hspace=0)
 
-# path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323')
-# path_fig.mkdir(exist_ok=True, parents=True)
-# plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
+path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323')
+path_fig.mkdir(exist_ok=True, parents=True)
+plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
 
 # Show plot
 plt.show()

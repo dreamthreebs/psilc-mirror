@@ -4,15 +4,21 @@ import matplotlib.pyplot as plt
 
 
 apo_ps_mask = np.load('./new_mask/apo_ps_mask.npy')
-mask = hp.read_map('./new_mask/mask_only_edge.fits')
-mask_2d5 = hp.read_map('./new_mask/mask2d5.fits')
+apo_2_mask = np.load(f'./new_mask/apo_ps_mask_2degree.npy')
+apo_3_mask = np.load(f'./new_mask/apo_ps_mask_3degree.npy')
+apo_4_mask = np.load(f'./new_mask/apo_ps_mask_4degree.npy')
+# mask = hp.read_map('./new_mask/mask_only_edge.fits')
+# mask_2d5 = hp.read_map('./new_mask/mask2d5.fits')
 fsky = np.sum(apo_ps_mask) / np.size(apo_ps_mask)
 print(f'{fsky=}')
 
 # hp.orthview(mask, rot=[100,50,0], title='mask')
-# hp.orthview(apo_ps_mask, rot=[100,50,0], title='apo_ps_mask')
+hp.orthview(apo_ps_mask, rot=[100,50,0], title='apo_ps_mask')
+hp.orthview(apo_2_mask, rot=[100,50,0], title='apo_ps_mask 2 degree')
+hp.orthview(apo_3_mask, rot=[100,50,0], title='apo_ps_mask 3 degree')
+hp.orthview(apo_4_mask, rot=[100,50,0], title='apo_ps_mask 4 degree')
 # hp.orthview(mask_2d5, rot=[100,50,0], title='mask2d5')
-# plt.show()
+plt.show()
 
 
 input_std = hp.read_map('./input_std_new/10.fits')
