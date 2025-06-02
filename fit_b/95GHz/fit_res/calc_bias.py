@@ -61,6 +61,14 @@ def calc_dl_from_pol_map(m_q, m_u, bl, apo_mask, bin_dl, masked_on_input, purify
     dl = w22p.decouple_cell(nmt.compute_coupled_cell(f2p, f2p))[3]
     return dl
 
+def calc_dl_correlation(m_q, m_u, m_q_2, m_u_2, bl, apo_mask, bin_dl, masked_on_input, purify_b):
+    f2p = nmt.NmtField(apo_mask, [m_q, m_u], beam=bl, masked_on_input=masked_on_input, purify_b=purify_b, lmax=lmax, lmax_mask=lmax)
+    f2p_2 = nmt.NmtField(apo_mask, [m_q_2, m_u_2], beam=bl, masked_on_input=masked_on_input, purify_b=purify_b, lmax=lmax, lmax_mask=lmax)
+    w22p = nmt.NmtWorkspace.from_fields(f2p, f2p_2, bin_dl)
+    # dl = nmt.workspaces.compute_full_master(pol_field, pol_field, b=bin_dl)
+    dl = w22p.decouple_cell(nmt.compute_coupled_cell(f2p, f2p_2))[3]
+    return dl
+
 def calc_dl_from_scalar_map(scalar_map, bl, apo_mask, bin_dl, masked_on_input):
     scalar_field = nmt.NmtField(apo_mask, [scalar_map], beam=bl, masked_on_input=masked_on_input, lmax=lmax, lmax_mask=lmax)
     dl = nmt.compute_full_master(scalar_field, scalar_field, bin_dl)
@@ -104,6 +112,31 @@ def gen_map(rlz_idx=0, mode='mean', return_noise=False):
     cf = cmb_iqu + fg
     n = noise
     return pcfn, cfn, cf, n
+
+def gen_test_map(rlz_idx=0, mode='mean', return_noise=False):
+    # mode can be mean or std
+    nside = 2048
+
+    nstd = np.load(f'../../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    npix = hp.nside2npix(nside=2048)
+    np.random.seed(seed=noise_seed[rlz_idx])
+    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    print(f"{np.std(noise[1])=}")
+
+    if return_noise:
+        return noise
+
+    cls = np.load('../../../src/cmbsim/cmbdata/cmbcl_8k.npy')
+    if mode=='std':
+        np.random.seed(seed=cmb_seed[rlz_idx])
+    elif mode=='mean':
+        np.random.seed(seed=cmb_seed[0])
+
+    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
+
+    return cmb_iqu + noise, cmb_iqu, noise
+
 
 # initialize the band power
 bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
@@ -215,7 +248,6 @@ def bias_rmv():
     # hp.gnomview(m_bias_model_q, rot=[lon,lat,0],  title='bias model q')
     # plt.show()
 
-
     dl_bias_all = calc_dl_from_pol_map(m_q=m_bias_all_q, m_u=m_bias_all_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     dl_bias_model = calc_dl_from_pol_map(m_q=m_bias_model_q, m_u=m_bias_model_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
@@ -227,24 +259,83 @@ def bias_rmv():
 def bias_inp():
     # calc bias from inpainting. bias all:inp - cfn
     # map is B mode in inpainting method
-    m_inp = hp.read_map(f"../inpainting/output_m3_std_new/{rlz_idx}.fits")
-    m_cfn = hp.read_map(f"../inpainting/input_cfn_new/{rlz_idx}.fits")
-    m_bias_all = m_inp - m_cfn
 
-    dl_bias_all = calc_dl_from_scalar_map(m_bias_all, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # m_inp = hp.read_map(f"../inpainting/output_m3_std_new/{rlz_idx}.fits")
+    m_cfn = hp.read_map(f"../inpainting/input_cfn_new/{rlz_idx}.fits")
+    # m_bias_all = m_inp - m_cfn
+    # hp.orthview(m_bias_all, rot=[100,50,0])
+    # plt.show()
+
+    # dl_bias_all = calc_dl_from_scalar_map(m_bias_all, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_cfn = calc_dl_from_scalar_map(m_cfn, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
 
     path_dl_qu_inp = Path(f'BIAS/inp')
     path_dl_qu_inp.mkdir(parents=True, exist_ok=True)
-    np.save(path_dl_qu_inp/ Path(f'bias_all_{rlz_idx}.npy'), dl_bias_all)
+    np.save(path_dl_qu_inp/ Path(f'cfn_{rlz_idx}.npy'), dl_cfn)
 
 def bias_mask():
     # calc bias after masking bias: pcfn - cfn
     ps = np.load(f'../../../fitdata/2048/PS/{freq}/ps.npy')
 
     dl_bias_all = calc_dl_from_pol_map(m_q=ps[1], m_u=ps[2], bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+
     path_dl_qu_mask = Path(f'BIAS/mask')
     path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
     np.save(path_dl_qu_mask/ Path(f'bias_all_{rlz_idx}.npy'), dl_bias_all)
+
+def bias_rmv_from_correlation():
+    # bias: after rmv - rmv residual map - 2 * rmv residual * cfn
+    df = pd.read_csv(f"../mask/{freq}_after_filter.csv")
+    flux_idx = 6
+    lon = np.rad2deg(df.at[flux_idx, 'lon'])
+    lat = np.rad2deg(df.at[flux_idx, 'lat'])
+
+    m_pcfn, m_cfn, _, _= gen_map(rlz_idx=rlz_idx, mode='std')
+    # np.save(f"./test_data/pcfn_{rlz_idx}.npy", m_pcfn)
+    # np.save(f"./test_data/cfn_{rlz_idx}.npy", m_cfn)
+
+    # m_pcfn = np.load(f"./test_data/pcfn_0.npy")
+    # m_cfn = np.load(f"./test_data/cfn_0.npy")
+
+    m_rmv_q = np.load(f'./std/3sigma/map_q_{rlz_idx}.npy') * bin_mask
+    m_rmv_u = np.load(f'./std/3sigma/map_u_{rlz_idx}.npy') * bin_mask
+
+    rmv_res_q = m_rmv_q - m_cfn[1] * bin_mask
+    rmv_res_u = m_rmv_u - m_cfn[2] * bin_mask
+
+    dl_rmv = calc_dl_from_pol_map(m_q=m_rmv_q, m_u=m_rmv_u, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_cor = calc_dl_correlation(m_q=rmv_res_q, m_u=rmv_res_u, m_q_2=m_cfn[1], m_u_2=m_cfn[2], bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+
+    path_dl_qu_rmv = Path(f'BIAS/rmv_cor')
+    path_dl_qu_rmv.mkdir(parents=True, exist_ok=True)
+    np.save(path_dl_qu_rmv / Path(f'rmv_{rlz_idx}.npy'), dl_rmv)
+    np.save(path_dl_qu_rmv / Path(f'cor_{rlz_idx}.npy'), dl_cor)
+
+
+# test calc correlation between point sources and other components
+def bias_correlation():
+    ps = np.load(f'../../../fitdata/2048/PS/{freq}/ps.npy')
+    m_pcfn, m_cfn, _, _= gen_map(rlz_idx=rlz_idx, mode='std')
+
+    dl_ps_cfn_cor = calc_dl_correlation(m_q=ps[1], m_u=ps[2],m_q_2=m_cfn[1], m_u_2=m_cfn[2], bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    path_dl_qu_mask = Path(f'BIAS/test_correlation')
+    path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
+    np.save(path_dl_qu_mask/ Path(f'ps_cfn_{rlz_idx}.npy'), dl_ps_cfn_cor)
+
+def test_correlation_cmb_noise():
+    cn, c, n = gen_test_map(mode='std')
+
+    dl_c = calc_dl_from_pol_map(m_q=c[1], m_u=c[2], bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_n = calc_dl_from_pol_map(m_q=n[1], m_u=n[2], bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_cn = calc_dl_from_pol_map(m_q=cn[1], m_u=cn[2], bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_cn_cor = calc_dl_correlation(m_q=c[1], m_u=c[2], m_q_2=n[1], m_u_2=n[2], bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    path_dl_qu_mask = Path(f'BIAS/test_correlation_cmb_noise')
+    path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
+    np.save(path_dl_qu_mask/ Path(f'c_{rlz_idx}.npy'), dl_c)
+    np.save(path_dl_qu_mask/ Path(f'n_{rlz_idx}.npy'), dl_n)
+    np.save(path_dl_qu_mask/ Path(f'cn_{rlz_idx}.npy'), dl_cn)
+    np.save(path_dl_qu_mask/ Path(f'cn_cor_{rlz_idx}.npy'), dl_cn_cor)
+
 
 
 
@@ -252,5 +343,7 @@ if __name__ == "__main__":
     # bias_pcfn()
     # bias_unresolved()
     # bias_rmv()
-    # bias_inp()
-    bias_mask()
+    bias_inp()
+    # bias_mask()
+    # bias_correlation()
+    # bias_rmv_from_correlation()
