@@ -259,29 +259,76 @@ def bias_rmv():
 def bias_inp():
     # calc bias from inpainting. bias all:inp - cfn
     # map is B mode in inpainting method
+    # mask_ps: strong ps: 1, other:0
 
-    # m_inp = hp.read_map(f"../inpainting/output_m3_std_new/{rlz_idx}.fits")
-    m_cfn = hp.read_map(f"../inpainting/input_cfn_new/{rlz_idx}.fits")
-    # m_bias_all = m_inp - m_cfn
-    # hp.orthview(m_bias_all, rot=[100,50,0])
+    mask_ps = np.load(f'../inpainting/mask_bias/mask_bias.npy')
+
+    # hp.orthview(mask_ps, rot=[100,50,0], half_sky=True)
     # plt.show()
 
-    # dl_bias_all = calc_dl_from_scalar_map(m_bias_all, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_cfn = calc_dl_from_scalar_map(m_cfn, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # m_inp = hp.read_map(f"../inpainting/output_m3_std_new/{rlz_idx}.fits")
+    # m_cfn = hp.read_map(f"../inpainting/input_cfn_new/{rlz_idx}.fits")
+    m_unresolved = np.load(f"../data/ps/unresolved_ps.npy")
+    m_unresolved_b = hp.alm2map(hp.map2alm(m_unresolved, lmax=lmax)[2], nside=nside)
 
-    path_dl_qu_inp = Path(f'BIAS/inp')
+    # hp.orthview(mask_ps * m_inp, rot=[100,50,0], half_sky=True)
+    # hp.orthview(mask_ps * m_cfn, rot=[100,50,0], half_sky=True)
+    # hp.orthview(m_unresolved_b * (1 - mask_ps), rot=[100,50,0], half_sky=True)
+    # plt.show()
+
+    # dl_bias_inp = calc_dl_from_scalar_map(m_inp * mask_ps, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_cfn = calc_dl_from_scalar_map(m_cfn * mask_ps, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_unresolved = calc_dl_from_scalar_map(m_unresolved_b * (1 - mask_ps), bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
+    path_dl_qu_inp = Path(f'BIAS/inp_bias')
     path_dl_qu_inp.mkdir(parents=True, exist_ok=True)
-    np.save(path_dl_qu_inp/ Path(f'cfn_{rlz_idx}.npy'), dl_cfn)
+    # np.save(path_dl_qu_inp/ Path(f'inp_{rlz_idx}.npy'), dl_bias_inp)
+    # np.save(path_dl_qu_inp/ Path(f'cfn_{rlz_idx}.npy'), dl_cfn)
+    np.save(path_dl_qu_inp/ Path(f'unresolved_ps_{rlz_idx}.npy'), dl_unresolved)
+
+def bias_mask_B():
+    # calc bias after masking bias: pcfn - cfn
+    ps = np.load(f'../../../fitdata/2048/PS/{freq}/ps.npy')
+    m_unresolved = np.load(f"../data/ps/unresolved_ps.npy")
+
+    ps_b = hp.alm2map(hp.map2alm(ps, lmax=lmax)[2], nside=nside)
+
+    mask_ps = 1 - np.load(f'../inpainting/mask_bias/C1_3.npy')
+
+    hp.orthview(mask_ps, rot=[100,50,0], half_sky=True)
+    hp.orthview(m_unresolved[1], rot=[100,50,0], half_sky=True)
+    plt.show()
+
+    # dl_bias_all = calc_dl_from_pol_map(m_q=ps[1], m_u=ps[2], bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+
+    dl_unresolved = calc_dl_from_scalar_map(np.ones_like(ps_b), bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_unresolved = calc_dl_from_pol_map(m_q=ps[1], m_u=ps[2], bl=bl, apo_mask=mask_ps * apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+
+    path_dl_qu_mask = Path(f'BIAS/mask')
+    path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
+    np.save(path_dl_qu_mask/ Path(f'apo_mask_itself_{rlz_idx}.npy'), dl_unresolved)
 
 def bias_mask():
     # calc bias after masking bias: pcfn - cfn
     ps = np.load(f'../../../fitdata/2048/PS/{freq}/ps.npy')
+    m_unresolved = np.load(f"../data/ps/unresolved_ps.npy")
 
-    dl_bias_all = calc_dl_from_pol_map(m_q=ps[1], m_u=ps[2], bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    mask_ps = 1 - np.load(f'../inpainting/mask_bias/C1_2.npy')
+    np.save(f"./apo_mask.npy", mask_ps * apo_mask)
+
+    hp.orthview(mask_ps * apo_mask, rot=[100,50,0], half_sky=True)
+    hp.orthview(m_unresolved[1], rot=[100,50,0], half_sky=True)
+    plt.show()
+
+    # dl_bias_all = calc_dl_from_pol_map(m_q=ps[1], m_u=ps[2], bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
+    dl_unresolved = calc_dl_from_pol_map(m_q=ps[1] * mask_ps, m_u=ps[2] * mask_ps, bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
     path_dl_qu_mask = Path(f'BIAS/mask')
     path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
-    np.save(path_dl_qu_mask/ Path(f'bias_all_{rlz_idx}.npy'), dl_bias_all)
+    np.save(path_dl_qu_mask/ Path(f'no_eblkg_no_apo_{rlz_idx}.npy'), dl_unresolved)
+
+
+
 
 def bias_rmv_from_correlation():
     # bias: after rmv - rmv residual map - 2 * rmv residual * cfn
@@ -323,7 +370,7 @@ def bias_correlation():
     np.save(path_dl_qu_mask/ Path(f'ps_cfn_{rlz_idx}.npy'), dl_ps_cfn_cor)
 
 def test_correlation_cmb_noise():
-    cn, c, n = gen_test_map(mode='std')
+    cn, c, n = gen_test_map(mode='std', rlz_idx=rlz_idx)
 
     dl_c = calc_dl_from_pol_map(m_q=c[1], m_u=c[2], bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
     dl_n = calc_dl_from_pol_map(m_q=n[1], m_u=n[2], bl=bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
@@ -336,6 +383,19 @@ def test_correlation_cmb_noise():
     np.save(path_dl_qu_mask/ Path(f'cn_{rlz_idx}.npy'), dl_cn)
     np.save(path_dl_qu_mask/ Path(f'cn_cor_{rlz_idx}.npy'), dl_cn_cor)
 
+def test_cmb_bias_with_ps_mask():
+    cn, c, n = gen_test_map(mode='std', rlz_idx=rlz_idx)
+
+    c_b = hp.alm2map(hp.map2alm(c, lmax=lmax)[2], nside=nside)
+
+    mask_ps = 1 - np.load(f'../inpainting/mask_bias/C1_3.npy')
+    dl_c = calc_dl_from_scalar_map(c_b, bl, apo_mask=mask_ps * apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_c_apo = calc_dl_from_scalar_map(c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
+    path_dl_qu_mask = Path(f'BIAS/test_mask')
+    path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
+    np.save(path_dl_qu_mask/ Path(f'c_{rlz_idx}.npy'), dl_c)
+    np.save(path_dl_qu_mask/ Path(f'c_apo_{rlz_idx}.npy'), dl_c_apo)
 
 
 
@@ -343,7 +403,9 @@ if __name__ == "__main__":
     # bias_pcfn()
     # bias_unresolved()
     # bias_rmv()
-    bias_inp()
+    # bias_inp()
     # bias_mask()
+    # bias_mask_B()
     # bias_correlation()
     # bias_rmv_from_correlation()
+    test_cmb_bias_with_ps_mask()

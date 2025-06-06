@@ -25,6 +25,7 @@ pcfn_list = []
 rmv_list = []
 ps_mask_list = []
 inp_list = []
+masking_list = []
 
 def calc_lmax(beam):
     lmax_eff = 2 * np.pi / np.deg2rad(beam) * 60
@@ -94,6 +95,9 @@ def mean_and_std(sim_mode):
         n_inp = np.load(f'./pcfn_dl4/INP/noise/{rlz_idx}.npy')
         inp = np.load(f'./pcfn_dl4/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
 
+        n_masking = np.load(f"./pcfn_dl4/MASK/noise/{rlz_idx}.npy")
+        masking = np.load(f"./pcfn_dl4/MASK/STD/{rlz_idx}.npy") - n_masking
+
         # plt.loglog(ell_arr, pcfn, label='pcfn')
         # plt.loglog(ell_arr, cfn, label='cfn')
         # plt.loglog(ell_arr, cf, label='cf')
@@ -115,6 +119,7 @@ def mean_and_std(sim_mode):
         rmv_list.append(rmv_qu)
         ps_mask_list.append(ps_mask)
         inp_list.append(inp)
+        masking_list.append(masking)
 
 
     pcfn_mean = np.mean(pcfn_list, axis=0)
@@ -124,6 +129,7 @@ def mean_and_std(sim_mode):
     rmv_mean = np.mean(rmv_list, axis=0)
     ps_mask_mean = np.mean(ps_mask_list, axis=0)
     inp_mean = np.mean(inp_list, axis=0)
+    masking_mean = np.mean(masking_list, axis=0)
 
     pcfn_std = np.std(pcfn_list, axis=0)
     cfn_std = np.std(cfn_list, axis=0)
@@ -132,8 +138,9 @@ def mean_and_std(sim_mode):
     rmv_std = np.std(rmv_list, axis=0)
     ps_mask_std = np.std(ps_mask_list, axis=0)
     inp_std = np.std(inp_list, axis=0)
+    masking_std = np.std(masking_list, axis=0)
 
-    return pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std
+    return pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, masking_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std, masking_std
 
 # pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, _, _, _, _, _, _ = mean_and_std(sim_mode='MEAN')
 
@@ -152,7 +159,7 @@ def mean_and_std(sim_mode):
 # plt.title('mean')
 
 # _, _, _, _, _, _, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
-pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std = mean_and_std(sim_mode='STD')
+pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, masking_mean, pcfn_std, cfn_std, cf_std, rmv_std, ps_mask_std, inp_std, masking_std = mean_and_std(sim_mode='STD')
 
 print(f'{ell_arr.shape=}')
 print(f'{pcfn_std.shape=}')
@@ -202,6 +209,7 @@ ax_main.plot(ell_arr, dl_in[:lmax_ell_arr], label='Fiducial CMB', color='black')
 ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='TF', fmt='.', color='green')
 ax_main.errorbar(ell_arr*1.015, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='M-QU', fmt='.', color='orange')
 ax_main.errorbar(ell_arr*1.025, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='RI-B', fmt='.', color='red')
+ax_main.errorbar(ell_arr*1.03, masking_mean[:lmax_ell_arr], yerr=masking_std[:lmax_ell_arr], label='MASK', fmt='.', color='yellow')
 # ax_main.plot(l, l*(l+1)*cl_cmb[2,:lmax_eff+1]/(2*np.pi), label='CMB input', color='black')
 
 
@@ -217,6 +225,7 @@ res_cfn = np.abs(cfn_mean - dl_in)
 res_rmv = np.abs(rmv_mean - dl_in)
 res_inp = np.abs(inp_mean - dl_in)
 res_ps_mask = np.abs(ps_mask_mean - dl_in)
+res_masking = np.abs(masking_mean - dl_in)
 
 res_line = mlines.Line2D([], [], color='black', linestyle='-', label='Residual')
 std_line = mlines.Line2D([], [], color='black', linestyle=':', label='Std Deviation')
@@ -226,6 +235,7 @@ ax_sub.plot(ell_arr, res_cfn[:lmax_ell_arr], label='CMB + FG + NOISE', marker='.
 ax_sub.plot(ell_arr, res_rmv[:lmax_ell_arr], label='Template Fitting method', marker='.', color='green')
 ax_sub.plot(ell_arr, res_inp[:lmax_ell_arr], label='Recycling + Inpaint on B', marker='.', color='red')
 ax_sub.plot(ell_arr, res_ps_mask[:lmax_ell_arr], label='Mask on QU', marker='.', color='orange')
+ax_sub.plot(ell_arr, res_masking[:lmax_ell_arr], label='Masking', marker='.', color='yellow')
 
 # Plot standard deviation in the subfigure (using scatter with no error bars)
 ax_sub.plot(ell_arr, pcfn_std[:lmax_ell_arr], label='PS + CMB + FG + NOISE', color='blue', marker='.', linestyle=':')
@@ -233,6 +243,7 @@ ax_sub.plot(ell_arr, cfn_std[:lmax_ell_arr], label='CMB + FG + NOISE', color='pu
 ax_sub.plot(ell_arr, rmv_std[:lmax_ell_arr], label='Template Fitting method', color='green', marker='.', linestyle=':')
 ax_sub.plot(ell_arr, ps_mask_std[:lmax_ell_arr], label='Mask on QU', color='orange', marker='.', linestyle=':')
 ax_sub.plot(ell_arr, inp_std[:lmax_ell_arr], label='Recycling + Inpaint on B', color='red', marker='.', linestyle=':')
+ax_sub.plot(ell_arr, masking_std[:lmax_ell_arr], label='masking', color='yellow', marker='.', linestyle=':')
 
 label_size = 10
 ax_main.tick_params(axis='both', which='major', labelsize=label_size)
@@ -265,9 +276,9 @@ ax_sub.legend(handles=[res_line, std_line])
 plt.tight_layout()
 plt.subplots_adjust(hspace=0)
 
-path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323')
-path_fig.mkdir(exist_ok=True, parents=True)
-plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
+# path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323')
+# path_fig.mkdir(exist_ok=True, parents=True)
+# plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
 
 # Show plot
 plt.show()

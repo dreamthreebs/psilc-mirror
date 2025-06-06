@@ -194,7 +194,7 @@ def test_inp_correlation():
     cfn_list = [np.load(f'{base_path}/cfn/{rlz_idx}.npy') for rlz_idx, n_qu in zip(rlz_range, n_qu_list)]
     inp_list = [np.load(f'./pcfn_dl4/INP/STD/{rlz_idx}.npy') for rlz_idx in rlz_range]
     cfn_b_list = [np.load(f'./BIAS/inp/cfn_{rlz_idx}.npy') for rlz_idx in rlz_range]
-
+    cfn_out_b_list = [np.load(f'./BIAS/inp/inp_cfn_{rlz_idx}.npy') for rlz_idx in rlz_range]
 
 
 
@@ -203,6 +203,7 @@ def test_inp_correlation():
     cfn_mean = np.mean(cfn_list, axis=0)
     inp_mean = np.mean(inp_list, axis=0)
     cfn_b_mean = np.mean(cfn_b_list, axis=0)
+    cfn_out_b_mean = np.mean(cfn_out_b_list, axis=0)
 
 
     # dl_ps = np.load(f'./BIAS/rmv/bias_all_0.npy')
@@ -226,10 +227,13 @@ def test_inp_correlation():
     plt.plot(ell_arr, dl_unresolved_ps[:lmax_ell_arr], label='unresolved point sources', marker='.')
     plt.plot(ell_arr, cfn_mean[:lmax_ell_arr], label='cfn from qu', marker='.')
     plt.plot(ell_arr, cfn_b_mean[:lmax_ell_arr], label='cfn from b', marker='.')
+    plt.plot(ell_arr, cfn_out_b_mean[:lmax_ell_arr], label='cfn after inp from b', marker='.')
+    plt.plot(ell_arr, cfn_out_b_mean[:lmax_ell_arr] - cfn_b_mean[:lmax_ell_arr], label='residual cfn inp - input', marker='.')
+    plt.plot(ell_arr, np.abs(cfn_out_b_mean[:lmax_ell_arr] - cfn_b_mean[:lmax_ell_arr]), label='absolute residual cfn inp - input', marker='.')
 
     plt.plot(ell_arr, dl_in[:lmax_ell_arr], label='CMB', marker='.', color='black')
 
-    # plt.loglog()
+    plt.loglog()
     plt.xlabel(r"$\ell$")
     plt.ylabel(r"$D_\ell^{BB}$")
     plt.title(f"{freq=}GHz")
@@ -250,10 +254,211 @@ def test_inp_correlation():
     plt.title(f"{freq=}GHz")
     plt.legend()
     plt.show()
+
+def test_inp():
+    # l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40)
+    
+    sim_mode = "STD"
+    
+    rlz_range = np.arange(1, 200)
+    rlz_range_1k = np.arange(1, 5000)
+    base_path = f'./pcfn_dl4/{sim_mode}'
+
+    ell_arr = bin_dl.get_effective_ells()
+    # cf_list = [np.load(f'{base_path}/cf/{rlz_idx}.npy') for rlz_idx in rlz_range]
+    n_qu_list = [np.load(f'{base_path}/n/{rlz_idx}.npy') for rlz_idx in rlz_range]
+
+    # pcfn_list = [np.load(f'{base_path}/pcfn/{rlz_idx}.npy') - n_qu for rlz_idx, n_qu in zip(rlz_range, n_qu_list)]
+    inp_list = [np.load(f'./BIAS/inp_bias/inp_{rlz_idx}.npy') for rlz_idx in rlz_range]
+    cfn_list = [np.load(f'./BIAS/inp_bias/cfn_{rlz_idx}.npy') for rlz_idx in rlz_range]
+
+
+
+    # print(f"{len(ps_mask_list)=}")
+    # pcfn_mean = np.mean(pcfn_list, axis=0)
+    cfn_mean = np.mean(cfn_list, axis=0)
+    inp_mean = np.mean(inp_list, axis=0)
+    # cfn_b_mean = np.mean(cfn_b_list, axis=0)
+    # cfn_out_b_mean = np.mean(cfn_out_b_list, axis=0)
+
+
+    # dl_ps = np.load(f'./BIAS/rmv/bias_all_0.npy')
+    dl_unresolved_ps = np.load(f'./BIAS/unresolved_ps/0.npy')
+    dl_unresolved_ps_inp = np.load(f'./BIAS/inp_bias/unresolved_ps_0.npy')
+    print(f'{ell_arr.shape=}')
+    lmax_eff = calc_lmax(beam=beam)
+    lmax_ell_arr = find_left_nearest_index_np(ell_arr, target=lmax_eff)
+    print(f'{ell_arr=}')
+    ell_arr = ell_arr[:lmax_ell_arr]
+    print(f'{ell_arr[:lmax_ell_arr]=}')
+    print(f'{lmax_ell_arr=}')
+    cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_8k.npy').T
+    print(f'{cl_cmb.shape=}')
+    l = np.arange(lmax_eff+1)
+    dl_in = bin_dl.bin_cell(cl_cmb[2,:lmax+1])
+
+    plt.figure(1)
+    # plt.plot(ell_arr, rmv_mean[:lmax_ell_arr], label='rmv', marker='.')
+    plt.plot(ell_arr, inp_mean[:lmax_ell_arr] - cfn_mean[:lmax_ell_arr], label='Cl inp - Cl cfn from B map', marker='.')
+    plt.plot(ell_arr, np.abs(inp_mean[:lmax_ell_arr] - cfn_mean[:lmax_ell_arr]), label='abs Cl inp - Cl cfn from B map', marker='.')
+    plt.plot(ell_arr, dl_unresolved_ps[:lmax_ell_arr], label='unresolved point sources', marker='.')
+    plt.plot(ell_arr, dl_unresolved_ps_inp[:lmax_ell_arr], label='unresolved point sources in inpainting', marker='.')
+    plt.plot(ell_arr, cfn_mean[:lmax_ell_arr], label='cfn', marker='.')
+    plt.plot(ell_arr, inp_mean[:lmax_ell_arr], label='inp', marker='.')
+
+    plt.plot(ell_arr, dl_in[:lmax_ell_arr], label='CMB', marker='.', color='black')
+
+    plt.loglog()
+    plt.xlabel(r"$\ell$")
+    plt.ylabel(r"$D_\ell^{BB}$")
+    plt.title(f"{freq=}GHz")
+    plt.legend()
+    plt.show()
+
+def test_mask():
+    # l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40)
+    
+    sim_mode = "STD"
+    
+    rlz_range = np.arange(1, 200)
+    rlz_range_1k = np.arange(1, 5000)
+    base_path = f'./pcfn_dl4/{sim_mode}'
+
+    ell_arr = bin_dl.get_effective_ells()
+    # cf_list = [np.load(f'{base_path}/cf/{rlz_idx}.npy') for rlz_idx in rlz_range]
+    n_qu_list = [np.load(f'{base_path}/n/{rlz_idx}.npy') for rlz_idx in rlz_range]
+
+
+
+
+    dl_unresolved_ps = np.load(f'./BIAS/unresolved_ps/0.npy')
+    dl_unresolved_ps_masking = np.load(f'./BIAS/mask/bias_all_0.npy')
+    dl_unresolved_ps_no_eblkg = np.load(f'./BIAS/mask/no_eblkg_0.npy')
+    dl_unresolved_ps_inp = np.load(f'./BIAS/inp_bias/unresolved_ps_0.npy')
+    dl_unresolved_ps_ps = np.load(f'./BIAS/mask/no_eblkg_ps_0.npy')
+    dl_unresolved_ps_bin_mask = np.load(f'./BIAS/mask/no_eblkg_bin_mask_0.npy')
+    dl_unresolved_ps_no_apo = np.load(f'./BIAS/mask/no_eblkg_no_apo_0.npy')
+    dl_unresolved_ps_b = np.load(f'./BIAS/mask/mask_on_b_0.npy')
+    dl_unresolved_ps_b_2deg = np.load(f'./BIAS/mask/mask_C1_3_0.npy')
+    dl_mask = np.load(f'./BIAS/mask/mask_itself_0.npy')
+    dl_mask_apo = np.load(f'./BIAS/mask/apo_mask_itself_0.npy')
+    print(f'{ell_arr.shape=}')
+    lmax_eff = calc_lmax(beam=beam)
+    lmax_ell_arr = find_left_nearest_index_np(ell_arr, target=lmax_eff)
+    print(f'{ell_arr=}')
+    ell_arr = ell_arr[:lmax_ell_arr]
+    print(f'{ell_arr[:lmax_ell_arr]=}')
+    print(f'{lmax_ell_arr=}')
+    cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_8k.npy').T
+    print(f'{cl_cmb.shape=}')
+    l = np.arange(lmax_eff+1)
+    dl_in = bin_dl.bin_cell(cl_cmb[2,:lmax+1])
+
+    plt.figure(1)
+    # plt.plot(ell_arr, rmv_mean[:lmax_ell_arr], label='rmv', marker='.')
+    plt.plot(ell_arr, dl_unresolved_ps[:lmax_ell_arr], label='unresolved point sources', marker='.')
+    plt.plot(ell_arr, dl_unresolved_ps_masking[:lmax_ell_arr], label='unresolved point sources in ps mask', marker='.')
+    plt.plot(ell_arr, dl_unresolved_ps_no_eblkg[:lmax_ell_arr], label='unresolved point sources in no eblkg', marker='.')
+    plt.plot(ell_arr, dl_unresolved_ps_inp[:lmax_ell_arr], label='unresolved point sources inpainting', marker='.')
+    plt.plot(ell_arr, dl_unresolved_ps_b[:lmax_ell_arr], label='unresolved point sources on B C1 1deg', marker='.')
+    plt.plot(ell_arr, dl_unresolved_ps_b_2deg[:lmax_ell_arr], label='unresolved point sources on B C1 2deg', marker='.')
+    plt.plot(ell_arr, dl_mask[:lmax_ell_arr], label='mask', marker='.')
+    plt.plot(ell_arr, dl_mask_apo[:lmax_ell_arr], label='mask apo', marker='.')
+    # plt.plot(ell_arr, dl_unresolved_ps_ps[:lmax_ell_arr], label='unresolved ps ps', marker='.')
+    # plt.plot(ell_arr, dl_unresolved_ps_no_apo[:lmax_ell_arr], label='unresolved ps no apo', marker='.')
+
+    plt.plot(ell_arr, dl_in[:lmax_ell_arr], label='CMB', marker='.', color='black')
+
+    plt.loglog()
+    plt.xlabel(r"$\ell$")
+    plt.ylabel(r"$D_\ell^{BB}$")
+    plt.title(f"{freq=}GHz")
+    plt.legend()
+    plt.show()
+
+def test_mask_cmb():
+    # l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax+1, fold=0.2)
+    l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40)
+    
+    sim_mode = "STD"
+    
+    rlz_range = np.arange(1, 200)
+    rlz_range_1k = np.arange(1, 5000)
+    base_path = f'./pcfn_dl4/{sim_mode}'
+
+    ell_arr = bin_dl.get_effective_ells()
+    # cf_list = [np.load(f'{base_path}/cf/{rlz_idx}.npy') for rlz_idx in rlz_range]
+    n_qu_list = [np.load(f'{base_path}/n/{rlz_idx}.npy') for rlz_idx in rlz_range]
+
+    c_list = [np.load(f"./BIAS/test_mask/c_{rlz_idx}.npy") for rlz_idx in rlz_range]
+    c_apo_list = [np.load(f"./BIAS/test_mask/c_apo_{rlz_idx}.npy") for rlz_idx in rlz_range]
+    c_0 = np.load(f"./BIAS/test_mask/c_0.npy")
+
+
+    c_mean = np.mean(c_list, axis=0)
+    c_apo_mean = np.mean(c_apo_list, axis=0)
+
+    # dl_unresolved_ps = np.load(f'./BIAS/unresolved_ps/0.npy')
+    # dl_unresolved_ps_masking = np.load(f'./BIAS/mask/bias_all_0.npy')
+    # dl_unresolved_ps_no_eblkg = np.load(f'./BIAS/mask/no_eblkg_0.npy')
+    # dl_unresolved_ps_inp = np.load(f'./BIAS/inp_bias/unresolved_ps_0.npy')
+    # dl_unresolved_ps_ps = np.load(f'./BIAS/mask/no_eblkg_ps_0.npy')
+    # dl_unresolved_ps_bin_mask = np.load(f'./BIAS/mask/no_eblkg_bin_mask_0.npy')
+    # dl_unresolved_ps_no_apo = np.load(f'./BIAS/mask/no_eblkg_no_apo_0.npy')
+    # dl_unresolved_ps_b = np.load(f'./BIAS/mask/mask_on_b_0.npy')
+    # dl_unresolved_ps_b_2deg = np.load(f'./BIAS/mask/mask_C1_3_0.npy')
+
+    # dl_mask = np.load(f'./BIAS/mask/mask_itself_0.npy')
+    # dl_mask_apo = np.load(f'./BIAS/mask/apo_mask_itself_0.npy')
+
+    print(f'{ell_arr.shape=}')
+    lmax_eff = calc_lmax(beam=beam)
+    lmax_ell_arr = find_left_nearest_index_np(ell_arr, target=lmax_eff)
+    print(f'{ell_arr=}')
+    ell_arr = ell_arr[:lmax_ell_arr]
+    print(f'{ell_arr[:lmax_ell_arr]=}')
+    print(f'{lmax_ell_arr=}')
+    cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_8k.npy').T
+    print(f'{cl_cmb.shape=}')
+    l = np.arange(lmax_eff+1)
+    dl_in = bin_dl.bin_cell(cl_cmb[2,:lmax+1])
+
+    plt.figure(1)
+    # plt.plot(ell_arr, rmv_mean[:lmax_ell_arr], label='rmv', marker='.')
+    plt.plot(ell_arr, c_mean[:lmax_ell_arr], label='c mean ps mask', marker='.')
+    plt.plot(ell_arr, c_apo_mean[:lmax_ell_arr], label='c mean apo edge', marker='.')
+
+    plt.plot(ell_arr, c_0[:lmax_ell_arr], label='c 0', marker='.', linestyle=':')
+    plt.plot(ell_arr, dl_in[:lmax_ell_arr], label='CMB', marker='.', color='black')
+
+    plt.loglog()
+    plt.xlabel(r"$\ell$")
+    plt.ylabel(r"$D_\ell^{BB}$")
+    plt.title(f"{freq=}GHz")
+    plt.legend()
+    plt.show()
+
+
+
+
  
 
 
 # test_correlation()
 # test_rmv_correlation()
-test_inp_correlation()
+# test_inp_correlation()
+# test_inp()
+# test_mask()
+test_mask_cmb()
 
