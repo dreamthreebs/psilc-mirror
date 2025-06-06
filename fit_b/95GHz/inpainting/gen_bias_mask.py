@@ -67,16 +67,16 @@ def gen_masking_bias_mask():
         # hp.gnomview(mask, rot=[lon, lat, 0], title='after mask', xsize=fig_size)
         # plt.show()
     
-    apo_mask = nmt.mask_apodization(mask_in=mask, aposize=3)
-    hp.orthview(mask*ori_mask, rot=[100,50, 0], title='mask', xsize=2000)
-    plt.show()
+    apo_mask = nmt.mask_apodization(mask_in=mask, aposize=1)
+    # hp.orthview(mask*ori_mask, rot=[100,50, 0], title='mask', xsize=2000)
+    # plt.show()
     
     path_mask = Path('./mask_bias')
     path_mask.mkdir(exist_ok=True, parents=True)
-    np.save(f'./mask_bias/C1_3.npy', 1 - apo_mask)
+    np.save(f'./mask_bias/mask.npy', apo_mask)
 
 def check_masking_bias_mask():
-    apo_mask = np.load('./mask_bias/C1_2.npy')
+    apo_mask = np.load('./mask_bias/mask.npy')
     apo_mask_inp = np.load('./mask_bias/inp.npy')
     apo_mask_ps_mask = np.load(f"./new_mask/apo_ps_mask.npy")
 

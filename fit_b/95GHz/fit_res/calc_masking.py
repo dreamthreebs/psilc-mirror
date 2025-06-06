@@ -20,7 +20,7 @@ print(f'{freq=}, {beam=}')
 
 bin_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/BIN_C1_3_C1_3.npy')
 apo_mask = np.load('../../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy')
-ps_mask = np.load(f'../inpainting/mask_bias/C1_2.npy')
+ps_mask = np.load(f'../inpainting/mask_bias/mask.npy')
 # hp.orthview(ps_mask, rot=[100,50,0], half_sky=True)
 # plt.show()
 
@@ -75,20 +75,20 @@ def cpr_spectrum_pcn_b(bin_mask, apo_mask):
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
-    mask_b = (1 - ps_mask) * apo_mask
+    mask_b = ps_mask * apo_mask
     hp.orthview(mask_b, rot=[100,50,0], half_sky=True)
     plt.show()
 
-    # m_mask_std = hp.read_map(f'../inpainting/input_std_new/{rlz_idx}.fits') * bin_mask
-    # m_mask_n = hp.read_map(f'../inpainting/input_n_new/{rlz_idx}.fits') * bin_mask
+    m_mask_std = hp.read_map(f'../inpainting/input_std_new/{rlz_idx}.fits') * bin_mask
+    m_mask_n = hp.read_map(f'../inpainting/input_n_new/{rlz_idx}.fits') * bin_mask
 
-    # dl_mask_std = calc_dl_from_scalar_map(m_mask_std, bl, apo_mask=mask_b, bin_dl=bin_dl, masked_on_input=False)
-    # dl_mask_n = calc_dl_from_scalar_map(m_mask_n, bl, apo_mask=mask_b, bin_dl=bin_dl, masked_on_input=False)
+    dl_mask_std = calc_dl_from_scalar_map(m_mask_std, bl, apo_mask=mask_b, bin_dl=bin_dl, masked_on_input=False)
+    dl_mask_n = calc_dl_from_scalar_map(m_mask_n, bl, apo_mask=mask_b, bin_dl=bin_dl, masked_on_input=False)
 
     print('begin calc dl...')
 
-    path_dl_std = Path(f'pcfn_dl4/MASK_2/STD')
-    path_dl_n = Path(f'pcfn_dl4/MASK_2/noise')
+    path_dl_std = Path(f'pcfn_dl4/MASK/STD')
+    path_dl_n = Path(f'pcfn_dl4/MASK/noise')
     path_dl_std.mkdir(parents=True, exist_ok=True)
     path_dl_n.mkdir(parents=True, exist_ok=True)
 
