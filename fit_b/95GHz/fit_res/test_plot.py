@@ -348,6 +348,7 @@ def test_mask():
     dl_unresolved_ps_no_apo = np.load(f'./BIAS/mask/no_eblkg_no_apo_0.npy')
     dl_unresolved_ps_b = np.load(f'./BIAS/mask/mask_on_b_0.npy')
     dl_unresolved_ps_b_2deg = np.load(f'./BIAS/mask/mask_C1_3_0.npy')
+    dl_unresolved_ps_3nside = np.load(f'./BIAS/mask/3nside_2deg_0.npy')
     dl_mask = np.load(f'./BIAS/mask/mask_itself_0.npy')
     dl_mask_apo = np.load(f'./BIAS/mask/apo_mask_itself_0.npy')
     print(f'{ell_arr.shape=}')
@@ -372,6 +373,7 @@ def test_mask():
     plt.plot(ell_arr, dl_unresolved_ps_b_2deg[:lmax_ell_arr], label='unresolved point sources on B C1 2deg', marker='.')
     plt.plot(ell_arr, dl_mask[:lmax_ell_arr], label='mask', marker='.')
     plt.plot(ell_arr, dl_mask_apo[:lmax_ell_arr], label='mask apo', marker='.')
+    plt.plot(ell_arr, dl_unresolved_ps_3nside[:lmax_ell_arr], label='mask 3nside', marker='.')
     # plt.plot(ell_arr, dl_unresolved_ps_ps[:lmax_ell_arr], label='unresolved ps ps', marker='.')
     # plt.plot(ell_arr, dl_unresolved_ps_no_apo[:lmax_ell_arr], label='unresolved ps no apo', marker='.')
 
@@ -403,11 +405,17 @@ def test_mask_cmb():
 
     c_list = [np.load(f"./BIAS/test_mask/c_{rlz_idx}.npy") for rlz_idx in rlz_range]
     c_apo_list = [np.load(f"./BIAS/test_mask/c_apo_{rlz_idx}.npy") for rlz_idx in rlz_range]
+    full_c_list = [np.load(f"./BIAS/test_mask/full_c_{rlz_idx}.npy") for rlz_idx in rlz_range]
     c_0 = np.load(f"./BIAS/test_mask/c_0.npy")
+    c_th_apo = np.load(f"./BIAS/test_mask/th_c_apo_0.npy")
+    c_th_ps = np.load(f"./BIAS/test_mask/th_c_ps_0.npy")
 
 
     c_mean = np.mean(c_list, axis=0)
+    c_std = np.std(c_list, axis=0) / np.sqrt(np.size(rlz_range))
     c_apo_mean = np.mean(c_apo_list, axis=0)
+    c_apo_std = np.std(c_apo_list, axis=0) / np.sqrt(np.size(rlz_range))
+    full_c_mean = np.mean(full_c_list, axis=0)
 
     # dl_unresolved_ps = np.load(f'./BIAS/unresolved_ps/0.npy')
     # dl_unresolved_ps_masking = np.load(f'./BIAS/mask/bias_all_0.npy')
@@ -438,8 +446,11 @@ def test_mask_cmb():
     # plt.plot(ell_arr, rmv_mean[:lmax_ell_arr], label='rmv', marker='.')
     plt.plot(ell_arr, c_mean[:lmax_ell_arr], label='c mean ps mask', marker='.')
     plt.plot(ell_arr, c_apo_mean[:lmax_ell_arr], label='c mean apo edge', marker='.')
+    plt.plot(ell_arr, full_c_mean[:lmax_ell_arr], label='c mean full', marker='.')
+    plt.plot(ell_arr, c_th_apo[:lmax_ell_arr], label='c th apo', marker='.', linestyle='--')
+    plt.plot(ell_arr, c_th_ps[:lmax_ell_arr], label='c th ps', marker='.', linestyle='--')
 
-    plt.plot(ell_arr, c_0[:lmax_ell_arr], label='c 0', marker='.', linestyle=':')
+    # plt.plot(ell_arr, c_0[:lmax_ell_arr], label='c 0', marker='.', linestyle=':')
     plt.plot(ell_arr, dl_in[:lmax_ell_arr], label='CMB', marker='.', color='black')
 
     plt.loglog()
@@ -449,10 +460,61 @@ def test_mask_cmb():
     plt.legend()
     plt.show()
 
+    fig = plt.figure(figsize=(8, 5))
+    ax = fig.add_axes((.1,.3,.8,.6))
+    ax.plot(ell_arr, c_th_apo[:lmax_ell_arr], 'b-', label='Input, bpw-convolved')
+    ax.plot(ell_arr, dl_in[:lmax_ell_arr], 'r--', label='Input, naive binning')
+    ax.errorbar(ell_arr, c_apo_mean[:lmax_ell_arr], yerr=c_apo_std[:lmax_ell_arr], fmt='k.', label=r'$C_\ell$ from sims')
+    ax.set_yscale('log')
+    ax.set_ylabel(r'$D_\ell$', fontsize=15)
+    ax.set_xticklabels([])
+    ax.legend()
+    ax.set_xlim(0, lmax_eff)
+    # ax.axvspan(2*nside, 3*nside, facecolor='#AAAAAA', alpha=0.5)
 
+    ax = fig.add_axes((.1,.1,.8,.2))
+    ax.errorbar(ell_arr, (c_apo_mean[:lmax_ell_arr]-dl_in[:lmax_ell_arr])/c_apo_std[:lmax_ell_arr], yerr=np.ones_like(ell_arr), fmt='r.--')
+    ax.errorbar(ell_arr, (c_apo_mean[:lmax_ell_arr]-c_th_apo[:lmax_ell_arr])/c_apo_std[:lmax_ell_arr], yerr=np.ones_like(ell_arr), fmt='b.')
+    ax.axhline(0, c='k', ls='--')
+    ax.set_ylim([-2.9, 2.9])
+    ax.set_xlim(0,lmax_eff)
+    # ax.axvspan(2*nside, 3*nside, facecolor='#AAAAAA', alpha=0.5)
+    ax.set_ylabel(r'$\Delta D_\ell/\sigma(D_\ell)$', fontsize=16)
+    ax.set_xlabel(r'$\ell$', fontsize=16);
+    plt.show()
 
+    fig = plt.figure(figsize=(8, 5))
+    ax = fig.add_axes((.1,.3,.8,.6))
+    ax.plot(ell_arr, c_th_ps[:lmax_ell_arr], 'b-', label='Input, bpw-convolved')
+    ax.plot(ell_arr, dl_in[:lmax_ell_arr], 'r--', label='Input, naive binning')
+    ax.errorbar(ell_arr, c_mean[:lmax_ell_arr], yerr=c_std[:lmax_ell_arr], fmt='k.', label=r'$C_\ell$ from sims')
+    ax.set_yscale('log')
+    ax.set_ylabel(r'$D_\ell$', fontsize=15)
+    ax.set_xticklabels([])
+    ax.legend()
+    ax.set_xlim(0, lmax_eff)
+    # ax.axvspan(2*nside, 3*nside, facecolor='#AAAAAA', alpha=0.5)
 
+    ax = fig.add_axes((.1,.1,.8,.2))
+    ax.errorbar(ell_arr, (c_mean[:lmax_ell_arr]-dl_in[:lmax_ell_arr])/c_std[:lmax_ell_arr], yerr=np.ones_like(ell_arr), fmt='r.--')
+    ax.errorbar(ell_arr, (c_mean[:lmax_ell_arr]-c_th_ps[:lmax_ell_arr])/c_std[:lmax_ell_arr], yerr=np.ones_like(ell_arr), fmt='b.')
+    ax.axhline(0, c='k', ls='--')
+    ax.set_ylim([-2.9, 2.9])
+    ax.set_xlim(0,lmax_eff)
+    # ax.axvspan(2*nside, 3*nside, facecolor='#AAAAAA', alpha=0.5)
+    ax.set_ylabel(r'$\Delta D_\ell/\sigma(D_\ell)$', fontsize=16)
+    ax.set_xlabel(r'$\ell$', fontsize=16);
+    plt.show()
  
+    # plt.figure(2)
+    # plt.plot(ell_arr, np.abs(c_apo_mean[:lmax_ell_arr]-c_mean[:lmax_ell_arr])/c_mean[:lmax_ell_arr], label='relative difference', marker='.')
+    # # plt.loglog()
+    # plt.xlabel(r"$\ell$")
+    # plt.ylabel(r"$difference D_\ell^{BB}$")
+    # plt.title(f"{freq=}GHz")
+    # plt.legend()
+    # plt.show()
+
 
 
 # test_correlation()

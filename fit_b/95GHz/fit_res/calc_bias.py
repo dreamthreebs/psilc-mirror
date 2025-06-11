@@ -291,9 +291,9 @@ def bias_mask_B():
     ps = np.load(f'../../../fitdata/2048/PS/{freq}/ps.npy')
     m_unresolved = np.load(f"../data/ps/unresolved_ps.npy")
 
-    ps_b = hp.alm2map(hp.map2alm(ps, lmax=lmax)[2], nside=nside)
+    ps_b = hp.alm2map(hp.map2alm(ps)[2], nside=nside)
 
-    mask_ps = 1 - np.load(f'../inpainting/mask_bias/C1_3.npy')
+    mask_ps = 1 - np.load(f'../inpainting/mask_bias/C1_2.npy')
 
     hp.orthview(mask_ps, rot=[100,50,0], half_sky=True)
     hp.orthview(m_unresolved[1], rot=[100,50,0], half_sky=True)
@@ -301,12 +301,12 @@ def bias_mask_B():
 
     # dl_bias_all = calc_dl_from_pol_map(m_q=ps[1], m_u=ps[2], bl=bl, apo_mask=ps_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
-    dl_unresolved = calc_dl_from_scalar_map(np.ones_like(ps_b), bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    dl_unresolved = calc_dl_from_scalar_map(ps_b, bl, apo_mask=mask_ps * apo_mask, bin_dl=bin_dl, masked_on_input=False)
     # dl_unresolved = calc_dl_from_pol_map(m_q=ps[1], m_u=ps[2], bl=bl, apo_mask=mask_ps * apo_mask, bin_dl=bin_dl, masked_on_input=False, purify_b=True)
 
     path_dl_qu_mask = Path(f'BIAS/mask')
     path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
-    np.save(path_dl_qu_mask/ Path(f'apo_mask_itself_{rlz_idx}.npy'), dl_unresolved)
+    np.save(path_dl_qu_mask/ Path(f'3nside_2deg_{rlz_idx}.npy'), dl_unresolved)
 
 def bias_mask():
     # calc bias after masking bias: pcfn - cfn
@@ -389,13 +389,25 @@ def test_cmb_bias_with_ps_mask():
     c_b = hp.alm2map(hp.map2alm(c, lmax=lmax)[2], nside=nside)
 
     mask_ps = 1 - np.load(f'../inpainting/mask_bias/C1_3.npy')
-    dl_c = calc_dl_from_scalar_map(c_b, bl, apo_mask=mask_ps * apo_mask, bin_dl=bin_dl, masked_on_input=False)
-    dl_c_apo = calc_dl_from_scalar_map(c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+
+    # dl_c = calc_dl_from_scalar_map(c_b, bl, apo_mask=mask_ps * apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_c_apo = calc_dl_from_scalar_map(c_b, bl, apo_mask=apo_mask, bin_dl=bin_dl, masked_on_input=False)
+    # dl_full_c = calc_dl_from_scalar_map(c_b, bl, apo_mask=np.ones_like(mask_ps), bin_dl=bin_dl, masked_on_input=False)
+    f = nmt.NmtField(apo_mask*mask_ps, [c_b], beam=bl, masked_on_input=False, lmax=lmax, lmax_mask=lmax)
+    w = nmt.NmtWorkspace.from_fields(f, f, bins=bin_dl)
+
+    cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_8k.npy').T
+    print(f'{cl_cmb.shape=}')
+    cl_true = cl_cmb[2,:lmax+1]
+
+    dl_th = w.decouple_cell(w.couple_cell([cl_true]))[0]
 
     path_dl_qu_mask = Path(f'BIAS/test_mask')
     path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
-    np.save(path_dl_qu_mask/ Path(f'c_{rlz_idx}.npy'), dl_c)
-    np.save(path_dl_qu_mask/ Path(f'c_apo_{rlz_idx}.npy'), dl_c_apo)
+    np.save(path_dl_qu_mask/ Path(f'th_c_ps_{rlz_idx}.npy'), dl_th)
+
+    # np.save(path_dl_qu_mask/ Path(f'c_apo_{rlz_idx}.npy'), dl_c_apo)
+    # np.save(path_dl_qu_mask/ Path(f'c_apo_{rlz_idx}.npy'), dl_c_apo)
 
 
 
