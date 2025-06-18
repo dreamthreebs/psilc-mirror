@@ -340,8 +340,11 @@ def plot_nilc():
     dl_in_ps_3deg = np.load(f'./dl_res4/mask/th_95_1deg_0.npy')
     dl_in_ps_bin = np.load(f'./dl_res4/mask/th_no_north_0.npy')
 
+    dl_in_std = np.load(f'./dl_res4/mask/th_std_apo_new_0.npy')
+
     res_pcfn = pcfn_mean - dl_in
     res_cfn = cfn_mean - dl_in
+    res_th = dl_in - dl_in
     res_rmv = rmv_mean - dl_in
     res_inp = inp_mean - dl_in
     res_masking_30 = masking_30_mean - dl_in_ps_bin
@@ -364,9 +367,10 @@ def plot_nilc():
     ax1.set_yscale('log')
     
     # Plot mean ± std
-    ax1.errorbar(ell_arr * 0.97, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='with-PS baseline', fmt='.', color='blue', capsize=s)
-    ax1.errorbar(ell_arr * 0.985, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='TF', fmt='.', color='green', capsize=s)
-    ax1.errorbar(ell_arr * 1.00, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='no-PS baseline', fmt='o', color='black', capsize=s, linestyle='-', markersize=3)
+    ax1.errorbar(ell_arr * 0.955, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='with-PS baseline', fmt='.', color='blue', capsize=s)
+    ax1.errorbar(ell_arr * 0.97, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='TF', fmt='.', color='green', capsize=s)
+    ax1.errorbar(ell_arr * 0.985, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='no-PS baseline', fmt='.', color='purple', capsize=s)
+    ax1.errorbar(ell_arr * 1.00, dl_in[:lmax_ell_arr], yerr=dl_in_std[:lmax_ell_arr], label='Fiducial CMB', fmt='o', color='black', capsize=s, linestyle='-', markersize=3)
     ax1.errorbar(ell_arr * 1.015, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='M-QU', fmt='.', color='orange', capsize=s)
     ax1.errorbar(ell_arr * 1.03, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='RI-B', fmt='.', color='red', capsize=s)
     
@@ -400,6 +404,7 @@ def plot_nilc():
         'PS + CMB + FG + NOISE': res_pcfn,
         'Template Fitting method': res_rmv,
         'CMB + FG + NOISE': res_cfn,
+        'Fiducial CMB': res_th,
         'Recycling + Inpaint on B': res_inp,
         'Mask on QU': res_ps_mask,
     }
@@ -408,6 +413,7 @@ def plot_nilc():
         'PS + CMB + FG + NOISE': pcfn_std,
         'Template Fitting method': rmv_std,
         'CMB + FG + NOISE': cfn_std,
+        'Fiducial CMB': dl_in_std,
         'Recycling + Inpaint on B': inp_std,
         'Mask on QU': ps_mask_std,
     }
@@ -415,7 +421,8 @@ def plot_nilc():
     colors = {
         'PS + CMB + FG + NOISE': 'blue',
         'Template Fitting method': 'green',
-        'CMB + FG + NOISE': 'black',
+        'CMB + FG + NOISE': 'purple',
+        'Fiducial CMB': 'black',
         'Recycling + Inpaint on B': 'red',
         'Mask on QU': 'orange',
     }
