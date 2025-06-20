@@ -4,6 +4,7 @@ import healpy as hp
 
 north = np.load('./northMask.npy')
 south = np.load('./southMask.npy')
-fg = np.load('./FG/145.npy')
-hp.mollview(fg[0])
+# fg = np.load('./FG/145.npy')
+# hp.mollview(fg[0])
+hp.orthview(north, rot=[100,50,0])
 plt.show()

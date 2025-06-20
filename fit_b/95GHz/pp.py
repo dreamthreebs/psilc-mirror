@@ -1218,6 +1218,7 @@ def smooth_new():
     rlz_idx = 0
     beam_out = 17
     mask = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3.npy')
+
     # mask_check = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
     def calc_smooth(sim_mode):
         n_inp = hp.read_map(f'./inpainting/output_m3_n_new/{rlz_idx}.fits')
@@ -1239,6 +1240,57 @@ def smooth_new():
 
     calc_smooth(sim_mode='std')
 
+def calc_bias():
+
+    rlz_idx = 0
+    beam_out = 17
+    bin_mask = np.load('../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3.npy')
+
+    df = pd.read_csv(f"./mask/{freq}_after_filter.csv")
+    flux_idx = 6
+    lon = np.rad2deg(df.at[flux_idx, 'lon'])
+    lat = np.rad2deg(df.at[flux_idx, 'lat'])
+    ps_resolved = np.load(f'./data/ps/resolved_ps.npy')
+    m_resolved_ps_q = ps_resolved[1].copy() * bin_mask
+    m_resolved_ps_u = ps_resolved[2].copy() * bin_mask
+
+    # ps_unresolved = np.load(f'../data/ps/unresolved_ps.npy')
+    # m_unresolved_ps_q = ps_unresolved[1].copy() * bin_mask
+    # m_unresolved_ps_u = ps_unresolved[2].copy() * bin_mask
+
+    # hp.orthview(m_resolved_ps_q, rot=[100,50,0], half_sky=True)
+    # hp.orthview(m_resolved_ps_u, rot=[100,50,0], half_sky=True)
+    # plt.show()
+    # hp.orthview(m_unresolved_ps_q, rot=[100,50,0], half_sky=True)
+    # hp.orthview(m_unresolved_ps_u, rot=[100,50,0], half_sky=True)
+    # plt.show()
+
+    # m_pcfn, m_cfn, _, _= gen_map_all(rlz_idx=rlz_idx, mode='std')
+    # np.save(f"./test_data/pcfn_{rlz_idx}.npy", m_pcfn)
+    # np.save(f"./test_data/cfn_{rlz_idx}.npy", m_cfn)
+
+    m_pcfn = np.load(f"./fit_res/test_data/pcfn_0.npy")
+    m_cfn = np.load(f"./fit_res/test_data/cfn_0.npy")
+
+    m_rmv_q = np.load(f'./fit_res/std/3sigma/map_q_{rlz_idx}.npy') * bin_mask
+    m_rmv_u = np.load(f'./fit_res/std/3sigma/map_u_{rlz_idx}.npy') * bin_mask
+
+    m_bias_model_q = m_pcfn[1].copy() * bin_mask - m_rmv_q - m_resolved_ps_q
+    m_bias_model_u = m_pcfn[2].copy() * bin_mask - m_rmv_u - m_resolved_ps_u
+    m_bias_all_q = m_rmv_q - m_cfn[1].copy() * bin_mask
+    m_bias_all_u = m_rmv_u - m_cfn[2].copy() * bin_mask
+
+    # hp.orthview(m_unresolved_ps_q, rot=[100,50,0], half_sky=True, title='bias unresolved ps')
+    hp.orthview(m_resolved_ps_q, rot=[100,50,0], half_sky=True, title='bias resolved ps')
+    hp.orthview(m_bias_all_q, rot=[100,50,0], half_sky=True, title='bias all q')
+    hp.orthview(m_bias_model_q, rot=[100,50,0], half_sky=True, title='bias model q')
+    plt.show()
+
+    # hp.gnomview(m_unresolved_ps_q, rot=[lon,lat,0],  title='unresolved ps')
+    hp.gnomview(m_resolved_ps_q, rot=[lon,lat,0],  title='resolved ps')
+    hp.gnomview(m_bias_all_q, rot=[lon,lat,0],  title='bias all q')
+    hp.gnomview(m_bias_model_q, rot=[lon,lat,0],  title='bias model q')
+    plt.show()
 
 
 
@@ -1270,7 +1322,8 @@ if __name__ == '__main__':
     # new_check_smooth_then_eblc()
     # new_check_smooth_then_eblc_cl()
 
-    smooth_new()
+    # smooth_new()
+    calc_bias()
     pass
 
 

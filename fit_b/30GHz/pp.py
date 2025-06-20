@@ -1197,6 +1197,53 @@ def smooth_new():
     calc_smooth(sim_mode='std')
 
 
+def smooth_eblc_rmv_bias():
+    rlz_idx = 0
+    beam_base = 17 # arcmin
+    mask = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3.npy')
+    # mask_for_cl = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_3APO_5.npy')
+    mask_eblc = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/BIN_C1_3.npy')
+    lmax_eblc = lmax
+    def _calc(sim_mode):
+
+        slope = np.load(f'../155GHz/slope_new/pcfn/{rlz_idx}.npy')
+
+        sm_n = smooth_tqu(map_in=n*mask, lmax=lmax, beam_in=beam, beam_out=beam_base)
+        obj_n = EBLeakageCorrection(m=sm_n, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
+        _, _, cln_n = obj_n.run_eblc()
+        Path(f'./fit_res/sm_new/{sim_mode}/n').mkdir(exist_ok=True, parents=True)
+        np.save(f'./fit_res/sm_new/{sim_mode}/n/{rlz_idx}.npy', cln_n)
+
+        del obj_n
+
+        rmv_q = np.load(f'./fit_res/{sim_mode}/3sigma/map_q_{rlz_idx}.npy') * mask
+        rmv_u = np.load(f'./fit_res/{sim_mode}/3sigma/map_u_{rlz_idx}.npy') * mask
+        rmv_t = np.zeros_like(rmv_q)
+        sm_rmv = smooth_tqu(map_in=np.asarray([rmv_t, rmv_q, rmv_u]), lmax=lmax, beam_in=beam, beam_out=beam_base)
+
+        obj_rmv = EBLeakageCorrection(m=sm_rmv, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
+        _, _, cln_rmv = obj_rmv.run_eblc()
+        Path(f'./fit_res/sm_new/{sim_mode}/rmv').mkdir(exist_ok=True, parents=True)
+        np.save(f'./fit_res/sm_new/{sim_mode}/rmv/{rlz_idx}.npy', cln_rmv)
+
+        del obj_rmv
+
+        n_rmv_q = np.load(f'./fit_res/noise/3sigma/map_q_{rlz_idx}.npy') * mask
+        n_rmv_u = np.load(f'./fit_res/noise/3sigma/map_u_{rlz_idx}.npy') * mask
+        n_rmv_t = np.zeros_like(n_rmv_q)
+        sm_n_rmv = smooth_tqu(map_in=np.asarray([n_rmv_t, n_rmv_q, n_rmv_u]), lmax=lmax, beam_in=beam, beam_out=beam_base)
+
+        obj_n_rmv = EBLeakageCorrection(m=sm_n_rmv, lmax=lmax_eblc, nside=nside, mask=mask_eblc, post_mask=mask_eblc, slope_in=slope)
+        _, _, cln_n_rmv = obj_n_rmv.run_eblc()
+
+        Path(f'./fit_res/sm_new/{sim_mode}/n_rmv').mkdir(exist_ok=True, parents=True)
+        np.save(f'./fit_res/sm_new/{sim_mode}/n_rmv/{rlz_idx}.npy', cln_n_rmv)
+
+        del obj_n_rmv
+
+    _calc(sim_mode='std')
+
+
 
 
 if __name__ == '__main__':

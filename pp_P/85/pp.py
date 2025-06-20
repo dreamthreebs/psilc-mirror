@@ -177,12 +177,61 @@ def save_fit_res_to_csv():
         df_mask.to_csv(path_csv / Path(f'{rlz_idx}.csv'), index=False)
 
 
+def save_pcfn_fit_res_to_csv():
+
+    for rlz_idx in range(100):
+        print(f'{rlz_idx=}')
+        df_mask = pd.read_csv(f'../mask/mask_csv/{freq}.csv')
+        q_amp_true = FitPolPS.mJy_to_uKCMB(1, freq) * df_mask["qflux"].to_numpy()
+        u_amp_true = FitPolPS.mJy_to_uKCMB(1, freq) * df_mask["uflux"].to_numpy()
+
+        num_ps_arr = np.zeros(700)
+        q_amp_arr = np.zeros(700)
+        q_amp_err_arr = np.zeros(700)
+        u_amp_arr = np.zeros(700)
+        u_amp_err_arr = np.zeros(700)
+        chi2dof_arr = np.zeros(700)
+        fit_err_q_arr = np.zeros(700)
+        fit_err_u_arr = np.zeros(700)
+        for flux_idx in range(n_flux_idx):
+
+            # if flux_idx in None:
+            #     continue
+
+            print(f'{flux_idx=}')
+            num_ps_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/num_ps.npy')[rlz_idx]
+            q_amp_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/q_amp.npy')[rlz_idx]
+            q_amp_err_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/q_amp_err.npy')[rlz_idx]
+            u_amp_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/u_amp.npy')[rlz_idx]
+            u_amp_err_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/u_amp_err.npy')[rlz_idx]
+            chi2dof_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/chi2dof.npy')[rlz_idx]
+            fit_err_q_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/fit_error_q.npy')[rlz_idx]
+            fit_err_u_arr[flux_idx] = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/fit_error_u.npy')[rlz_idx]
+
+        df_mask['q_amp_true'] = q_amp_true
+        df_mask['q_amp_fit'] = q_amp_arr
+        df_mask['q_amp_err'] = q_amp_err_arr
+        df_mask['fit_error_q'] = fit_err_q_arr
+
+        df_mask['u_amp_true'] = u_amp_true
+        df_mask['u_amp_fit'] = u_amp_arr
+        df_mask['u_amp_err'] = u_amp_err_arr
+        df_mask['fit_error_u'] = fit_err_u_arr
+
+        df_mask['chi2dof'] = chi2dof_arr
+        df_mask['num_ps'] = num_ps_arr
+        path_csv = Path('./fit_res/2048/PSCMBFGNOISE/csv')
+        path_csv.mkdir(parents=True, exist_ok=True)
+        df_mask.to_csv(path_csv / Path(f'{rlz_idx}.csv'), index=False)
+
+
 # filter_df()
 # calc_number()
 # check_num_ps_overlap()
 # get_disc_pix_ind()
 # calc_cov()
-save_fit_res_to_csv()
+# save_fit_res_to_csv()
+save_pcfn_fit_res_to_csv()
 
 
 

@@ -133,10 +133,10 @@ class GetResidual:
                     print(f'this point has hesse_err')
                     continue
 
-                pcfn_q_amp = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/q_amp.npy')
-                pcfn_u_amp = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/u_amp.npy')
-                pcfn_q_amp_err = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/q_amp_err.npy')
-                pcfn_u_amp_err = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/u_amp_err.npy')
+                pcfn_q_amp = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/q_amp.npy')
+                pcfn_u_amp = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/u_amp.npy')
+                pcfn_q_amp_err = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/q_amp_err.npy')
+                pcfn_u_amp_err = np.load(f'./fit_res/2048/PSCMBFGNOISE/1.5/idx_{flux_idx}/u_amp_err.npy')
                 print(f'{pcfn_q_amp[idx_rlz]=}, {pcfn_q_amp_err[idx_rlz]=}, {pcfn_u_amp[idx_rlz]=}, {pcfn_u_amp_err[idx_rlz]=}')
 
                 if (np.abs(pcfn_q_amp[idx_rlz]) < threshold * pcfn_q_amp_err[idx_rlz]) and (np.abs(pcfn_u_amp[idx_rlz]) < threshold * pcfn_u_amp_err[idx_rlz]):

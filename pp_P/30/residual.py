@@ -103,6 +103,93 @@ class GetResidual:
             np.save(path_for_res_map / Path(f'map_u_{idx_rlz}.npy'), res_u)
             np.save(path_for_res_map / Path(f'mask_{idx_rlz}.npy'), np.array(mask_list))
 
+    def pcfn_res(self, mask, threshold=2):
+        overlap_arr = np.load('./overlap_ps.npy')
+        hesse_err_arr = np.array(None)
+        print(f'{overlap_arr=}')
+        for idx_rlz in range(100):
+            print(f'{idx_rlz=}')
+
+            m_pcfn = np.load(f'../../fitdata/synthesis_data/2048/PSCMBFGNOISE/{self.freq}/{idx_rlz}.npy')
+            m_pcfn_q = m_pcfn[1].copy()
+            m_pcfn_u = m_pcfn[2].copy()
+
+            m_cfn = np.load(f'../../fitdata/synthesis_data/2048/CMBFGNOISE/{self.freq}/{idx_rlz}.npy')
+            m_cfn_q = m_cfn[1].copy()
+            m_cfn_u = m_cfn[2].copy()
+
+            de_ps_q = m_pcfn_q.copy()
+            de_ps_u = m_pcfn_u.copy()
+            mask_list = []
+
+            for flux_idx in range(135):
+                print(f'{flux_idx=}')
+
+                if np.in1d(flux_idx, overlap_arr):
+                    print(f'this point overlap with other point')
+                    continue
+
+                if np.in1d(flux_idx, hesse_err_arr):
+                    print(f'this point has hesse_err')
+                    continue
+
+                pcfn_q_amp = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/q_amp.npy')
+                pcfn_u_amp = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/u_amp.npy')
+                pcfn_q_amp_err = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/q_amp_err.npy')
+                pcfn_u_amp_err = np.load(f'./fit_res/2048/PSCMBNOISE/1.5/idx_{flux_idx}/u_amp_err.npy')
+                print(f'{pcfn_q_amp[idx_rlz]=}, {pcfn_q_amp_err[idx_rlz]=}, {pcfn_u_amp[idx_rlz]=}, {pcfn_u_amp_err[idx_rlz]=}')
+
+                if (np.abs(pcfn_q_amp[idx_rlz]) < threshold * pcfn_q_amp_err[idx_rlz]) and (np.abs(pcfn_u_amp[idx_rlz]) < threshold * pcfn_u_amp_err[idx_rlz]):
+                    print(f'smaller than threshold:{threshold}, pass this index')
+                    continue
+
+                mask_list.append(flux_idx)
+
+                pcfn_fit_lon = np.rad2deg(self.df_mask.at[flux_idx, 'lon'])
+                pcfn_fit_lat = np.rad2deg(self.df_mask.at[flux_idx, 'lat'])
+
+                ctr0_pix = hp.ang2pix(nside=self.nside, theta=pcfn_fit_lon, phi=pcfn_fit_lat, lonlat=True)
+                ctr0_vec = np.array(hp.pix2vec(nside=self.nside, ipix=ctr0_pix)).astype(np.float64)
+
+                ipix_fit = hp.query_disc(nside=self.nside, vec=ctr0_vec, radius=self.radius_factor * np.deg2rad(self.beam) / 60)
+                vec_around = np.array(hp.pix2vec(nside=self.nside, ipix=ipix_fit.astype(int))).astype(np.float64)
+                _, phi_around = hp.pix2ang(nside=self.nside, ipix=ipix_fit)
+                pcfn_vec = np.asarray(hp.ang2vec(theta=pcfn_fit_lon, phi=pcfn_fit_lat, lonlat=True))
+                cos_theta = pcfn_vec @ vec_around
+                cos_theta = np.clip(cos_theta, -1, 1)
+                theta = np.arccos(cos_theta) # (n_rlz, n_pix_for_fit)
+
+                profile = 1 / (2 * np.pi * self.sigma**2) * np.exp(- (theta)**2 / (2 * self.sigma**2))
+                P = (pcfn_q_amp[idx_rlz] + 1j * pcfn_u_amp[idx_rlz]) * np.exp(2j * self.df_mask.at[flux_idx, 'lon'])
+                lugwid_P = P * profile
+                QU = lugwid_P * np.exp(-2j * phi_around)
+                Q = QU.real
+                U = QU.imag
+
+                # hp.gnomview(m_cfn_q, rot=[pcfn_fit_lon, pcfn_fit_lat, 0], xsize=30, ysize=30, title='fg cmb noise q')
+                # hp.gnomview(m_cfn_u, rot=[pcfn_fit_lon, pcfn_fit_lat, 0], xsize=30, ysize=30, title='fg cmb noise u')
+                # plt.show()
+
+                # hp.gnomview(de_ps_q, rot=[pcfn_fit_lon, pcfn_fit_lat, 0], xsize=30, ysize=30, title='before removal q')
+                # hp.gnomview(de_ps_u, rot=[pcfn_fit_lon, pcfn_fit_lat, 0], xsize=30, ysize=30, title='before removal u')
+                # plt.show()
+
+                de_ps_q[ipix_fit] = de_ps_q[ipix_fit].copy() - Q
+                de_ps_u[ipix_fit] = de_ps_u[ipix_fit].copy() - U
+
+                # hp.gnomview(de_ps_q, rot=[pcfn_fit_lon, pcfn_fit_lat, 0], xsize=30, ysize=30, title='after removal q')
+                # hp.gnomview(de_ps_u, rot=[pcfn_fit_lon, pcfn_fit_lat, 0], xsize=30, ysize=30, title='after removal u')
+                # plt.show()
+
+            res_q = np.copy(de_ps_q)
+            res_u = np.copy(de_ps_u)
+
+            path_for_res_map = Path(f'./fit_res/2048/pcfn_after_removal/{threshold}sigma')
+            path_for_res_map.mkdir(parents=True, exist_ok=True)
+            np.save(path_for_res_map / Path(f'map_q_{idx_rlz}.npy'), res_q)
+            np.save(path_for_res_map / Path(f'map_u_{idx_rlz}.npy'), res_u)
+            np.save(path_for_res_map / Path(f'mask_{idx_rlz}.npy'), np.array(mask_list))
+
 def main():
     freq = 30
     nside = 2048
@@ -112,7 +199,8 @@ def main():
     mask = np.load('../../src/mask/north/BINMASKG2048.npy')
 
     obj = GetResidual(freq=freq, df_mask=df_mask, nside=nside, beam=beam, radius_factor=radius_factor)
-    obj.pcn_res(mask, threshold=3)
+    # obj.pcn_res(mask, threshold=3)
+    obj.pcfn_res(mask, threshold=3)
 
 
 main()

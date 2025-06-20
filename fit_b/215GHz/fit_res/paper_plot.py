@@ -88,8 +88,8 @@ def mean_and_std(sim_mode):
         n_rmv = np.load(f'./pcfn_dl4/RMV/n/{rlz_idx}.npy')
         rmv_qu = np.load(f'./pcfn_dl4/RMV/{sim_mode}/{rlz_idx}.npy') - n_rmv
 
-        n_ps_mask = np.load(f'./pcfn_dl4/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
-        ps_mask = np.load(f'./pcfn_dl4/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
+        n_ps_mask = np.load(f'./pcfn_dl4/MASK/noise/{rlz_idx}.npy')
+        ps_mask = np.load(f'./pcfn_dl4/MASK/STD/{rlz_idx}.npy') - n_ps_mask
 
         n_inp = np.load(f'./pcfn_dl4/INP/noise/{rlz_idx}.npy')
         inp = np.load(f'./pcfn_dl4/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
@@ -262,9 +262,9 @@ ax_sub.legend(handles=[res_line, std_line])
 plt.tight_layout()
 plt.subplots_adjust(hspace=0)
 
-path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323')
-path_fig.mkdir(exist_ok=True, parents=True)
-plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
+# path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323')
+# path_fig.mkdir(exist_ok=True, parents=True)
+# plt.savefig(path_fig / Path(f'{freq}GHz.png'), dpi=300)
 
 # Show plot
 plt.show()

@@ -8,8 +8,10 @@ from camb import model, initialpower
 camb_path = os.path.dirname(camb.__file__)
 print(f'{camb_path}')
 print('Using CAMB %s installed at %s'%(camb.__version__,os.path.dirname(camb.__file__)))
-pars = camb.read_ini(os.path.join(camb_path,'inifiles','tensor.ini'))
-pars.set_for_lmax(2000, lens_potential_accuracy=2);
+# pars = camb.read_ini(os.path.join(camb_path,'inifiles','tensor.ini'))
+pars = camb.read_ini(os.path.join(camb_path,'inifiles','tensor_high_l.ini'))
+# pars.set_for_lmax(2000, lens_potential_accuracy=2);
+pars.set_for_lmax(8000, lens_potential_accuracy=2);
 
 results = camb.get_results(pars)
 powers =results.get_cmb_power_spectra(pars, CMB_unit='muK', raw_cl=True)
@@ -28,6 +30,8 @@ plt.ylabel('Dl')
 
 plt.show()
 
-np.save('./data/cmbcl.npy', totcl[:2000,:])
+# np.save('./data/cmbcl.npy', totcl[:2000,:])
+np.save('./cmbdata/cmbcl_r_1.npy', unlensedcl[:8001,:])
+# np.save('./cmbdata/cmbcl_r_1.npy', totcl[:8001,:])
 
-
+# the path of inifiles are in /afs/ihep.ac.cn/users/w/wangyiming25/intel/oneapi/intelpython/latest/envs/ps/lib/python3.11/site-packages/camb

@@ -87,7 +87,7 @@ base_path = f'./pcfn_dl4/{sim_mode}'
 n_qu_list = [np.load(f'{base_path}/n/{rlz_idx}.npy') for rlz_idx in rlz_range]
 
 pcfn_list = [np.load(f'{base_path}/pcfn/{rlz_idx}.npy') for rlz_idx, n_qu in zip(rlz_range, n_qu_list)]
-# cfn_list = [np.load(f'{base_path}/cfn/{rlz_idx}.npy') - n_qu for rlz_idx, n_qu in zip(rlz_range, n_qu_list)]
+cfn_list = [np.load(f'{base_path}/cfn/{rlz_idx}.npy') - n_qu for rlz_idx, n_qu in zip(rlz_range, n_qu_list)]
 # cf_list = [cf for cf in cf_list]
 
 rmv_bias_all_list = [
@@ -145,7 +145,7 @@ inp_bias_all_mean = np.mean(inp_bias_all_list, axis=0)
 # test_mean = np.mean(test_list, axis=0)
 
 # pcfn_std = np.std(pcfn_list, axis=0)
-# cfn_std = np.std(cfn_list, axis=0)
+cfn_std = np.std(cfn_list, axis=0)
 # cf_std = np.std(cf_list, axis=0)
 
 # rmv_std = np.std(rmv_list, axis=0)
@@ -212,8 +212,17 @@ plt.plot(ell_arr, dl_ps[:lmax_ell_arr], label='all ps contribution', marker='.')
 plt.plot(ell_arr, rmv_bias_model_mean[:lmax_ell_arr], label='bias rmv from model', marker='.')
 plt.plot(ell_arr, rmv_bias_all_mean[:lmax_ell_arr], label='bias rmv model + unresolved ps', marker='.')
 plt.plot(ell_arr, rmv_bias_all_mean[:lmax_ell_arr] - rmv_bias_model_mean[:lmax_ell_arr], label='bias rmv unresolved ps', marker='.')
-plt.plot(ell_arr, inp_bias[:lmax_ell_arr], label='bias inp', marker='.')
 plt.plot(ell_arr, dl_mask[:lmax_ell_arr], label='bias mask', marker='.')
+for i in range(len(inp_bias) - 1):
+    y0, y1 = inp_bias[i], inp_bias[i + 1]
+    if y0 == 0 or y1 == 0:
+        continue  # log-log 不允许 0 值，跳过
+    style = '-' if y0 > 0 else '--'
+    label = 'bias inp' if i == 0 else None  # 只在起始点加 label
+    plt.plot(ell_arr[i:i+2], np.abs(inp_bias[i:i+2]), linestyle=style, color='purple', label=label)
+
+# plt.fill_between(ell_arr, -cfn_std[:lmax_ell_arr], cfn_std[:lmax_ell_arr], alpha=0.4, color='grey')
+
 plt.loglog()
 plt.xlabel(r"$\ell$")
 plt.ylabel(r"$D_\ell^{BB}$")

@@ -92,11 +92,14 @@ def mean_and_std(sim_mode):
         n_ps_mask = np.load(f'./pcfn_dl4/PS_MASK/{sim_mode}/n/{rlz_idx}.npy')
         ps_mask = np.load(f'./pcfn_dl4/PS_MASK/{sim_mode}/pcfn/{rlz_idx}.npy') - n_ps_mask
 
+        # n_ps_mask = np.load(f'./pcfn_dl4/MASK/noise/{rlz_idx}.npy')
+        # ps_mask = np.load(f'./pcfn_dl4/MASK/STD/{rlz_idx}.npy') - n_ps_mask
+
         n_inp = np.load(f'./pcfn_dl4/INP/noise/{rlz_idx}.npy')
         inp = np.load(f'./pcfn_dl4/INP/{sim_mode}/{rlz_idx}.npy') - n_inp
 
         n_masking = np.load(f"./pcfn_dl4/MASK/noise/{rlz_idx}.npy")
-        masking = np.load(f"./pcfn_dl4/MASK/STD/{rlz_idx}.npy") - n_masking
+        masking = np.load(f"./pcfn_dl4/MASK/STD/{rlz_idx}.npy")
 
         # plt.loglog(ell_arr, pcfn, label='pcfn')
         # plt.loglog(ell_arr, cfn, label='cfn')
@@ -164,20 +167,20 @@ pcfn_mean, cfn_mean, cf_mean, rmv_mean, ps_mask_mean, inp_mean, masking_mean, pc
 print(f'{ell_arr.shape=}')
 print(f'{pcfn_std.shape=}')
 
-plt.figure(2)
-plt.scatter(ell_arr, pcfn_std, label='pcfn', marker='.')
-plt.scatter(ell_arr, cfn_std, label='cfn', marker='.')
-plt.scatter(ell_arr, cf_std, label='cf', marker='.')
-plt.scatter(ell_arr, rmv_std, label='rmv', marker='.')
-plt.scatter(ell_arr, ps_mask_std, label='ps_mask', marker='.')
-plt.scatter(ell_arr, inp_std, label='inp', marker='.')
-plt.xlabel('$\\ell$')
-plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
+# plt.figure(2)
+# plt.scatter(ell_arr, pcfn_std, label='pcfn', marker='.')
+# plt.scatter(ell_arr, cfn_std, label='cfn', marker='.')
+# plt.scatter(ell_arr, cf_std, label='cf', marker='.')
+# plt.scatter(ell_arr, rmv_std, label='rmv', marker='.')
+# plt.scatter(ell_arr, ps_mask_std, label='ps_mask', marker='.')
+# plt.scatter(ell_arr, inp_std, label='inp', marker='.')
+# plt.xlabel('$\\ell$')
+# plt.ylabel('$D_\\ell^{BB} [\mu K^2]$')
 
-plt.loglog()
-plt.legend()
-plt.title('standard deviation')
-plt.show()
+# plt.loglog()
+# plt.legend()
+# plt.title('standard deviation')
+# plt.show()
 
 lmax_eff = calc_lmax(beam=beam)
 lmax_ell_arr = find_left_nearest_index_np(ell_arr, target=lmax_eff)
@@ -191,9 +194,9 @@ l = np.arange(lmax_eff+1)
 dl_in = bin_dl.bin_cell(cl_cmb[2,:lmax+1])
 
 # Create figure with 2 subplots (main and subfigure), sharing the x-axis
-fig, (ax_main, ax_sub) = plt.subplots(2, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+fig, (ax_main, ax_sub) = plt.subplots(2, 1, figsize=(8, 7), sharex=True, gridspec_kw={'height_ratios': [1.5, 1]})
 
-s = 5
+s = 0
 
 # Set the y-axis to logarithmic scale for both the main plot and subfigure
 ax_main.set_yscale('log')
@@ -203,61 +206,61 @@ ax_sub.set_xscale('log')
 
 
 # Plot mean values in the main axis (no error bars here)
-ax_main.errorbar(ell_arr*0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='with-PS baseline', fmt='.', color='blue')
-ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='no-PS baseline', fmt='.', color='purple')
-ax_main.plot(ell_arr, dl_in[:lmax_ell_arr], label='Fiducial CMB', color='black')
-ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='TF', fmt='.', color='green')
-ax_main.errorbar(ell_arr*1.015, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='M-QU', fmt='.', color='orange')
-ax_main.errorbar(ell_arr*1.025, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='RI-B', fmt='.', color='red')
-ax_main.errorbar(ell_arr*1.03, masking_mean[:lmax_ell_arr], yerr=masking_std[:lmax_ell_arr], label='MASK', fmt='.', color='yellow')
+ax_main.errorbar(ell_arr*0.97, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='with-PS baseline', fmt='.', color='blue', capsize=s)
+ax_main.errorbar(ell_arr*0.985, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='TF', fmt='.', color='green', capsize=s)
+ax_main.errorbar(ell_arr*1, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='no-PS baseline', fmt='.', color='black', capsize=s)
+# ax_main.plot(ell_arr, dl_in[:lmax_ell_arr], label='Fiducial CMB', color='black')
+ax_main.errorbar(ell_arr*1.015, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='M-QU', fmt='.', color='orange', capsize=s)
+ax_main.errorbar(ell_arr*1.03, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='RI-B', fmt='.', color='red', capsize=s)
+# ax_main.errorbar(ell_arr*1.03, masking_mean[:lmax_ell_arr], yerr=masking_std[:lmax_ell_arr], label='MASK', fmt='.', color='yellow')
 # ax_main.plot(l, l*(l+1)*cl_cmb[2,:lmax_eff+1]/(2*np.pi), label='CMB input', color='black')
 
 
 # Set labels and title for the main plot
 ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
-ax_main.set_xlim(58, lmax_eff)
-ax_main.set_ylim(1e-3, 2e-1)
+ax_main.set_xlim(55, lmax_eff*1.01)
+# ax_main.set_ylim(1e-3, 2e-1)
 ax_main.set_title(f'Debiased power spectra {freq}GHz')
-ax_main.legend()
+ax_main.legend(loc='upper left')
 
-res_pcfn = np.abs(pcfn_mean - dl_in)
-res_cfn = np.abs(cfn_mean - dl_in)
-res_rmv = np.abs(rmv_mean - dl_in)
-res_inp = np.abs(inp_mean - dl_in)
-res_ps_mask = np.abs(ps_mask_mean - dl_in)
-res_masking = np.abs(masking_mean - dl_in)
+res_pcfn = pcfn_mean - dl_in
+res_cfn = cfn_mean - dl_in
+res_rmv = rmv_mean - dl_in
+res_inp = inp_mean - dl_in
+res_ps_mask = ps_mask_mean - dl_in
+res_masking = masking_mean - dl_in
 
-res_line = mlines.Line2D([], [], color='black', linestyle='-', label='Residual')
-std_line = mlines.Line2D([], [], color='black', linestyle=':', label='Std Deviation')
+# res_line = mlines.Line2D([], [], color='black', linestyle='-', label='Residual')
+# std_line = mlines.Line2D([], [], color='black', linestyle=':', label='Std Deviation')
 
 ax_sub.plot(ell_arr, res_pcfn[:lmax_ell_arr], label='PS + CMB + FG + NOISE', marker='.', color='blue')
-ax_sub.plot(ell_arr, res_cfn[:lmax_ell_arr], label='CMB + FG + NOISE', marker='.', color='purple')
 ax_sub.plot(ell_arr, res_rmv[:lmax_ell_arr], label='Template Fitting method', marker='.', color='green')
+ax_sub.plot(ell_arr, res_cfn[:lmax_ell_arr], label='CMB + FG + NOISE', marker='.', color='black')
 ax_sub.plot(ell_arr, res_inp[:lmax_ell_arr], label='Recycling + Inpaint on B', marker='.', color='red')
 ax_sub.plot(ell_arr, res_ps_mask[:lmax_ell_arr], label='Mask on QU', marker='.', color='orange')
-ax_sub.plot(ell_arr, res_masking[:lmax_ell_arr], label='Masking', marker='.', color='yellow')
+# ax_sub.plot(ell_arr, res_masking[:lmax_ell_arr], label='Masking', marker='.', color='yellow')
 
-# Plot standard deviation in the subfigure (using scatter with no error bars)
-ax_sub.plot(ell_arr, pcfn_std[:lmax_ell_arr], label='PS + CMB + FG + NOISE', color='blue', marker='.', linestyle=':')
-ax_sub.plot(ell_arr, cfn_std[:lmax_ell_arr], label='CMB + FG + NOISE', color='purple', marker='.', linestyle=':')
-ax_sub.plot(ell_arr, rmv_std[:lmax_ell_arr], label='Template Fitting method', color='green', marker='.', linestyle=':')
-ax_sub.plot(ell_arr, ps_mask_std[:lmax_ell_arr], label='Mask on QU', color='orange', marker='.', linestyle=':')
-ax_sub.plot(ell_arr, inp_std[:lmax_ell_arr], label='Recycling + Inpaint on B', color='red', marker='.', linestyle=':')
-ax_sub.plot(ell_arr, masking_std[:lmax_ell_arr], label='masking', color='yellow', marker='.', linestyle=':')
+# # Plot standard deviation in the subfigure (using scatter with no error bars)
+# ax_sub.plot(ell_arr, pcfn_std[:lmax_ell_arr], label='PS + CMB + FG + NOISE', color='blue', marker='.', linestyle=':')
+# ax_sub.plot(ell_arr, rmv_std[:lmax_ell_arr], label='Template Fitting method', color='green', marker='.', linestyle=':')
+# ax_sub.plot(ell_arr, cfn_std[:lmax_ell_arr], label='CMB + FG + NOISE', color='black', marker='.', linestyle=':')
+# ax_sub.plot(ell_arr, ps_mask_std[:lmax_ell_arr], label='Mask on QU', color='orange', marker='.', linestyle=':')
+# ax_sub.plot(ell_arr, inp_std[:lmax_ell_arr], label='Recycling + Inpaint on B', color='red', marker='.', linestyle=':')
+# # ax_sub.plot(ell_arr, masking_std[:lmax_ell_arr], label='masking', color='yellow', marker='.', linestyle=':')
 
 label_size = 10
 ax_main.tick_params(axis='both', which='major', labelsize=label_size)
 ax_main.tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
 ax_main.tick_params(bottom=True, top=True, left=True, right=True, which = "minor", direction="in", length=5, width=1.5);
-# ax_main.grid(which='major', linestyle='-', linewidth=2)
-# ax_main.grid(which='minor', linestyle='dashed', linewidth=0.9)
+ax_main.grid(which='major', linestyle='-', linewidth=2)
+ax_main.grid(which='minor', linestyle='dashed', linewidth=0.9)
 for axis in ['top','bottom','left','right']:
     ax_main.spines[axis].set_linewidth(2)
 
 ax_sub.tick_params(axis='both', which='major', labelsize=label_size)
 ax_sub.tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
 ax_sub.tick_params(bottom=True, top=True, left=True, right=True, which = "minor", direction="in", length=5, width=1.5);
-# ax_sub.grid(which='major', linestyle='-', linewidth=2)
+ax_sub.grid(which='major', linestyle='-', linewidth=2)
 # ax_sub.grid(which='minor', linestyle='dashed', linewidth=0.9)
 for axis in ['top','bottom','left','right']:
     ax_sub.spines[axis].set_linewidth(2)
@@ -270,7 +273,7 @@ ax_sub.set_ylabel('Residual and Std Deviation')
     # Set labels for the subfigure (only xlabel here)
 ax_sub.set_xlabel('$\\ell$')
 ax_sub.set_ylabel('Residual and Std Deviation')
-ax_sub.legend(handles=[res_line, std_line])
+# ax_sub.legend(handles=[res_line, std_line], loc='lower left')
 
 # Adjust layout for better spacing
 plt.tight_layout()

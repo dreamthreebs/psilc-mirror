@@ -55,15 +55,28 @@ cn_u = cn[2].copy()
 df = pd.read_csv(f'../../../mask/mask_csv/{freq}.csv')
 
 fig_size = 200
-q_min = -25
-q_max = 25
-u_min = -25
-u_max = 25
 
 flux_idx = 2
 lon = np.rad2deg(df.at[flux_idx, 'lon'])
 lat = np.rad2deg(df.at[flux_idx, 'lat'])
 print(f'{lon=}, {lat=}')
+
+m_proj_cn_q = hp.gnomview(cn_q, rot=[lon, lat, 0], title='cn q', xsize=fig_size, return_projected_map=True)
+plt.show()
+q_min = -2.5 * np.std(m_proj_cn_q)
+q_max = 2.5 * np.std(m_proj_cn_q)
+
+m_proj_cn_u = hp.gnomview(cn_u, rot=[lon, lat, 0], title='cn u', xsize=fig_size, return_projected_map=True)
+plt.show()
+u_min = -2.5 * np.std(m_proj_cn_u)
+u_max = 2.5 * np.std(m_proj_cn_u)
+
+# q_min = -25
+# q_max = 25
+# u_min = -25
+# u_max = 25
+
+
 
 plt.figure(1)
 hp.gnomview(pcn_q, rot=[lon, lat, 0], title='pcn q', xsize=fig_size, ysize=fig_size, min=q_min, max=q_max, sub=231)

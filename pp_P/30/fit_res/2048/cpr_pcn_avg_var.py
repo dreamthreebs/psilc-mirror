@@ -225,18 +225,18 @@ inp_eb_rmse = np.sqrt(inp_eb_std**2 + (inp_eb_mean - cn_mean)**2)
 inp_qu_rmse = np.sqrt(inp_qu_std**2 + (inp_qu_mean - cn_mean)**2)
 ps_mask_rmse = np.sqrt(ps_mask_std**2 + (ps_mask_mean - cn_mean)**2)
 
-pcn_rmse_ratio = np.sum(pcn_rmse[1:7] / cn_mean[1:7])
+pcn_rmse_ratio = np.sum(pcn_rmse[6:8] / cn_mean[6:8])
 print(f'{pcn_rmse_ratio=}')
-rmv_rmse_ratio = np.sum(rmv_rmse[1:7] / cn_mean[1:7])
+rmv_rmse_ratio = np.sum(rmv_rmse[6:8] / cn_mean[6:8])
 print(f'{rmv_rmse_ratio=}')
 
-inp_eb_rmse_ratio = np.sum(inp_eb_rmse[1:7] / cn_mean[1:7])
+inp_eb_rmse_ratio = np.sum(inp_eb_rmse[6:8] / cn_mean[6:8])
 print(f'{inp_eb_rmse_ratio=}')
 
-inp_qu_rmse_ratio = np.sum(inp_qu_rmse[1:7] / cn_mean[1:7])
+inp_qu_rmse_ratio = np.sum(inp_qu_rmse[6:8] / cn_mean[6:8])
 print(f'{inp_qu_rmse_ratio=}')
 
-ps_mask_rmse_ratio = np.sum(ps_mask_rmse[1:7] / cn_mean[1:7])
+ps_mask_rmse_ratio = np.sum(ps_mask_rmse[6:8] / cn_mean[6:8])
 print(f'{ps_mask_rmse_ratio=}')
 
 plt.scatter(ell_arr, pcn_rmse, label='pcn ', marker='.')

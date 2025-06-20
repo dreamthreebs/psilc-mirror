@@ -347,8 +347,8 @@ if __name__ == "__main__":
     # do_nilc()
     # do_nilc_eblc()
     # do_nilc_new()
-    # check_do_pcfn()
-    gen_fiducial_cmb()
+    check_do_pcfn()
+    # gen_fiducial_cmb()
     # gen_fiducial_ps()
 
     pass

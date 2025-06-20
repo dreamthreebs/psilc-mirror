@@ -45,12 +45,26 @@ print(f'{ell_arr=}')
 print(f'{ell_arr[0:7]=}')
 ell_arr = ell_arr[0:7]
 
-binned_cl_r = bin_dl.bin_cell(cls_in=cl_r[:lmax+1,2])[0:7]
-binned_cl_AL = bin_dl.bin_cell(cls_in=cl_AL[:lmax+1,2])[0:7]
+# binned_cl_r = bin_dl.bin_cell(cls_in=cl_r[:lmax+1,2])[0:7]
+# binned_cl_AL = bin_dl.bin_cell(cls_in=cl_AL[:lmax+1,2])[0:7]
+
+binned_cl_r = np.load(f'../nilc_5_freq/dl_res4/mask/th_r_apo_0.npy')[0:7]
+binned_cl_AL = np.load(f'../nilc_5_freq/dl_res4/mask/th_apo_0.npy')[0:7]
+
+# binned_cl_r = np.load(f'../nilc_5_freq/dl_res4/mask/th_r_95_2deg_0.npy')[0:7]
+# binned_cl_AL = np.load(f'../nilc_5_freq/dl_res4/mask/th_95_2deg_0.npy')[0:7]
+
+
 
 def load_data_inv_cov():
+
     _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res4/std/inp/{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
     _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res4/std/n_inp/{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
+
+    # _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res4/mask/pcfn_95_2deg_{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
+    # _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res4/mask/n_95_2deg_{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
+
+
     _data = _data_method - _data_noise
     _data_mean = np.mean(_data, axis=0)
     print(f'{np.size(_data_method, axis=1)=}')
@@ -97,7 +111,7 @@ info["params"] = {
 info["sampler"] = {"mcmc": {"Rminus1_stop": 0.001, "max_tries": 10000000}}
 # info["sampler"] = {"minimize": {}}
 info["output"] = "chains/r_AL"
-updated_info, sampler = run(info)
+updated_info, sampler = run(info, force=True)
 
 # Export the results to GetDist
 gd_sample = sampler.products(skip_samples=0.33,to_getdist=True)["sample"]

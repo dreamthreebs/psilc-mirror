@@ -716,8 +716,8 @@ class FitPolPS:
             fit_error_u = np.abs((fit_u_amp - self.u_amp) / self.u_amp )
 
             logger.info(f'{num_ps=}, {chi2dof=}')
-            logger.info(f'{self.q_amp=}, {fit_q_amp=}, {fit_error_q=}')
-            logger.info(f'{self.u_amp=}, {fit_u_amp=}, {fit_error_u=}')
+            logger.info(f'{self.q_amp=}, {fit_q_amp=}, {fit_q_amp_err=}, {fit_error_q=}')
+            logger.info(f'{self.u_amp=}, {fit_u_amp=}, {fit_u_amp_err=}, {fit_error_u=}')
             return num_ps, chi2dof, fit_q_amp, fit_q_amp_err, fit_u_amp, fit_u_amp_err, fit_error_q, fit_error_u
 
         if mode == 'get_num_ps':
@@ -736,7 +736,7 @@ def main():
     freq = 215
     time0 = time.perf_counter()
     # m = np.load(f'../../fitdata/synthesis_data/2048/PSNOISE/{freq}/0.npy')
-    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/3.npy')
+    m = np.load(f'../../fitdata/synthesis_data/2048/PSCMBNOISE/{freq}/1.npy')
     m_q = m[1].copy()
     m_u = m[2].copy()
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
@@ -751,7 +751,7 @@ def main():
     nside = 2048
     beam = 11
 
-    flux_idx = 0
+    flux_idx = 1
 
     logger.debug(f'{sys.getrefcount(m_q)-1=}')
     obj = FitPolPS(m_q=m_q, m_u=m_u, freq=freq, nstd_q=nstd_q, nstd_u=nstd_u, flux_idx=flux_idx, df_mask=df_mask, df_ps=df_ps, lmax=lmax, nside=nside, radius_factor=1.5, beam=beam, epsilon=0.00001)

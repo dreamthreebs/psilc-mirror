@@ -29,9 +29,10 @@ def MaskApodize(mask_raw:np.ndarray, save_path:str, fig_bin_path:str, fig_apo_pa
 if __name__=='__main__':
 
     mask_raw = np.load("/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/mask/north/BINMASKG2048.npy")
-    fig_bin_path = '/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240308/NorthBinMask.png'
-    fig_apo_path = '/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20240308/NorthApoMask.png'
+    # mask_raw = np.load("./no_edge_mask/C1_5.npy")
+    fig_bin_path = '/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250113/NorthBinMask.png'
+    fig_apo_path = '/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250113/NorthApoMask.png'
 
-    save_path = "./north/APOMASKC_2.npy"
-    MaskApodize(mask_raw, save_path, fig_bin_path,fig_apo_path,apodization_scale=2,flag='C1')
+    save_path = "./new_mask/apo_C1_3.npy"
+    MaskApodize(mask_raw, save_path, fig_bin_path,fig_apo_path,apodization_scale=3,flag='C1')
 

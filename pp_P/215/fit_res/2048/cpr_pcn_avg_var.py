@@ -44,6 +44,7 @@ def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3):
 l_min_edges, l_max_edges = generate_bins(l_min_start=30, delta_l_min=30, l_max=lmax, fold=0.2)
 bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
 ell_arr = bin_dl.get_effective_ells()
+print(f'{ell_arr=}')
 
 for rlz_idx in range(1,100):
     if rlz_idx == 50:
@@ -124,7 +125,7 @@ plt.plot(ell_arr, pcn_mean, label='debias pcn_mean')
 plt.plot(ell_arr, ps_mask_mean, label='ps_mask_mean')
 # plt.plot(ell_arr, inp_qu_mean, label='inp_qu_mean')
 plt.plot(ell_arr, inp_eb_mean, label='inp_eb_mean')
-
+plt.loglog()
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB}$')
 plt.semilogy()
@@ -132,14 +133,16 @@ plt.legend()
 plt.title('debiased power spectrum')
 
 plt.figure(2)
-plt.plot(ell_arr, rmv_std, label='rmv_std 3sigma')
-# plt.plot(ell_arr, rmv1_std, label='rmv_std 10sigma')
-plt.plot(ell_arr, c_std, label='c_std')
-plt.plot(ell_arr, cn_std, label='cn_std')
-plt.plot(ell_arr, pcn_std, label='pcn_std')
-plt.plot(ell_arr, ps_mask_std, label='ps_mask_std')
-# plt.plot(ell_arr, inp_qu_std, label='inp_qu_std')
-plt.plot(ell_arr, inp_eb_std, label='inp_eb_std')
+plt.scatter(ell_arr, rmv_std, label='rmv_std 3sigma', marker='.')
+# plt.scatter(ell_arr, rmv1_std, label='rmv_std 10sigma', marker='.')
+plt.scatter(ell_arr, c_std, label='c_std', marker='.')
+plt.scatter(ell_arr, cn_std, label='cn_std', marker='.')
+plt.scatter(ell_arr, pcn_std, label='pcn_std', marker='.')
+plt.scatter(ell_arr, ps_mask_std, label='ps_mask_std', marker='.')
+# plt.scatter(ell_arr, inp_qu_std, label='inp_qu_std', marker='.')
+plt.scatter(ell_arr, inp_eb_std, label='inp_eb_std', marker='.')
+
+plt.loglog()
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB}$')
 plt.semilogy()
@@ -152,29 +155,41 @@ plt.plot(ell_arr, pcn_mean - cn_mean, label='pcn res')
 plt.plot(ell_arr, ps_mask_mean - cn_mean, label='ps_mask res')
 # plt.plot(ell_arr, inp_qu_mean - cn_mean, label='inp_qu res')
 plt.plot(ell_arr, inp_eb_mean - cn_mean, label='inp_eb res')
+
+plt.loglog()
 plt.xlabel('$\\ell$')
 plt.ylabel('$D_\\ell^{BB}$')
 plt.ylim(-0.1,0.1)
 plt.legend()
 plt.title('residual power spectrum')
 
+
+plt.figure(4)
 rmv_rres = (rmv_mean - cn_mean) / cn_mean
+rmv_rres = (rmv_mean - cn_mean)
 rmv_rres_pos = np.where(rmv_rres > 0, rmv_rres, np.nan)
 rmv_rres_neg = np.where(rmv_rres < 0, np.abs(rmv_rres), np.nan)
 
 pcn_rres = (pcn_mean - cn_mean) / cn_mean
+pcn_rres = (pcn_mean - cn_mean)
 pcn_rres_pos = np.where(pcn_rres > 0, pcn_rres, np.nan)
 pcn_rres_neg = np.where(pcn_rres < 0, np.abs(pcn_rres), np.nan)
 
 ps_mask_rres = (ps_mask_mean - cn_mean) / cn_mean
+ps_mask_rres = (ps_mask_mean - cn_mean)
 ps_mask_rres_pos = np.where(ps_mask_rres > 0, ps_mask_rres, np.nan)
 ps_mask_rres_neg = np.where(ps_mask_rres < 0, np.abs(ps_mask_rres), np.nan)
 
 inp_eb_rres = (inp_eb_mean - cn_mean) / cn_mean
+inp_eb_rres = (inp_eb_mean - cn_mean)
 inp_eb_rres_pos = np.where(inp_eb_rres > 0, inp_eb_rres, np.nan)
 inp_eb_rres_neg = np.where(inp_eb_rres < 0, np.abs(inp_eb_rres), np.nan)
 
-plt.figure(4)
+# inp_qu_rres = (inp_qu_mean - cn_mean) / cn_mean
+# inp_qu_rres = (inp_qu_mean - cn_mean)
+# inp_qu_rres_pos = np.where(inp_qu_rres > 0, inp_qu_rres, np.nan)
+# inp_qu_rres_neg = np.where(inp_qu_rres < 0, np.abs(inp_qu_rres), np.nan)
+
 plt.scatter(ell_arr, rmv_rres_pos, color='g', marker='+', label='rmv')
 plt.scatter(ell_arr, rmv_rres_neg, color='g', marker='_', label='rmv')
 
@@ -187,18 +202,61 @@ plt.scatter(ell_arr, ps_mask_rres_neg, color='m', marker='_', label='ps_mask')
 plt.scatter(ell_arr, inp_eb_rres_pos, color='y', marker='+', label='inp_eb')
 plt.scatter(ell_arr, inp_eb_rres_neg, color='y', marker='_', label='inp_eb')
 
+# plt.scatter(ell_arr, inp_qu_rres_pos, color='c', marker='+', label='inp_qu')
+# plt.scatter(ell_arr, inp_qu_rres_neg, color='c', marker='_', label='inp_qu')
+
 plt.scatter(ell_arr, cn_std / cn_mean, color='k', marker='.', label='std')
 
 plt.xlabel('$\\ell$')
-plt.ylabel('$D_\\ell^{BB res} / D_\\ell^{BB cn}$')
+# plt.ylabel('$D_\\ell^{BB res} / D_\\ell^{BB cn}$')
+plt.ylabel('$D_\\ell^{BB res}$')
 # plt.ylim(bottom=1e-10)
 plt.loglog()
 # plt.ylim(-0.1,0.1)
 plt.legend()
-plt.title('relative residual power spectrum')
+# plt.title('relative residual power spectrum')
+plt.title('residual power spectrum')
+
+plt.figure(5)
+pcn_rmse = np.sqrt(pcn_std**2 + (pcn_mean - cn_mean)**2)
+cn_rmse = np.sqrt(cn_std**2)
+rmv_rmse = np.sqrt(rmv_std**2 + (rmv_mean - cn_mean)**2)
+inp_eb_rmse = np.sqrt(inp_eb_std**2 + (inp_eb_mean - cn_mean)**2)
+# inp_qu_rmse = np.sqrt(inp_qu_std**2 + (inp_qu_mean - cn_mean)**2)
+ps_mask_rmse = np.sqrt(ps_mask_std**2 + (ps_mask_mean - cn_mean)**2)
+
+pcn_rmse_ratio = np.sum(pcn_rmse[1:7] / cn_mean[1:7])
+print(f'{pcn_rmse_ratio=}')
+rmv_rmse_ratio = np.sum(rmv_rmse[1:7] / cn_mean[1:7])
+print(f'{rmv_rmse_ratio=}')
+
+inp_eb_rmse_ratio = np.sum(inp_eb_rmse[1:7] / cn_mean[1:7])
+print(f'{inp_eb_rmse_ratio=}')
+
+# inp_qu_rmse_ratio = np.sum(inp_qu_rmse[1:7] / cn_mean[1:7])
+# print(f'{inp_qu_rmse_ratio=}')
+
+ps_mask_rmse_ratio = np.sum(ps_mask_rmse[1:7] / cn_mean[1:7])
+print(f'{ps_mask_rmse_ratio=}')
+
+plt.scatter(ell_arr, pcn_rmse, label='pcn ', marker='.')
+plt.scatter(ell_arr, cn_rmse, label='cn ', marker='.')
+plt.scatter(ell_arr, rmv_rmse, label='rmv ', marker='.')
+plt.scatter(ell_arr, inp_eb_rmse, label='inp eb ', marker='.')
+# plt.scatter(ell_arr, inp_qu_rmse, label='inp qu ', marker='.')
+plt.scatter(ell_arr, ps_mask_rmse, label='ps mask ', marker='.')
+plt.xlabel('$\\ell$')
+plt.ylabel('$D_\\ell^{BB}$')
+# plt.ylim(bottom=1e-10)
+plt.loglog()
+# plt.ylim(-0.1,0.1)
+plt.legend()
+plt.title('rmse')
 
 
 plt.show()
+
+
 
 
 

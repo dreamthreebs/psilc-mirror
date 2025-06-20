@@ -199,14 +199,23 @@ plt.figure(1)
 plt.plot(ell_arr, dl_in[:lmax_ell_arr], label='CMB', marker='.', color='black')
 plt.plot(ell_arr, dl_unresolved_ps[:lmax_ell_arr], label='unresolved ps', marker='.')
 plt.plot(ell_arr, dl_ps[:lmax_ell_arr], label='all ps contribution', marker='.')
-plt.plot(ell_arr, rmv_bias_all_mean[:lmax_ell_arr], label='bias rmv model + unresolved ps', marker='.')
 plt.plot(ell_arr, rmv_bias_model_mean[:lmax_ell_arr], label='bias rmv from model', marker='.')
+plt.plot(ell_arr, rmv_bias_all_mean[:lmax_ell_arr], label='bias rmv model + unresolved ps', marker='.')
 plt.plot(ell_arr, rmv_bias_all_mean[:lmax_ell_arr] - rmv_bias_model_mean[:lmax_ell_arr], label='bias rmv unresolved ps', marker='.')
-plt.plot(ell_arr, inp_bias, label='bias inp', marker='.')
 plt.plot(ell_arr, dl_mask[:lmax_ell_arr], label='bias mask', marker='.')
-plt.fill_between(ell_arr, -cfn_std, cfn_std)
-# plt.loglog()
-plt.yscale('symlog', linthresh=1e-4)
+
+for i in range(len(inp_bias) - 1):
+    y0, y1 = inp_bias[i], inp_bias[i + 1]
+    if y0 == 0 or y1 == 0:
+        continue  # log-log 不允许 0 值，跳过
+    style = '-' if y0 > 0 else '--'
+    label = 'bias inp' if i == 0 else None  # 只在起始点加 label
+    plt.plot(ell_arr[i:i+2], np.abs(inp_bias[i:i+2]), linestyle=style, color='purple', label=label)
+
+# plt.fill_between(ell_arr, -cfn_std[:lmax_ell_arr], cfn_std[:lmax_ell_arr], alpha=0.4, color='grey')
+
+plt.loglog()
+# plt.yscale('symlog', linthresh=1e-4)
 plt.xlabel(r"$\ell$")
 plt.ylabel(r"$D_\ell^{BB}$")
 plt.title(f"{freq=}GHz")

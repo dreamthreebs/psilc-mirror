@@ -33,6 +33,9 @@ bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)
 bin_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5.npy')
 apo_mask = np.load('../../../../psfit/fitv4/fit_res/2048/ps_mask/no_edge_mask/C1_5APO_5.npy')
 
+mask_list = np.load('./pcn_after_removal/3sigma/mask_1.npy')
+print(f'{mask_list=}')
+
 m_e = np.load('./pcn_after_removal/3sigma/E/map_crp_e1.npy') * bin_mask
 m_b = np.load('./pcn_after_removal/3sigma/B/map_cln_b1.npy') * bin_mask
 
@@ -60,7 +63,7 @@ e_max = None
 b_min = None
 b_max = None
 
-flux_idx = 1
+flux_idx = 135
 lon = np.rad2deg(df.at[flux_idx, 'lon'])
 lat = np.rad2deg(df.at[flux_idx, 'lat'])
 ctr_vec = hp.ang2vec(theta=lon, phi=lat, lonlat=True)

@@ -224,7 +224,7 @@ for i in range(len(inp_bias) - 1):
     label = 'bias inp' if i == 0 else None  # 只在起始点加 label
     plt.plot(ell_arr[i:i+2], np.abs(inp_bias[i:i+2]), linestyle=style, color='purple', label=label)
 
-plt.fill_between(ell_arr, -cfn_std[:lmax_ell_arr], cfn_std[:lmax_ell_arr], alpha=0.4)
+# plt.fill_between(ell_arr, -cfn_std[:lmax_ell_arr], cfn_std[:lmax_ell_arr], alpha=0.4, color='grey')
 plt.loglog()
 # plt.yscale('symlog', linthresh=1e-3)
 plt.xlabel(r"$\ell$")
