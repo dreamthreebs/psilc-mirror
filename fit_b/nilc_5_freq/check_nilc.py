@@ -876,6 +876,11 @@ def plot_ms6():
     masking_30_std = np.std([np.load(f'./dl_res4/mask/pcfn_270_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_270_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     masking_95_mean = np.mean([np.load(f'./dl_res4/mask/pcfn_union_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     masking_95_std = np.std([np.load(f'./dl_res4/mask/pcfn_union_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    fg_bias_apo = np.std([np.load(f'./dl_res5/fg_bias/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    fg_bias_ps_mask = np.std([np.load(f'./dl_res5/fg_bias/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    fg_bias_apo_cfn = np.std([np.load(f'./dl_res5/fg_bias_cfn/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    fg_bias_ps_mask_cfn = np.std([np.load(f'./dl_res5/fg_bias_cfn/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+
 
 
     print(f'mean std over')
@@ -932,8 +937,12 @@ def plot_ms6():
     ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='no-PS baseline', markersize=mk_s, color='purple')
     ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='TF', markersize=mk_s, color='green')
     ax_main.errorbar(ell_arr*1.015, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='RI-B', markersize=mk_s, color='red')
-    ax_main.errorbar(ell_arr*1.025, masking_30_mean[:lmax_ell_arr], yerr=masking_30_std[:lmax_ell_arr], fmt='.', capsize=s, label='M-QU 30 2deg', markersize=mk_s, color='orange')
-    ax_main.errorbar(ell_arr*1.035, masking_95_mean[:lmax_ell_arr], yerr=masking_95_std[:lmax_ell_arr], fmt='.', capsize=s, label='M-QU 95 2deg', markersize=mk_s, color='yellow', linestyle='--')
+    ax_main.plot(ell_arr, fg_bias_apo[:lmax_ell_arr], label='fg bias apo', linewidth=2.5)
+    ax_main.plot(ell_arr, fg_bias_ps_mask[:lmax_ell_arr], label='fg bias union', linewidth=2.5)
+    ax_main.plot(ell_arr, fg_bias_apo_cfn[:lmax_ell_arr], label='fg bias apo cfn', linewidth=2.5)
+    ax_main.plot(ell_arr, fg_bias_ps_mask_cfn[:lmax_ell_arr], label='fg bias union cfn', linewidth=2.5)
+
+
 
     # Set labels and title for the main plot
     ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')

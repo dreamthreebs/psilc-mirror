@@ -123,17 +123,17 @@ def check_cmb_ilc_bias():
 def calc_fg_bias():
     # calc fg bias after nilc
     sim_mode = 'std'
-    method = 'cf'
-    cf = np.asarray([np.load(f'../{freq}GHz/fit_res/sm_new/{sim_mode}/{method}/{rlz_idx}.npy') for freq in freq_list])
+    method = 'cfn'
+    cfn = np.asarray([np.load(f'../{freq}GHz/fit_res/sm_new/{sim_mode}/{method}/{rlz_idx}.npy') for freq in freq_list])
 
-    obj_cf = NILC(bandinfo='./band_info.csv', needlet_config='./needlets/0.csv', weights_config=f'./weight/std/pcfn/{rlz_idx}.npz', Sm_maps=cf, mask=ilc_mask, lmax=lmax, nside=nside, n_iter=3, weight_in_alm=False)
+    obj_cf = NILC(bandinfo='./band_info.csv', needlet_config='./needlets/0.csv', weights_config=f'./weight/std/pcfn/{rlz_idx}.npz', Sm_maps=cfn, mask=ilc_mask, lmax=lmax, nside=nside, n_iter=3, weight_in_alm=False)
     cln_cf = obj_cf.run_nilc()
 
-    Path(f'./data3/cf').mkdir(exist_ok=True, parents=True)
-    np.save(f'./data3/cf/{rlz_idx}.npy', cln_cf)
+    Path(f'./data3/cfn').mkdir(exist_ok=True, parents=True)
+    np.save(f'./data3/cfn/{rlz_idx}.npy', cln_cf)
 
 def check_fg_bias():
-    cln_cf = np.load(f'./data3/cf/{rlz_idx}.npy')
+    cln_cf = np.load(f'./data3/cfn/{rlz_idx}.npy')
     fid_c = np.load(f'./data3/fid_c/{rlz_idx}.npy')
 
     # hp.orthview(cln_cf, rot=[100,50,0], half_sky=True, min=-0.7, max=0.7)
@@ -143,12 +143,42 @@ def check_fg_bias():
     plt.show()
 
 def calc_fg_bias_cl():
-    pass
-    
+    # get the foreground bias upon different masks
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam_base)/60, lmax=lmax, pol=True)[:,2]
+    l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
+    # delta_ell = 30
+    # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    diff = np.load(f'./data3/cfn/{rlz_idx}.npy') - np.load(f'./data3/fid_c/{rlz_idx}.npy')
+
+    ps_mask = np.load(f'./ps_mask/union.npy')
+
+    # hp.orthview(ps_mask, rot=[100,50,0], half_sky=True)
+    # hp.orthview(apo_mask, rot=[100,50,0], half_sky=True)
+    # plt.show()
+
+
+    dl_diff_apo = calc_dl_from_scalar_map_bl(scalar_map=diff, apo_mask=apo_mask, bl=bl, bin_dl=bin_dl, masked_on_input=False)
+    dl_diff_ps_mask = calc_dl_from_scalar_map_bl(scalar_map=diff, apo_mask=ps_mask, bl=bl, bin_dl=bin_dl, masked_on_input=False)
+
+    path_dl_diff = Path(f'./dl_res5/fg_bias_cfn')
+    path_dl_diff.mkdir(parents=True, exist_ok=True)
+
+    np.save(path_dl_diff / Path(f'union_{rlz_idx}.npy'), dl_diff_ps_mask)
+    np.save(path_dl_diff / Path(f'apo_{rlz_idx}.npy'), dl_diff_apo)
+
+
+
+
 
 
 if __name__ == "__main__":
     # calc_eblc_bias()
     # calc_fg_bias()
-    check_fg_bias()
+    # check_fg_bias()
+    calc_fg_bias_cl()
+
 
