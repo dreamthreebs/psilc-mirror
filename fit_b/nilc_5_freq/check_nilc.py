@@ -876,10 +876,29 @@ def plot_ms6():
     masking_30_std = np.std([np.load(f'./dl_res4/mask/pcfn_270_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_270_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     masking_95_mean = np.mean([np.load(f'./dl_res4/mask/pcfn_union_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     masking_95_std = np.std([np.load(f'./dl_res4/mask/pcfn_union_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    fg_bias_apo = np.std([np.load(f'./dl_res5/fg_bias/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    fg_bias_ps_mask = np.std([np.load(f'./dl_res5/fg_bias/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    fg_bias_apo_cfn = np.std([np.load(f'./dl_res5/fg_bias_cfn/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    fg_bias_ps_mask_cfn = np.std([np.load(f'./dl_res5/fg_bias_cfn/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+
+    fg_apo = np.mean([np.load(f'./dl_res5/fg/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    fg_ps_mask = np.mean([np.load(f'./dl_res5/fg/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+
+    # ps_apo = np.mean([np.load(f'./dl_res5/ps/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # ps_ps_mask = np.mean([np.load(f'./dl_res5/ps/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # unres_ps_apo = np.mean([np.load(f'./dl_res5/unresolved_ps_new/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # unres_ps_ps_mask = np.mean([np.load(f'./dl_res5/unresolved_ps_new/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # rmv_bias_apo = np.mean([np.load(f'./dl_res5/rmv_bias/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # rmv_bias_ps_mask = np.mean([np.load(f'./dl_res5/rmv_bias/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+
+    unres_rmv_apo = np.mean([np.load(f'./dl_res5/unresolved_ps_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    unres_rmv_ps_mask = np.mean([np.load(f'./dl_res5/unresolved_ps_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    rmv_rmv_apo = np.mean([np.load(f'./dl_res5/rmv_bias_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    rmv_rmv_ps_mask = np.mean([np.load(f'./dl_res5/rmv_bias_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    ps_apo_rmv = np.mean([np.load(f'./dl_res5/ps_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    ps_ps_mask_rmv = np.mean([np.load(f'./dl_res5/ps_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    fg_apo_rmv = np.mean([np.load(f'./dl_res5/fg_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    fg_ps_mask_rmv = np.mean([np.load(f'./dl_res5/fg_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+
+
+
+
 
 
 
@@ -937,10 +956,30 @@ def plot_ms6():
     ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='no-PS baseline', markersize=mk_s, color='purple')
     ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='TF', markersize=mk_s, color='green')
     ax_main.errorbar(ell_arr*1.015, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='RI-B', markersize=mk_s, color='red')
-    ax_main.plot(ell_arr, fg_bias_apo[:lmax_ell_arr], label='fg bias apo', linewidth=2.5)
-    ax_main.plot(ell_arr, fg_bias_ps_mask[:lmax_ell_arr], label='fg bias union', linewidth=2.5)
-    ax_main.plot(ell_arr, fg_bias_apo_cfn[:lmax_ell_arr], label='fg bias apo cfn', linewidth=2.5)
-    ax_main.plot(ell_arr, fg_bias_ps_mask_cfn[:lmax_ell_arr], label='fg bias union cfn', linewidth=2.5)
+
+    # ax_main.plot(ell_arr, fg_apo[:lmax_ell_arr], label='fg bias apo', linewidth=2.5)
+    # ax_main.plot(ell_arr, fg_ps_mask[:lmax_ell_arr], label='fg bias union', linewidth=2.5)
+    # ax_main.plot(ell_arr, ps_apo[:lmax_ell_arr], label='ps bias apo', linewidth=2.5)
+    # ax_main.plot(ell_arr, ps_ps_mask[:lmax_ell_arr], label='ps bias union', linewidth=2.5)
+    # ax_main.plot(ell_arr, unres_ps_apo[:lmax_ell_arr], label='unresolved ps bias apo', linewidth=2.5)
+    # ax_main.plot(ell_arr, unres_ps_ps_mask[:lmax_ell_arr], label='unresolved ps bias union', linewidth=2.5)
+    # ax_main.plot(ell_arr, rmv_bias_apo[:lmax_ell_arr], label='rmv bias apo', linewidth=2.5)
+    # ax_main.plot(ell_arr, rmv_bias_ps_mask[:lmax_ell_arr], label='rmv bias union', linewidth=2.5)
+
+    ax_main.plot(ell_arr, unres_rmv_apo[:lmax_ell_arr], label='unresolved ps bias apo rmv', linewidth=2.5)
+    # ax_main.plot(ell_arr, unres_rmv_ps_mask[:lmax_ell_arr], label='unresolved ps bias union rmv', linewidth=2.5)
+    ax_main.plot(ell_arr, rmv_rmv_apo[:lmax_ell_arr], label='rmv bias apo rmv', linewidth=2.5)
+    # ax_main.plot(ell_arr, rmv_rmv_ps_mask[:lmax_ell_arr], label='rmv bias union rmv', linewidth=2.5)
+    ax_main.plot(ell_arr, ps_apo_rmv[:lmax_ell_arr], label='ps bias apo rmv', linewidth=2.5)
+    # ax_main.plot(ell_arr, ps_ps_mask_rmv[:lmax_ell_arr], label='ps bias union rmv', linewidth=2.5)
+    ax_main.plot(ell_arr, fg_apo_rmv[:lmax_ell_arr], label='fg bias apo rmv', linewidth=2.5)
+    # ax_main.plot(ell_arr, fg_ps_mask_rmv[:lmax_ell_arr], label='fg bias union rmv', linewidth=2.5)
+
+
+
+
+
+
 
 
 
@@ -949,7 +988,7 @@ def plot_ms6():
     ax_main.set_xlim(58, 1290)
     # ax_main.set_ylim(1e-4, 2e-1)
     ax_main.set_title('Debiased power spectra')
-    ax_main.legend()
+    ax_main.legend(loc='upper right')
 
 
     # Plot standard deviation in the subfigure (using scatter with no error bars)
