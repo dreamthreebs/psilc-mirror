@@ -6,17 +6,17 @@ sync_to_github:
   only:
     - master
   script:
-    # 设置 git 用户信息
+    # set up user info
     - git config --global user.email "wangyiming@ihep.ac.cn"
     - git config --global user.name "dreamthreebs"
 
-    # 克隆当前 GitLab 仓库（mirror 克隆会保留所有分支、标签等）
+    # mirror the repo
     - git clone --mirror "$CI_REPOSITORY_URL" mirror_repo.git
     - cd mirror_repo.git
 
-    # 添加 GitHub 作为新的远程仓库
+    # add github remote repo
     - git remote add github "https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/dreamthreebs/psilc-mirror.git"
 
-    # 将所有分支/标签强制推送到 GitHub
+    # push to github
     - git push --mirror github
 
