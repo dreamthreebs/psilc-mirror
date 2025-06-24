@@ -13,4 +13,4 @@ From my result, it won't if TQ,TU non-diagnal terms are added for T map's parame
 The apodized mask will have small structure on small scale, so be carefull of it when calculating the power spectrum. The solution to avoid this is to deconvolve your map first, then estimate the power spectrum.
 
 ### 2. Partial sky power spectrum estimation
-The partial sky power spectrum may have bias from the full sky power spectrum. It is better to compare all your power spectrum with the same pipeline or the same mask rather than compare the result with full sky power spectrum estimation.
+The theoretical band power spectrum is related with your mask choice so it is better to compare all your power spectrum with the same pipeline or the same mask rather than compare the result with full sky power spectrum estimation.
