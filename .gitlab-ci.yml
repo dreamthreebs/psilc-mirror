@@ -1,0 +1,22 @@
+stages:
+  - sync
+
+sync_to_github:
+  stage: sync
+  only:
+    - master
+  script:
+    # 设置 git 用户信息
+    - git config --global user.email "wangyiming@ihep.ac.cn"
+    - git config --global user.name "dreamthreebs"
+
+    # 克隆当前 GitLab 仓库（mirror 克隆会保留所有分支、标签等）
+    - git clone --mirror "$CI_REPOSITORY_URL" mirror_repo.git
+    - cd mirror_repo.git
+
+    # 添加 GitHub 作为新的远程仓库
+    - git remote add github "https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/yourusername/your-repo.git"
+
+    # 将所有分支/标签强制推送到 GitHub
+    - git push --mirror github
+
