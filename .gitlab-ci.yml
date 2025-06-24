@@ -15,7 +15,7 @@ sync_to_github:
     - cd mirror_repo.git
 
     # 添加 GitHub 作为新的远程仓库
-    - git remote add github "https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/yourusername/your-repo.git"
+    - git remote add github "https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/dreamthreebs/psilc-mirror.git"
 
     # 将所有分支/标签强制推送到 GitHub
     - git push --mirror github
