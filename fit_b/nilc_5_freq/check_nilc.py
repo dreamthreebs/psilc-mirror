@@ -729,8 +729,8 @@ def plot_ms5():
     rmv_std = np.std([np.load(f'./dl_res4/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     inp_mean = np.mean([np.load(f'./dl_res4/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     inp_std = np.std([np.load(f'./dl_res4/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    masking_30_mean = np.mean([np.load(f'./dl_res4/MASK/std_30_2deg_{rlz_idx}.npy') - np.load(f'./dl_res4/MASK/n_30_2deg_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    masking_30_std = np.std([np.load(f'./dl_res4/MASK/std_30_2deg_{rlz_idx}.npy') - np.load(f'./dl_res4/MASK/n_30_2deg_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # masking_30_mean = np.mean([np.load(f'./dl_res4/MASK/std_30_2deg_{rlz_idx}.npy') - np.load(f'./dl_res4/MASK/n_30_2deg_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # masking_30_std = np.std([np.load(f'./dl_res4/MASK/std_30_2deg_{rlz_idx}.npy') - np.load(f'./dl_res4/MASK/n_30_2deg_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     masking_95_mean = np.mean([np.load(f'./dl_res4/MASK/std_95_2deg_{rlz_idx}.npy') - np.load(f'./dl_res4/MASK/n_95_2deg_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     masking_95_std = np.std([np.load(f'./dl_res4/MASK/std_95_2deg_{rlz_idx}.npy') - np.load(f'./dl_res4/MASK/n_95_2deg_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
 
@@ -750,7 +750,7 @@ def plot_ms5():
     res_cfn = np.abs(cfn_mean - dl_in)
     res_rmv = np.abs(rmv_mean - dl_in)
     res_inp = np.abs(inp_mean - dl_in)
-    res_masking_30 = np.abs(masking_30_mean - dl_in)
+    # res_masking_30 = np.abs(masking_30_mean - dl_in)
     res_masking_95 = np.abs(masking_95_mean - dl_in)
 
     res_line = mlines.Line2D([], [], color='black', linestyle='-', label='Residual')
@@ -780,8 +780,8 @@ def plot_ms5():
     ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='no-PS baseline', markersize=mk_s, color='purple')
     ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='TF', markersize=mk_s, color='green')
     ax_main.errorbar(ell_arr*1.015, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='RI-B', markersize=mk_s, color='red')
-    ax_main.errorbar(ell_arr*1.025, masking_30_mean[:lmax_ell_arr], yerr=masking_30_std[:lmax_ell_arr], fmt='.', capsize=s, label='M-QU 30', markersize=mk_s, color='orange')
-    ax_main.errorbar(ell_arr*1.035, masking_95_mean[:lmax_ell_arr], yerr=masking_95_std[:lmax_ell_arr], fmt='.', capsize=s, label='M-QU 95', markersize=mk_s, color='yellow')
+    # ax_main.errorbar(ell_arr*1.025, masking_30_mean[:lmax_ell_arr], yerr=masking_30_std[:lmax_ell_arr], fmt='.', capsize=s, label='M-QU 30', markersize=mk_s, color='orange')
+    ax_main.errorbar(ell_arr*1.025, masking_95_mean[:lmax_ell_arr], yerr=masking_95_std[:lmax_ell_arr], fmt='.', capsize=s, label='M-B 95', markersize=mk_s, color='yellow')
 
     # Set labels and title for the main plot
     ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
@@ -805,15 +805,15 @@ def plot_ms5():
     ax_sub.plot(ell_arr, res_cfn[:lmax_ell_arr], label='no-PS baseline', marker='.', color='purple')
     ax_sub.plot(ell_arr, res_rmv[:lmax_ell_arr], label='TF', marker='.', color='green')
     ax_sub.plot(ell_arr, res_inp[:lmax_ell_arr], label='RI-B', marker='.', color='red')
-    ax_sub.plot(ell_arr, res_masking_30[:lmax_ell_arr], label='M-QU 30', marker='.', color='orange')
-    ax_sub.plot(ell_arr, res_masking_95[:lmax_ell_arr], label='M-QU 95', marker='.', color='yellow')
+    # ax_sub.plot(ell_arr, res_masking_30[:lmax_ell_arr], label='M-QU 30', marker='.', color='orange')
+    ax_sub.plot(ell_arr, res_masking_95[:lmax_ell_arr], label='M-B 95', marker='.', color='yellow')
 
     ax_sub.plot(ell_arr, pcfn_std[:lmax_ell_arr], label='with-PS baseline', marker='.', linestyle=':', color='blue')
     ax_sub.plot(ell_arr, cfn_std[:lmax_ell_arr], label='no-PS baseline', marker='.', linestyle=':', color='purple')
     ax_sub.plot(ell_arr, rmv_std[:lmax_ell_arr], label='TF', marker='.', linestyle=':', color='green')
     ax_sub.plot(ell_arr, inp_std[:lmax_ell_arr], label='RI-B', marker='.', linestyle=':', color='red')
-    ax_sub.plot(ell_arr, masking_30_std[:lmax_ell_arr], label='M-QU 30', marker='.', linestyle=':', color='orange')
-    ax_sub.plot(ell_arr, masking_95_std[:lmax_ell_arr], label='M-QU 95', marker='.', linestyle=':', color='yellow')
+    # ax_sub.plot(ell_arr, masking_30_std[:lmax_ell_arr], label='M-B 30', marker='.', linestyle=':', color='orange')
+    ax_sub.plot(ell_arr, masking_95_std[:lmax_ell_arr], label='M-B 95', marker='.', linestyle=':', color='yellow')
 
     
     label_size = 10
@@ -1069,6 +1069,6 @@ def from_cl_to_bandpower():
 # plot_ms2()
 # plot_ms3()
 # plot_ms4()
-# plot_ms5()
-plot_ms6()
+plot_ms5()
+# plot_ms6()
 
