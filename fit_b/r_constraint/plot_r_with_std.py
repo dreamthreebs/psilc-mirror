@@ -1,9 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-method_list = ['PS + FG + CMB + NOISE', 'FG + CMB + NOISE', 'Template fitting', 'Recycling + Inpaint on B']
-r_mean_list = [2.57e-3, 6.94e-4, 1.20e-3, 9.92e-3]
-r_std_list = [2.61e-3, 2.54e-3, 2.60e-3, 3.28e-3]
+method_list = ['FG + CMB + NOISE', 'PS + FG + CMB + NOISE', 'Template fitting', 'Recycling + Inpaint on B', 'Masking on B']
+r_mean_list = [ 1.89e-3, 3.56e-3, 2.18e-3, 1.05e-2, 3.08e-3]
+r_std_list = [2.40e-3, 2.52e-3, 2.45e-3, 3.01e-3, 2.59e-3]
 r_std_list = [x*2 for x in r_std_list]
 
 fig, ax = plt.subplots()
@@ -18,6 +18,6 @@ ax.set_ylabel('tensor to scalar ratio r')
 
 ax.legend()
 plt.tight_layout()
-plt.savefig('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250131/r_constraints.png', dpi=300)
+plt.savefig('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609/r_constraints.png', dpi=300)
 plt.show()
 

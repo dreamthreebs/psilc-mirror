@@ -1,15 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Define methods (reversed order)
-method_list = ['RI-B', 'TF', 'no-PS baseline', 'with-PS baseline']
+method_list = ['PS Template Fitting', 'Masking on B', 'Recycling + Inpainting on B', 'Simulation with PS', 'Simulation without PS']
 
 # Define mean r values (corresponding to reversed methods)
-r_mean_list = [1.06e-2, 1.71e-3, 1.45e-3, 3.23e-3]
-
+r_mean_list = [2.25e-3, 3.08e-3, 1.06e-2, 3.58e-3, 1.71e-3]
 # Define asymmetric errors (lower and upper limits) in reversed order
-r_lower_list = [4.35e-3, -3.28e-3, -3.16e-3, -1.84e-3]  # Lower bounds
-r_upper_list = [1.69e-2, 6.92e-3, 6.22e-3, 8.39e-3]  # Upper bounds
+r_lower_list = [-2.57e-3, -2.01e-3, 4.41e-3, -1.27e-3, -3.01e-3]
+r_upper_list = [7.26e-3, 8.14e-3, 1.62e-2, 8.47e-3, 6.62e-3]
 
 # Compute the lower and upper error bars
 r_err_lower = [r_mean - r_low for r_mean, r_low in zip(r_mean_list, r_lower_list)]
@@ -19,7 +17,7 @@ r_err_upper = [r_up - r_mean for r_mean, r_up in zip(r_mean_list, r_upper_list)]
 r_errs = [r_err_lower, r_err_upper]
 
 # Define colors for each method
-colors = ['red', 'green', 'purple', 'blue']  # Colors still match each method
+colors = ['purple', 'blue', 'red', 'orange', 'green']  # Colors still match each method
 
 # Create the figure and axis
 fig, ax = plt.subplots(figsize=(7, 4))
@@ -49,7 +47,7 @@ ax.grid(True, which="both", linestyle="--", alpha=0.6)
 # ax.legend(loc='lower right')
 plt.tight_layout()
 
-plt.savefig("/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323/r_constraints.png", dpi=300, bbox_inches="tight")
+plt.savefig("/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609/r_constraints.png", dpi=300, bbox_inches="tight")
 
 plt.show()
 

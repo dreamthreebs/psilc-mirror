@@ -51,8 +51,8 @@ ell_arr = ell_arr[0:7]
 binned_cl_r = np.load(f'../nilc_5_freq/dl_res4/mask/th_r_apo_0.npy')[0:7]
 binned_cl_AL = np.load(f'../nilc_5_freq/dl_res4/mask/th_apo_0.npy')[0:7]
 
-# binned_cl_r = np.load(f'../nilc_5_freq/dl_res4/mask/th_r_95_2deg_0.npy')[0:7]
-# binned_cl_AL = np.load(f'../nilc_5_freq/dl_res4/mask/th_95_2deg_0.npy')[0:7]
+# binned_cl_r = np.load(f'../nilc_5_freq/dl_res4/mask/th_r_30_67_0.npy')[0:7]
+# binned_cl_AL = np.load(f'../nilc_5_freq/dl_res4/mask/th_30_67_0.npy')[0:7]
 
 
 
@@ -61,8 +61,8 @@ def load_data_inv_cov():
     _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res4/std/inp/{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
     _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res4/std/n_inp/{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
 
-    # _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res4/mask/pcfn_95_2deg_{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
-    # _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res4/mask/n_95_2deg_{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
+    # _data_method = np.asarray([np.load(f'../nilc_5_freq/dl_res4/mask/pcfn_30_67_{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
+    # _data_noise = np.asarray([np.load(f'../nilc_5_freq/dl_res4/mask/n_30_67_{rlz_idx}.npy')[0:7] for rlz_idx in range(1,200)])
 
 
     _data = _data_method - _data_noise
