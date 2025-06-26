@@ -967,13 +967,13 @@ def plot_ms6():
     # ax_main.plot(ell_arr, rmv_bias_ps_mask[:lmax_ell_arr], label='rmv bias union', linewidth=2.5)
 
     ax_main.plot(ell_arr, unres_rmv_apo[:lmax_ell_arr], label='unresolved ps bias apo rmv', linewidth=2.5)
-    # ax_main.plot(ell_arr, unres_rmv_ps_mask[:lmax_ell_arr], label='unresolved ps bias union rmv', linewidth=2.5)
+    ax_main.plot(ell_arr, unres_rmv_ps_mask[:lmax_ell_arr], label='unresolved ps bias union rmv', linewidth=2.5)
     ax_main.plot(ell_arr, rmv_rmv_apo[:lmax_ell_arr], label='rmv bias apo rmv', linewidth=2.5)
-    # ax_main.plot(ell_arr, rmv_rmv_ps_mask[:lmax_ell_arr], label='rmv bias union rmv', linewidth=2.5)
+    ax_main.plot(ell_arr, rmv_rmv_ps_mask[:lmax_ell_arr], label='rmv bias union rmv', linewidth=2.5)
     ax_main.plot(ell_arr, ps_apo_rmv[:lmax_ell_arr], label='ps bias apo rmv', linewidth=2.5)
-    # ax_main.plot(ell_arr, ps_ps_mask_rmv[:lmax_ell_arr], label='ps bias union rmv', linewidth=2.5)
+    ax_main.plot(ell_arr, ps_ps_mask_rmv[:lmax_ell_arr], label='ps bias union rmv', linewidth=2.5)
     ax_main.plot(ell_arr, fg_apo_rmv[:lmax_ell_arr], label='fg bias apo rmv', linewidth=2.5)
-    # ax_main.plot(ell_arr, fg_ps_mask_rmv[:lmax_ell_arr], label='fg bias union rmv', linewidth=2.5)
+    ax_main.plot(ell_arr, fg_ps_mask_rmv[:lmax_ell_arr], label='fg bias union rmv', linewidth=2.5)
 
 
 

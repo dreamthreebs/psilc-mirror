@@ -118,6 +118,33 @@ def gen_pcfn(freq, beam, rlz_idx=0, mode='mean', return_noise=False):
     pcfn = noise + ps + cmb_iqu + fg
     return pcfn
 
+def gen_cfn(freq, beam, rlz_idx=0, mode='mean', return_noise=False):
+    # mode can be mean or std
+    nside = 2048
+
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    npix = hp.nside2npix(nside=2048)
+    np.random.seed(seed=noise_seed[rlz_idx])
+    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    print(f"{np.std(noise[1])=}")
+
+    if return_noise:
+        return noise
+
+    fg = np.load(f'../../fitdata/2048/FG/{freq}/fg.npy')
+
+    cls = np.load('../../src/cmbsim/cmbdata/cmbcl_8k.npy')
+    if mode=='std':
+        np.random.seed(seed=cmb_seed[rlz_idx])
+    elif mode=='mean':
+        np.random.seed(seed=cmb_seed[0])
+
+    cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
+
+    cfn = noise + cmb_iqu + fg
+    return cfn
+
 
 def gen_cmb(beam, rlz_idx=0):
 
@@ -249,7 +276,7 @@ def pp_bias(maps_in, lmax_base, beam_base, rlz_idx):
     # 3. do nilc
     print(f"begin nilc")
     mask_nilc = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3.npy')
-    obj_nilc = NILC(bandinfo='./band_info.csv', needlet_config='./needlets/0.csv', weights_config=f'./weight/std/rmv/{rlz_idx}.npz', Sm_maps=m_freq_arr, mask=mask_nilc, lmax=lmax_base, nside=nside, n_iter=3, weight_in_alm=False)
+    obj_nilc = NILC(bandinfo='./band_info.csv', needlet_config='./needlets/0.csv', weights_config=f'./weight/std/pcfn/{rlz_idx}.npz', Sm_maps=m_freq_arr, mask=mask_nilc, lmax=lmax_base, nside=nside, n_iter=3, weight_in_alm=False)
     m_bias = obj_nilc.run_nilc()
     print(f"nilc done!")
 
@@ -304,6 +331,15 @@ def save_bias_rmv_model():
     path_bias.mkdir(parents=True, exist_ok=True)
 
     np.save(path_bias / Path(f'{rlz_idx}.npy'), m_rmv_bias)
+
+def save_bias_cfn():
+    cfn = np.asarray([gen_cfn(freq=freq, beam=beam, mode='std', rlz_idx=rlz_idx) for freq, beam in zip(freq_list, beam_list)])
+
+    m_cfn = pp_bias(cfn, lmax_base=lmax, beam_base=beam_base, rlz_idx=rlz_idx)
+    path_bias = Path(f'./data_bias/cfn')
+    path_bias.mkdir(parents=True, exist_ok=True)
+
+    np.save(path_bias / Path(f'{rlz_idx}.npy'), cfn)
 
 
 def check_fg_bias():
@@ -452,19 +488,91 @@ def test_nilc_res():
     freq = 30
     df = pd.read_csv(f'../{freq}GHz/mask/{freq}_after_filter.csv')
 
-    unresolved_ps = np.load(f'./data_bias/unresolved_ps_rmv/{rlz_idx}.npy')
-    rmv_bias = np.load(f'./data_bias/rmv_bias_rmv/{rlz_idx}.npy')
-    hp.orthview(unresolved_ps, rot=[100,50,0], title='unresolved ps')
-    hp.orthview(rmv_bias, rot=[100,50,0], title='rmv bias')
+    # unresolved_ps = np.load(f'./data_bias/unresolved_ps_rmv/{rlz_idx}.npy')
+    # rmv_bias = np.load(f'./data_bias/rmv_bias_rmv/{rlz_idx}.npy')
+
+    # m = np.load(f'./data2/std/pcfn/0.npy')
+    m = np.load(f'./data_bias/ps/0.npy')
+    mask = np.load(f"./ps_mask/union.npy")
+
+    # hp.orthview(unresolved_ps, rot=[100,50,0], title='unresolved ps')
+    # hp.orthview(rmv_bias, rot=[100,50,0], title='rmv bias')
+    hp.orthview(m, rot=[100,50,0], title='B mode')
+    
     plt.show()
-    for flux_idx in [2,3,4,5,6]:
+    for flux_idx in [2,6]:
         lon = np.rad2deg(df.at[flux_idx, 'lon'])
         lat = np.rad2deg(df.at[flux_idx, 'lat'])
-        hp.gnomview(unresolved_ps, rot=[lon,lat,0], title=f'unresolved ps {flux_idx=} B')
-        hp.gnomview(rmv_bias, rot=[lon,lat,0], title=f'rmv bias {flux_idx=} B')
+        # hp.gnomview(unresolved_ps, rot=[lon,lat,0], title=f'unresolved ps {flux_idx=} B')
+        # hp.gnomview(rmv_bias, rot=[lon,lat,0], title=f'rmv bias {flux_idx=} B')
+        hp.gnomview(m, rot=[lon,lat,0], title=f'{flux_idx=} B mode')
+        hp.gnomview(m*mask, rot=[lon,lat,0], title=f'{flux_idx=} B mode mask')
+
         plt.show()
 
+def gen_apodized_ps_mask():
+    ori_mask = np.load(f"../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy")
+    freq = 30
+    beam = 67
+    # df = pd.read_csv(f'../{freq}GHz/mask/{freq}_after_filter.csv')
+    # df = pd.read_csv(f'./concat_ps.csv')
+    df = pd.read_csv(f'../30GHz/mask/30_after_filter.csv')
+    mask = np.ones(hp.nside2npix(nside))
+    for flux_idx in range(len(df)):
+        print(f'{flux_idx=}')
+        # if flux_idx > 0:
+            # break
+        lon = np.rad2deg(df.at[flux_idx, 'lon'])
+        lat = np.rad2deg(df.at[flux_idx, 'lat'])
 
+        ctr_vec = hp.ang2vec(theta=lon, phi=lat, lonlat=True)
+        ipix_mask = hp.query_disc(nside=nside, vec=ctr_vec, radius=2.5 * np.deg2rad(beam) / 60)
+        mask[ipix_mask] = 0
+
+        # fig_size=200
+        # # hp.gnomview(ori_mask, rot=[lon, lat, 0], title='before mask', xsize=fig_size)
+        # hp.gnomview(mask, rot=[lon, lat, 0], title='after mask', xsize=fig_size)
+        # plt.show()
+
+    # apo_mask = nmt.mask_apodization(mask_in=mask, aposize=1)
+    # hp.orthview(apo_mask * ori_mask, rot=[100,50, 0], title='mask', xsize=2000)
+    # plt.show()
+
+    path_mask = Path('./ps_mask')
+    path_mask.mkdir(exist_ok=True, parents=True)
+    # np.save(f'./ps_mask/{freq}GHz_1deg.npy', apo_mask * ori_mask)
+    # np.save(f'./ps_mask/{freq}GHz.npy', mask * ori_mask)
+    np.save(f'./ps_mask/30GHz_67.npy', mask * ori_mask)
+
+def test_check_map():
+    m1 = np.load('./ps_mask/30GHz.npy')
+    m2 = np.load('./ps_mask/30GHz_67.npy')
+    hp.orthview(m1, rot=[100,50,0], half_sky=True)
+    hp.orthview(m2, rot=[100,50,0], half_sky=True)
+    plt.show()
+
+def test_deconvolve():
+    flux_idx = 0
+    def see_map(m):
+        #see the map
+        df = pd.read_csv(f'../30GHz/mask/30_after_filter.csv')
+        lon = np.rad2deg(df.at[flux_idx, 'lon'])
+        lat = np.rad2deg(df.at[flux_idx, 'lat'])
+        hp.gnomview(m, rot=[lon, lat, 0])
+        plt.show()
+
+    mask_17 = np.load(f"./ps_mask/30GHz_one_ps_17.npy")
+    mask_67 = np.load(f"./ps_mask/30GHz_one_ps_67.npy")
+    see_map(mask_17)
+    see_map(mask_67)
+
+    m_freq = np.load(f'../30GHz/data/ps/30GHz_one_ps.npy')
+    sm_freq = smooth_tqu(map_in=m_freq, lmax=500, beam_in=67, beam_out=17)
+    m_b_freq = hp.alm2map(hp.map2alm(sm_freq, lmax=500)[2], nside=nside)
+    np.save(f'./test/m_b_freq.npy', m_b_freq)
+    see_map(m_b_freq)
+    see_map(m_b_freq*mask_17)
+    see_map(m_b_freq*mask_67)
 
 if __name__ == "__main__":
     # calc_eblc_bias()
@@ -473,15 +581,19 @@ if __name__ == "__main__":
     # save_bias_ps()
     # save_bias_unresolved_ps()
     # save_bias_rmv_model()
+    # save_bias_cfn()
 
     # check_fg_bias()
 
-    calc_fg_bias_cl()
+    # calc_fg_bias_cl()
     # calc_ps_bias_cl()
     # calc_unresolved_ps_bias_cl()
     # calc_rmv_bias_cl()
 
     # test_each_freq()
     # test_nilc_res()
+    test_check_map()
+    # gen_apodized_ps_mask()
+    # test_deconvolve()
 
 

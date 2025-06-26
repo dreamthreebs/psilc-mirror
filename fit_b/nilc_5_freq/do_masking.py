@@ -103,11 +103,14 @@ def gen_apodized_ps_mask():
     ori_mask = np.load(f"../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy")
     freq = 30
     beam = beam_base
+    beam = 67
     # df = pd.read_csv(f'../{freq}GHz/mask/{freq}_after_filter.csv')
     df = pd.read_csv(f'./concat_ps.csv')
     mask = np.ones(hp.nside2npix(nside))
     for flux_idx in range(len(df)):
         print(f'{flux_idx=}')
+        if flux_idx > 40:
+            break
         lon = np.rad2deg(df.at[flux_idx, 'lon'])
         lat = np.rad2deg(df.at[flux_idx, 'lat'])
 
@@ -128,7 +131,7 @@ def gen_apodized_ps_mask():
     path_mask.mkdir(exist_ok=True, parents=True)
     # np.save(f'./ps_mask/{freq}GHz_1deg.npy', apo_mask * ori_mask)
     # np.save(f'./ps_mask/{freq}GHz.npy', mask * ori_mask)
-    np.save(f'./ps_mask/union.npy', mask * ori_mask)
+    np.save(f'./ps_mask/union_40.npy', mask * ori_mask)
 
 
 def calc_cl_with_mask():
@@ -142,7 +145,7 @@ def calc_cl_with_mask():
 
     freq = 30
     # mask_b = np.load(f"./ps_mask/{freq}GHz.npy")
-    mask_b = np.load(f"./ps_mask/union.npy")
+    mask_b = np.load(f"./ps_mask/union_40.npy")
     # mask_b = np.load(f"./ps_mask/new_{freq}GHz_3deg.npy")
 
     m_std = np.load(f'./data2/std/pcfn/{rlz_idx}.npy')
@@ -153,11 +156,11 @@ def calc_cl_with_mask():
     path_dl_std = Path(f'./dl_res4/mask')
     path_dl_std.mkdir(parents=True, exist_ok=True)
 
-    # np.save(path_dl_std / Path(f'pcfn_{freq}_{rlz_idx}.npy'), dl_std)
-    # np.save(path_dl_std / Path(f'n_{freq}_{rlz_idx}.npy'), dl_n)
+    # np.save(path_dl_std / Path(f'pcfn_{freq}_67_{rlz_idx}.npy'), dl_std)
+    # np.save(path_dl_std / Path(f'n_{freq}_67_{rlz_idx}.npy'), dl_n)
 
-    np.save(path_dl_std / Path(f'pcfn_union_{rlz_idx}.npy'), dl_std)
-    np.save(path_dl_std / Path(f'n_union_{rlz_idx}.npy'), dl_n)
+    np.save(path_dl_std / Path(f'pcfn_union_40_{rlz_idx}.npy'), dl_std)
+    np.save(path_dl_std / Path(f'n_union_40_{rlz_idx}.npy'), dl_n)
 
 
 
@@ -173,8 +176,8 @@ def calc_th_bpw():
     bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
     ell_arr = bin_dl.get_effective_ells()
 
-    apo_mask  = np.load(f"../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy")
-    # apo_mask  = np.load(f"./ps_mask/30GHz.npy")
+    # apo_mask  = np.load(f"../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy")
+    apo_mask  = np.load(f"./ps_mask/30GHz_67.npy")
     # apo_mask  = np.load(f"./ps_mask/union.npy")
     hp.orthview(apo_mask, rot=[100,50, 0], title='mask', xsize=2000)
     plt.show()
@@ -183,8 +186,8 @@ def calc_th_bpw():
     f = nmt.NmtField(apo_mask, [np.ones_like(apo_mask)], masked_on_input=False, lmax=lmax, lmax_mask=lmax)
     w = nmt.NmtWorkspace.from_fields(f, f, bins=bin_dl)
 
-    cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_8k.npy').T
-    # cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_r_1.npy').T
+    # cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_8k.npy').T
+    cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_r_1.npy').T
     print(f'{cl_cmb.shape=}')
     cl_true = cl_cmb[2,:lmax+1]
     ells = np.arange(len(cl_true))
@@ -234,23 +237,27 @@ def calc_th_bpw():
     # plt.xlabel(r'$\ell$', fontsize=15);
     # plt.show()
 
-    # dl_th = w.decouple_cell(w.couple_cell([cl_true]))[0]
-    cw = nmt.NmtCovarianceWorkspace.from_fields(f, f, f, f)
-    cov_00_00 = nmt.gaussian_covariance(cw,
-                                      0, 0, 0, 0,  # Spins of the 4 fields
-                                      [cl_true],  # TT
-                                      [cl_true],  # TT
-                                      [cl_true],  # TT
-                                      [cl_true],  # TT
-                                      w)
-    dl_th_std = np.sqrt(np.diag(cov_00_00))
+    # calculate theoretical bandpower
+    dl_th = w.decouple_cell(w.couple_cell([cl_true]))[0]
+
+    # # calculate the theoretical covariance
+    # cw = nmt.NmtCovarianceWorkspace.from_fields(f, f, f, f)
+    # cov_00_00 = nmt.gaussian_covariance(cw,
+    #                                   0, 0, 0, 0,  # Spins of the 4 fields
+    #                                   [cl_true],  # TT
+    #                                   [cl_true],  # TT
+    #                                   [cl_true],  # TT
+    #                                   [cl_true],  # TT
+    #                                   w)
+    # dl_th_std = np.sqrt(np.diag(cov_00_00))
 
 
     path_dl_qu_mask = Path(f'./dl_res4/mask')
     path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
     # np.save(path_dl_qu_mask/ Path(f'th_r_95_2deg_{rlz_idx}.npy'), dl_th)
-    # np.save(path_dl_qu_mask/ Path(f'th_30_{rlz_idx}.npy'), dl_th)
-    np.save(path_dl_qu_mask/ Path(f'th_std_apo_new_{rlz_idx}.npy'), dl_th_std)
+    # np.save(path_dl_qu_mask/ Path(f'th_30_67_{rlz_idx}.npy'), dl_th)
+    np.save(path_dl_qu_mask/ Path(f'th_r_30_67_{rlz_idx}.npy'), dl_th)
+    # np.save(path_dl_qu_mask/ Path(f'th_std_apo_new_{rlz_idx}.npy'), dl_th_std)
 
 
 # test on bias from mask
@@ -284,10 +291,10 @@ def test_gen_mask():
     np.save(f'./ps_mask/new_{freq}GHz_3deg.npy', apo_mask * ori_mask)
 
 def test_mask():
-    mask_1 = np.load('./ps_mask/95GHz_3deg.npy')
-    mask_2 = np.load('./ps_mask/new_95GHz_3deg.npy')
+    mask_1 = np.load('./ps_mask/union.npy')
+    # mask_2 = np.load('./ps_mask/new_95GHz_3deg.npy')
     hp.orthview(mask_1, rot=[100,50,0], half_sky=True)
-    hp.orthview(mask_2, rot=[100,50,0], half_sky=True)
+    # hp.orthview(mask_2, rot=[100,50,0], half_sky=True)
     plt.show()
 
 def check_cmb_bias_from_mask():
