@@ -849,7 +849,7 @@ def plot_ms5():
     # Show plot
     plt.show()
 
-def plot_ms6():
+def plot_bias():
     bl = hp.gauss_beam(fwhm=np.deg2rad(beam)/60, lmax=lmax, pol=True)[:,2]
     l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
     # delta_ell = 30
@@ -863,22 +863,22 @@ def plot_ms6():
     print(f'{cl.shape=}')
     l = np.arange(len(cl))
 
-    pcfn_mean = np.mean([np.load(f'./dl_res4/std/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    n_mean = np.mean([np.load(f'./dl_res4/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    pcfn_std = np.std([np.load(f'./dl_res4/std/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    cfn_mean = np.mean([np.load(f'./dl_res4/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    cfn_std = np.std([np.load(f'./dl_res4/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    rmv_mean = np.mean([np.load(f'./dl_res4/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    rmv_std = np.std([np.load(f'./dl_res4/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    inp_mean = np.mean([np.load(f'./dl_res4/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # pcfn_mean = np.mean([np.load(f'./dl_res4/std/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # n_mean = np.mean([np.load(f'./dl_res4/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # pcfn_std = np.std([np.load(f'./dl_res4/std/pcfn/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_pcfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # cfn_mean = np.mean([np.load(f'./dl_res4/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # cfn_std = np.std([np.load(f'./dl_res4/std/cfn/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_cfn/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # rmv_mean = np.mean([np.load(f'./dl_res4/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # rmv_std = np.std([np.load(f'./dl_res4/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # inp_mean = np.mean([np.load(f'./dl_res4/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     inp_std = np.std([np.load(f'./dl_res4/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    masking_30_mean = np.mean([np.load(f'./dl_res4/mask/pcfn_270_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_270_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    masking_30_std = np.std([np.load(f'./dl_res4/mask/pcfn_270_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_270_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    masking_95_mean = np.mean([np.load(f'./dl_res4/mask/pcfn_union_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    masking_95_std = np.std([np.load(f'./dl_res4/mask/pcfn_union_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # masking_30_mean = np.mean([np.load(f'./dl_res4/mask/pcfn_270_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_270_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # masking_30_std = np.std([np.load(f'./dl_res4/mask/pcfn_270_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_270_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # masking_95_mean = np.mean([np.load(f'./dl_res4/mask/pcfn_union_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # masking_95_std = np.std([np.load(f'./dl_res4/mask/pcfn_union_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
 
     fg_apo = np.mean([np.load(f'./dl_res5/fg/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    fg_ps_mask = np.mean([np.load(f'./dl_res5/fg/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # fg_ps_mask = np.mean([np.load(f'./dl_res5/fg/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
 
     # ps_apo = np.mean([np.load(f'./dl_res5/ps/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     # ps_ps_mask = np.mean([np.load(f'./dl_res5/ps/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
@@ -888,13 +888,17 @@ def plot_ms6():
     # rmv_bias_ps_mask = np.mean([np.load(f'./dl_res5/rmv_bias/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
 
     unres_rmv_apo = np.mean([np.load(f'./dl_res5/unresolved_ps_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    unres_rmv_ps_mask = np.mean([np.load(f'./dl_res5/unresolved_ps_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # unres_rmv_ps_mask = np.mean([np.load(f'./dl_res5/unresolved_ps_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     rmv_rmv_apo = np.mean([np.load(f'./dl_res5/rmv_bias_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    rmv_rmv_ps_mask = np.mean([np.load(f'./dl_res5/rmv_bias_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # rmv_rmv_ps_mask = np.mean([np.load(f'./dl_res5/rmv_bias_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     ps_apo_rmv = np.mean([np.load(f'./dl_res5/ps_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    ps_ps_mask_rmv = np.mean([np.load(f'./dl_res5/ps_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # ps_ps_mask_rmv = np.mean([np.load(f'./dl_res5/ps_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     fg_apo_rmv = np.mean([np.load(f'./dl_res5/fg_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    fg_ps_mask_rmv = np.mean([np.load(f'./dl_res5/fg_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # fg_ps_mask_rmv = np.mean([np.load(f'./dl_res5/fg_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+
+    noise_apo_rmv = np.mean([np.load(f'./dl_res5/noise_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    noise_ps_mask_rmv = np.mean([np.load(f'./dl_res5/noise_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+
 
 
 
@@ -903,8 +907,8 @@ def plot_ms6():
 
 
     print(f'mean std over')
-    fid_mean = np.mean([np.load(f'./dl_res4/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    fid_std = np.std([np.load(f'./dl_res4/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # fid_mean = np.mean([np.load(f'./dl_res4/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    # fid_std = np.std([np.load(f'./dl_res4/fid_cmb/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     # cf_mean = np.mean([np.load(f'./dl_res4/std/cf/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
 
     # bias_std_2_pcfn = np.sqrt((pcfn_mean-fid_mean)**2 + pcfn_std**2)
@@ -918,27 +922,25 @@ def plot_ms6():
     # dl_in_ps_3deg = np.load(f'./dl_res4/mask/th_95_1deg_0.npy')
     dl_in_ps_bin = np.load(f'./dl_res4/mask/th_no_north_0.npy')
 
-    res_pcfn = np.abs(pcfn_mean - dl_in)
-    res_cfn = np.abs(cfn_mean - dl_in)
-    res_rmv = np.abs(rmv_mean - dl_in)
-    res_inp = np.abs(inp_mean - dl_in)
-    res_masking_30 = np.abs(masking_30_mean - dl_in_ps_bin)
-    res_masking_95 = np.abs(masking_95_mean - dl_in_ps)
+    # res_pcfn = np.abs(pcfn_mean - dl_in)
+    # res_cfn = np.abs(cfn_mean - dl_in)
+    # res_rmv = np.abs(rmv_mean - dl_in)
+    # res_inp = np.abs(inp_mean - dl_in)
+    # res_masking_30 = np.abs(masking_30_mean - dl_in_ps_bin)
+    # res_masking_95 = np.abs(masking_95_mean - dl_in_ps)
 
-    res_line = mlines.Line2D([], [], color='black', linestyle='-', label='Residual')
-    std_line = mlines.Line2D([], [], color='black', linestyle=':', label='Std Deviation')
+    # res_line = mlines.Line2D([], [], color='black', linestyle='-', label='Residual')
+    # std_line = mlines.Line2D([], [], color='black', linestyle=':', label='Std Deviation')
 
     # Create figure with 2 subplots (main and subfigure), sharing the x-axis
-    fig, (ax_main, ax_sub) = plt.subplots(2, 1, figsize=(10, 8), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
+    fig, ax_main = plt.subplots(1, 1, figsize=(6,5))
 
     lmax_ell_arr = len(ell_arr) - 2
     ell_arr = ell_arr[:-2]
 
     # Set the y-axis to logarithmic scale for both the main plot and subfigure
     ax_main.set_yscale('log')
-    ax_sub.set_yscale('log')
     ax_main.set_xscale('log')
-    ax_sub.set_xscale('log')
 
 
     # Plot mean values in the main axis (no error bars here)
@@ -947,15 +949,15 @@ def plot_ms6():
     cap_s = 3
 
     # ax_main.errorbar(ell_arr, fid_mean[:lmax_ell_arr], yerr=fid_std[:lmax_ell_arr], capsize=s, label='Fiducial CMB', color='black', markersize=mk_s)
-    ax_main.plot(ell_arr, dl_in[:lmax_ell_arr], label='Fiducial CMB apo', color='black', linewidth=2.5)
+    ax_main.plot(ell_arr, dl_in[:lmax_ell_arr], label='Fiducial CMB', color='black', linewidth=2.5)
     # ax_main.plot(ell_arr, dl_in_ps[:lmax_ell_arr], label='Fiducial CMB ps 2deg', color='grey', linewidth=2.5)
     # ax_main.plot(ell_arr, dl_in_ps_3deg[:lmax_ell_arr], label='Fiducial CMB ps 1deg', linewidth=2.5)
-    ax_main.plot(ell_arr, dl_in_ps_bin[:lmax_ell_arr], label='Fiducial CMB ps bin', linewidth=2.5)
-    ax_main.plot(ell_arr, dl_in_ps[:lmax_ell_arr], label='Fiducial CMB ps union', linewidth=2.5)
-    ax_main.errorbar(ell_arr*0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='with-PS baseline', markersize=mk_s, color='blue')
-    ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='no-PS baseline', markersize=mk_s, color='purple')
-    ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='TF', markersize=mk_s, color='green')
-    ax_main.errorbar(ell_arr*1.015, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='RI-B', markersize=mk_s, color='red')
+    # ax_main.plot(ell_arr, dl_in_ps_bin[:lmax_ell_arr], label='Fiducial CMB ps bin', linewidth=2.5)
+    # ax_main.plot(ell_arr, dl_in_ps[:lmax_ell_arr], label='Fiducial CMB ps union', linewidth=2.5)
+    # ax_main.errorbar(ell_arr*0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='with-PS baseline', markersize=mk_s, color='blue')
+    # ax_main.errorbar(ell_arr*0.995, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], fmt='.', capsize=s, label='no-PS baseline', markersize=mk_s, color='purple')
+    # ax_main.errorbar(ell_arr*1.005, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], fmt='.', capsize=s, label='TF', markersize=mk_s, color='green')
+    # ax_main.errorbar(ell_arr*1.015, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], fmt='.', capsize=s, label='RI-B', markersize=mk_s, color='red')
 
     # ax_main.plot(ell_arr, fg_apo[:lmax_ell_arr], label='fg bias apo', linewidth=2.5)
     # ax_main.plot(ell_arr, fg_ps_mask[:lmax_ell_arr], label='fg bias union', linewidth=2.5)
@@ -966,17 +968,15 @@ def plot_ms6():
     # ax_main.plot(ell_arr, rmv_bias_apo[:lmax_ell_arr], label='rmv bias apo', linewidth=2.5)
     # ax_main.plot(ell_arr, rmv_bias_ps_mask[:lmax_ell_arr], label='rmv bias union', linewidth=2.5)
 
-    ax_main.plot(ell_arr, unres_rmv_apo[:lmax_ell_arr], label='unresolved ps bias apo rmv', linewidth=2.5)
-    ax_main.plot(ell_arr, unres_rmv_ps_mask[:lmax_ell_arr], label='unresolved ps bias union rmv', linewidth=2.5)
-    ax_main.plot(ell_arr, rmv_rmv_apo[:lmax_ell_arr], label='rmv bias apo rmv', linewidth=2.5)
-    ax_main.plot(ell_arr, rmv_rmv_ps_mask[:lmax_ell_arr], label='rmv bias union rmv', linewidth=2.5)
-    ax_main.plot(ell_arr, ps_apo_rmv[:lmax_ell_arr], label='ps bias apo rmv', linewidth=2.5)
-    ax_main.plot(ell_arr, ps_ps_mask_rmv[:lmax_ell_arr], label='ps bias union rmv', linewidth=2.5)
-    ax_main.plot(ell_arr, fg_apo_rmv[:lmax_ell_arr], label='fg bias apo rmv', linewidth=2.5)
-    ax_main.plot(ell_arr, fg_ps_mask_rmv[:lmax_ell_arr], label='fg bias union rmv', linewidth=2.5)
-
-
-
+    ax_main.plot(ell_arr, unres_rmv_apo[:lmax_ell_arr], label='Unresolved PS', linewidth=2.5)
+    # ax_main.plot(ell_arr, unres_rmv_ps_mask[:lmax_ell_arr], label='unresolved ps bias union rmv', linewidth=2.5)
+    ax_main.plot(ell_arr, rmv_rmv_apo[:lmax_ell_arr], label='Removal residual PS', linewidth=2.5)
+    # ax_main.plot(ell_arr, rmv_rmv_ps_mask[:lmax_ell_arr], label='rmv bias union rmv', linewidth=2.5)
+    # ax_main.plot(ell_arr, ps_apo_rmv[:lmax_ell_arr], label='ps bias apo rmv', linewidth=2.5)
+    # ax_main.plot(ell_arr, ps_ps_mask_rmv[:lmax_ell_arr], label='ps bias union rmv', linewidth=2.5)
+    ax_main.plot(ell_arr, fg_apo_rmv[:lmax_ell_arr], label='Foreground', linewidth=2.5)
+    ax_main.plot(ell_arr, noise_apo_rmv[:lmax_ell_arr], label='Noise', linewidth=2.5)
+    # ax_main.plot(ell_arr, noise_ps_mask_rmv[:lmax_ell_arr], label='noise bias ps mask', linewidth=2.5)
 
 
 
@@ -984,11 +984,12 @@ def plot_ms6():
 
 
     # Set labels and title for the main plot
-    ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$')
+    ax_main.set_xlabel(r'$\ell$', fontsize=14)
+    ax_main.set_ylabel('$D_\\ell^{BB} [\mu K^2]$', fontsize=14)
     ax_main.set_xlim(58, 1290)
     # ax_main.set_ylim(1e-4, 2e-1)
-    ax_main.set_title('Debiased power spectra')
-    ax_main.legend(loc='upper right')
+    # ax_main.set_title('Debiased power spectra')
+    ax_main.legend(loc='upper left', fontsize=12)
 
 
     # Plot standard deviation in the subfigure (using scatter with no error bars)
@@ -1001,19 +1002,7 @@ def plot_ms6():
 
     # ax_sub.plot(ell_arr, fid_std[:lmax_ell_arr], s=s, label='Fiducial CMB', color='black', marker='.')
 
-    ax_sub.plot(ell_arr, res_pcfn[:lmax_ell_arr], label='with-PS baseline', marker='.', color='blue')
-    ax_sub.plot(ell_arr, res_cfn[:lmax_ell_arr], label='no-PS baseline', marker='.', color='purple')
-    ax_sub.plot(ell_arr, res_rmv[:lmax_ell_arr], label='TF', marker='.', color='green')
-    ax_sub.plot(ell_arr, res_inp[:lmax_ell_arr], label='RI-B', marker='.', color='red')
-    ax_sub.plot(ell_arr, res_masking_30[:lmax_ell_arr], label='M-QU 30', marker='.', color='orange')
-    ax_sub.plot(ell_arr, res_masking_95[:lmax_ell_arr], label='M-QU 95', marker='.', color='yellow')
 
-    ax_sub.plot(ell_arr, pcfn_std[:lmax_ell_arr], label='with-PS baseline', marker='.', linestyle=':', color='blue')
-    ax_sub.plot(ell_arr, cfn_std[:lmax_ell_arr], label='no-PS baseline', marker='.', linestyle=':', color='purple')
-    ax_sub.plot(ell_arr, rmv_std[:lmax_ell_arr], label='TF', marker='.', linestyle=':', color='green')
-    ax_sub.plot(ell_arr, inp_std[:lmax_ell_arr], label='RI-B', marker='.', linestyle=':', color='red')
-    ax_sub.plot(ell_arr, masking_30_std[:lmax_ell_arr], label='M-QU 30', marker='.', linestyle=':', color='orange')
-    ax_sub.plot(ell_arr, masking_95_std[:lmax_ell_arr], label='M-QU 95', marker='.', linestyle=':', color='yellow')
 
     
     label_size = 10
@@ -1025,26 +1014,12 @@ def plot_ms6():
     for axis in ['top','bottom','left','right']:
         ax_main.spines[axis].set_linewidth(2)
 
-    ax_sub.tick_params(axis='both', which='major', labelsize=label_size)
-    ax_sub.tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
-    ax_sub.tick_params(bottom=True, top=True, left=True, right=True, which = "minor", direction="in", length=5, width=1.5);
-    # ax_sub.grid(which='major', linestyle='-', linewidth=2)
-    # ax_sub.grid(which='minor', linestyle='dashed', linewidth=0.9)
-    for axis in ['top','bottom','left','right']:
-        ax_sub.spines[axis].set_linewidth(2)
 
-
-
-    # Set labels for the subfigure (only xlabel here)
-    ax_sub.set_xlabel('$\\ell$')
-    ax_sub.set_ylabel('Residual and Std deviation')
-    ax_sub.legend(handles=[res_line, std_line])
 
     # Adjust layout for better spacing
     plt.tight_layout()
-    plt.subplots_adjust(hspace=0)
 
-    # plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323/nilc_res.png', dpi=300)
+    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609/component_bias.png', dpi=300)
 
     # Show plot
     plt.show()
@@ -1069,6 +1044,6 @@ def from_cl_to_bandpower():
 # plot_ms2()
 # plot_ms3()
 # plot_ms4()
-plot_ms5()
-# plot_ms6()
+# plot_ms5()
+plot_bias()
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 原始文件名称
-original_file="./do_masking.py"
+original_file="./calc_bias.py"
 
 # 复制文件的数量
 copies=200

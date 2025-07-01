@@ -154,6 +154,18 @@ def gen_cmb(beam, rlz_idx=0):
     cmb_iqu = hp.synfast(cls.T, nside=nside, fwhm=np.deg2rad(beam)/60, new=True, lmax=3*nside-1)
     return cmb_iqu
 
+def gen_noise(freq, rlz_idx=0):
+    nside = 2048
+
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    npix = hp.nside2npix(nside=2048)
+    np.random.seed(seed=noise_seed[rlz_idx])
+    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    print(f"{np.std(noise[1])=}")
+    return noise
+
+
 
 # tests on if foreground except point sources area is bigger than the foreground in point sources area
 def calc_eblc_bias():
@@ -276,7 +288,7 @@ def pp_bias(maps_in, lmax_base, beam_base, rlz_idx):
     # 3. do nilc
     print(f"begin nilc")
     mask_nilc = np.load(f'../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3.npy')
-    obj_nilc = NILC(bandinfo='./band_info.csv', needlet_config='./needlets/0.csv', weights_config=f'./weight/std/pcfn/{rlz_idx}.npz', Sm_maps=m_freq_arr, mask=mask_nilc, lmax=lmax_base, nside=nside, n_iter=3, weight_in_alm=False)
+    obj_nilc = NILC(bandinfo='./band_info.csv', needlet_config='./needlets/0.csv', weights_config=f'./weight/std/rmv/{rlz_idx}.npz', Sm_maps=m_freq_arr, mask=mask_nilc, lmax=lmax_base, nside=nside, n_iter=3, weight_in_alm=False)
     m_bias = obj_nilc.run_nilc()
     print(f"nilc done!")
 
@@ -292,6 +304,17 @@ def save_bias_fg():
     path_bias.mkdir(parents=True, exist_ok=True)
 
     np.save(path_bias / Path(f'{rlz_idx}.npy'), m_fg)
+
+def save_bias_noise():
+    noises = np.asarray([gen_noise(freq, rlz_idx=rlz_idx) for freq in freq_list])
+
+    m_noise = pp_bias(noises, lmax_base=lmax, beam_base=beam_base, rlz_idx=rlz_idx)
+
+    path_bias = Path(f'./data_bias/noise_rmv')
+    path_bias.mkdir(parents=True, exist_ok=True)
+
+    np.save(path_bias / Path(f'{rlz_idx}.npy'), m_noise)
+
 
 def save_bias_ps():
     ps = np.asarray([np.load(f'../../fitdata/2048/PS/{freq}/ps.npy') for freq in freq_list])
@@ -381,6 +404,36 @@ def calc_fg_bias_cl():
 
     np.save(path_dl_diff / Path(f'union_{rlz_idx}.npy'), dl_diff_ps_mask)
     np.save(path_dl_diff / Path(f'apo_{rlz_idx}.npy'), dl_diff_apo)
+
+def calc_noise_bias_cl():
+    # get the foreground bias upon different masks
+    # that might be wrong because cmb might be a little different from ilc befored maps !!!
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam_base)/60, lmax=lmax, pol=True)[:,2]
+    l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
+    # delta_ell = 30
+    # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    diff = np.load(f'./data_bias/noise_rmv/{rlz_idx}.npy')
+
+    ps_mask = np.load(f'./ps_mask/union.npy')
+
+    # hp.orthview(ps_mask, rot=[100,50,0], half_sky=True)
+    # hp.orthview(apo_mask, rot=[100,50,0], half_sky=True)
+    # plt.show()
+
+
+    dl_diff_apo = calc_dl_from_scalar_map_bl(scalar_map=diff, apo_mask=apo_mask, bl=bl, bin_dl=bin_dl, masked_on_input=False)
+    dl_diff_ps_mask = calc_dl_from_scalar_map_bl(scalar_map=diff, apo_mask=ps_mask, bl=bl, bin_dl=bin_dl, masked_on_input=False)
+
+    path_dl_diff = Path(f'./dl_res5/noise_rmv')
+    path_dl_diff.mkdir(parents=True, exist_ok=True)
+
+    np.save(path_dl_diff / Path(f'union_{rlz_idx}.npy'), dl_diff_ps_mask)
+    np.save(path_dl_diff / Path(f'apo_{rlz_idx}.npy'), dl_diff_apo)
+
 
 def calc_ps_bias_cl():
     # get the foreground bias upon different masks
@@ -582,6 +635,7 @@ if __name__ == "__main__":
     # save_bias_unresolved_ps()
     # save_bias_rmv_model()
     # save_bias_cfn()
+    # save_bias_noise()
 
     # check_fg_bias()
 
@@ -589,10 +643,11 @@ if __name__ == "__main__":
     # calc_ps_bias_cl()
     # calc_unresolved_ps_bias_cl()
     # calc_rmv_bias_cl()
+    calc_noise_bias_cl()
 
     # test_each_freq()
     # test_nilc_res()
-    test_check_map()
+    # test_check_map()
     # gen_apodized_ps_mask()
     # test_deconvolve()
 
