@@ -105,10 +105,33 @@ def plot_each_freq_map():
     vmin = -4
     vmax = 4
 
-    hp.gnomview(m_pcfn, rot=[lon, lat, 0], sub=(141), notext=True, cbar=False, title='with-PS baseline', xsize=250, min=vmin, max=vmax)
-    hp.gnomview(m_cfn, rot=[lon, lat, 0], sub=(142), notext=True, cbar=False, title='no-PS baseline', xsize=250, min=vmin, max=vmax)
-    hp.gnomview(m_rmv, rot=[lon, lat, 0], sub=(143), notext=True, cbar=False, title='TF', xsize=250, min=vmin, max=vmax)
-    hp.gnomview(m_inp, rot=[lon, lat, 0], sub=(144), notext=True, cbar=False, title='RI-B', xsize=250, min=vmin, max=vmax)
+    hp.gnomview(m_cfn, rot=[lon, lat, 0], sub=(141), notext=True, cbar=False, title='Simulation without PS', xsize=250, min=vmin, max=vmax)
+
+    # ax = plt.gca()
+    # ax.plot([1.02, 1.02], [0, 1],
+    #         linestyle='--',
+    #         linewidth=2,
+    #         color='black',
+    #         transform=ax.transAxes,
+    #         clip_on=False)  # clip_on=False lets it draw right at the edge
+
+    hp.gnomview(m_pcfn, rot=[lon, lat, 0], sub=(142), notext=True, cbar=False, title='Simulation with PS', xsize=250, min=vmin, max=vmax)
+    hp.gnomview(m_rmv, rot=[lon, lat, 0], sub=(143), notext=True, cbar=False, title='GLSPF', xsize=250, min=vmin, max=vmax)
+    hp.gnomview(m_inp, rot=[lon, lat, 0], sub=(144), notext=True, cbar=False, title='Inpainting', xsize=250, min=vmin, max=vmax)
+
+    # 2) now grab the first axes (it's the first one created)
+    ax1 = fig.axes[0]
+
+    # 3) shift it left by 0.02 in figure‐fraction coordinates
+    # x0, y0, w, h = ax1.get_position().bounds
+    # ax1.set_position([x0 - 0.02, y0, w, h])
+
+    # 4) draw your vertical dashed line
+    ax1.plot([1.02, 1.02], [0, 1],
+             linestyle='--', linewidth=2,
+             color='black',
+             transform=ax1.transAxes,
+             clip_on=False)
 
 
     # Add a shared colorbar
@@ -121,7 +144,7 @@ def plot_each_freq_map():
 
     # plt.tight_layout()
     plt.subplots_adjust()
-    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250323/{freq}.pdf', bbox_inches='tight')
+    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609/{freq}.pdf', bbox_inches='tight')
     # plt.show()
     plt.show()
 
