@@ -371,13 +371,13 @@ def plot_nilc():
     ax1.set_yscale('log')
     
     # Plot mean ± std
-    ax1.errorbar(ell_arr * 0.955, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='with-PS baseline', fmt='.', color='blue', capsize=s)
-    ax1.errorbar(ell_arr * 0.97, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='TF', fmt='.', color='green', capsize=s)
-    ax1.errorbar(ell_arr * 0.985, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='no-PS baseline', fmt='.', color='purple', capsize=s)
+    ax1.errorbar(ell_arr * 0.970, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='Simulation with PS', fmt='.', color='blue', capsize=s)
+    ax1.errorbar(ell_arr * 0.985, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='Simulation without PS', fmt='.', color='purple', capsize=s)
     ax1.errorbar(ell_arr * 1.00, dl_in[:lmax_ell_arr], yerr=dl_in_std[:lmax_ell_arr], label='Fiducial CMB', fmt='o', color='black', capsize=s, linestyle='-', markersize=3)
-    ax1.errorbar(ell_arr * 1.00, dl_in_ps[:lmax_ell_arr], yerr=dl_in_std[:lmax_ell_arr], label='Fiducial CMB 30GHz', fmt='o', color='grey', capsize=s, linestyle='-', markersize=3)
-    ax1.errorbar(ell_arr * 1.015, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='RI-B', fmt='.', color='red', capsize=s)
-    ax1.errorbar(ell_arr * 1.030, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='M-B 30GHz', fmt='.', color='orange', capsize=s)
+    ax1.errorbar(ell_arr * 1.015, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='GLSPF', fmt='.', color='green', capsize=s)
+    # ax1.errorbar(ell_arr * 1.00, dl_in_ps[:lmax_ell_arr], yerr=dl_in_std[:lmax_ell_arr], label='Fiducial CMB 30GHz', fmt='o', color='grey', capsize=s, linestyle='-', markersize=3)
+    ax1.errorbar(ell_arr * 1.03, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='Inpainting', fmt='.', color='red', capsize=s)
+    ax1.errorbar(ell_arr * 1.045, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='Masking', fmt='.', color='orange', capsize=s)
     # ax1.errorbar(ell_arr * 1.045, ps_mask_30_mean[:lmax_ell_arr], yerr=ps_mask_30_std[:lmax_ell_arr], label='M-QU 30GHz mask', fmt='.', color='yellow', capsize=s)
     
     # Labels and layout
@@ -385,7 +385,7 @@ def plot_nilc():
     ax1.set_ylabel('$D_\\ell^{BB} [\mu K^2]$', fontsize=14)
     ax1.set_xlim(55, lmax_eff * 1.01)
     # ax1.set_title(f'Noise-debiased power spectra at {freq}GHz')
-    ax1.legend(loc='upper left', fontsize=12)
+    ax1.legend(loc='upper left', fontsize=11)
     
     ax1.tick_params(axis='both', labelsize=12, direction="in")
     ax1.tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
@@ -470,7 +470,7 @@ def plot_nilc():
     for axis in ['top', 'bottom', 'left', 'right']:
         axs[1].spines[axis].set_linewidth(2)
     
-    axs[1].legend(fontsize=8)
+    # axs[1].legend(fontsize=8)
     axs[1].set_xscale('log')
     axs[1].set_yscale('log')
     # axs[1].set_ylim(0,0.49)

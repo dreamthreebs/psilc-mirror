@@ -183,7 +183,7 @@ print(f'{pcfn_std.shape=}')
 # plt.show()
 
 lmax_eff = calc_lmax(beam=beam)
-lmax_ell_arr = find_left_nearest_index_np(ell_arr, target=lmax_eff)
+lmax_ell_arr = find_left_nearest_index_np(ell_arr, target=lmax_eff) - 1
 print(f'{ell_arr=}')
 ell_arr = ell_arr[:lmax_ell_arr]
 print(f'{ell_arr[:lmax_ell_arr]=}')
@@ -220,7 +220,7 @@ ax1.set_xlabel('$\\ell$', fontsize=14)
 ax1.set_ylabel('$D_\\ell^{BB} [\mu K^2]$', fontsize=14)
 ax1.set_xlim(55, lmax_eff * 1.01)
 # ax1.set_title(f'Noise-debiased power spectra at {freq}GHz')
-ax1.legend(loc='upper left', fontsize=11)
+ax1.legend(loc='lower left', fontsize=11)
 
 ax1.tick_params(axis='both', labelsize=12, direction="in")
 ax1.tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
@@ -275,7 +275,7 @@ axs[0].tick_params(axis='both', labelsize=12, direction="in", width=2, length=4)
 axs[0].tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
 axs[0].tick_params(bottom=True, top=True, left=True, right=True, which = "minor", direction="in", length=5, width=1.5);
 axs[0].grid(which='major', linestyle='-', linewidth=2)
-axs[0].set_ylim(-0.1,0.1)
+# axs[0].set_ylim(-0.05,0.7)
 axs[0].set_xscale('log')
 for axis in ['top', 'bottom', 'left', 'right']:
     axs[0].spines[axis].set_linewidth(2)

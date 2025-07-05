@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-method_list = ['PS Template Fitting', 'Masking on B', 'Recycling + Inpainting on B', 'Simulation with PS', 'Simulation without PS']
+method_list = ['GLSPF', 'Masking', 'Inpainting', 'Simulation with PS', 'Simulation without PS']
 
 # Define mean r values (corresponding to reversed methods)
 r_mean_list = [2.25e-3, 3.08e-3, 1.06e-2, 3.58e-3, 1.71e-3]
@@ -17,7 +17,7 @@ r_err_upper = [r_up - r_mean for r_mean, r_up in zip(r_mean_list, r_upper_list)]
 r_errs = [r_err_lower, r_err_upper]
 
 # Define colors for each method
-colors = ['purple', 'blue', 'red', 'orange', 'green']  # Colors still match each method
+colors = ['green', 'orange', 'red', 'blue', 'purple']  # Colors still match each method
 
 # Create the figure and axis
 fig, ax = plt.subplots(figsize=(7, 4))

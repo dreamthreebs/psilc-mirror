@@ -296,7 +296,7 @@ for axis in ['top', 'bottom', 'left', 'right']:
 # axs[1].legend(fontsize=8)
 axs[1].set_xscale('log')
 axs[1].set_yscale('log')
-# axs[1].set_ylim(0,0.49)
+axs[1].set_ylim(0,0.9)
 fig2.align_ylabels(axs)
 
 # Final layout
