@@ -318,8 +318,8 @@ def plot_nilc():
     rmv_std = np.std([np.load(f'./dl_res4/std/rmv/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_rmv/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     inp_mean = np.mean([np.load(f'./dl_res4/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     inp_std = np.std([np.load(f'./dl_res4/std/inp/{rlz_idx}.npy') - np.load(f'./dl_res4/std/n_inp/{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    ps_mask_30_mean = np.mean([np.load(f'./dl_res4/mask/pcfn_union_40_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_40_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
-    ps_mask_30_std = np.std([np.load(f'./dl_res4/mask/pcfn_union_40_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_40_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    ps_mask_30_mean = np.mean([np.load(f'./dl_res4/mask/pcfn_union_new_apo_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_new_apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    ps_mask_30_std = np.std([np.load(f'./dl_res4/mask/pcfn_union_new_apo_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_new_apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     # ps_mask_mean = np.mean([np.load(f'./dl_res4/mask/pcfn_union_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     # ps_mask_std = np.std([np.load(f'./dl_res4/mask/pcfn_union_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     ps_mask_mean = np.mean([np.load(f'./dl_res4/mask/pcfn_30_67_{rlz_idx}.npy') - np.load(f'./dl_res4/mask/n_30_67_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
@@ -341,7 +341,7 @@ def plot_nilc():
     dl_in = np.load(f'./dl_res4/mask/th_apo_0.npy')
     # dl_in_ps = np.load(f'./dl_res4/mask/th_union_0.npy')
     dl_in_ps = np.load(f'./dl_res4/mask/th_30_67_0.npy')
-    dl_in_ps_30GHz = np.load(f'./dl_res4/mask/th_union_40_0.npy')
+    dl_in_ps_30GHz = np.load(f'./dl_res4/mask/th_union_new_apo_0.npy')
 
     dl_in_std = np.load(f'./dl_res4/mask/th_std_apo_new_0.npy')
 
@@ -374,11 +374,11 @@ def plot_nilc():
     ax1.errorbar(ell_arr * 0.970, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='Simulation with PS', fmt='.', color='blue', capsize=s)
     ax1.errorbar(ell_arr * 0.985, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='Simulation without PS', fmt='.', color='purple', capsize=s)
     ax1.errorbar(ell_arr * 1.00, dl_in[:lmax_ell_arr], yerr=dl_in_std[:lmax_ell_arr], label='Fiducial CMB', fmt='o', color='black', capsize=s, linestyle='-', markersize=3)
-    ax1.errorbar(ell_arr * 1.015, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='GLSPF', fmt='.', color='green', capsize=s)
-    # ax1.errorbar(ell_arr * 1.00, dl_in_ps[:lmax_ell_arr], yerr=dl_in_std[:lmax_ell_arr], label='Fiducial CMB 30GHz', fmt='o', color='grey', capsize=s, linestyle='-', markersize=3)
+    ax1.errorbar(ell_arr * 1.015, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='GPSF', fmt='.', color='green', capsize=s)
+    # ax1.errorbar(ell_arr * 1.00, dl_in_ps_30GHz[:lmax_ell_arr], yerr=dl_in_std[:lmax_ell_arr], label='Fiducial CMB union', fmt='o', color='grey', capsize=s, linestyle='-', markersize=3)
     ax1.errorbar(ell_arr * 1.03, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='Inpainting', fmt='.', color='red', capsize=s)
     ax1.errorbar(ell_arr * 1.045, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='Masking', fmt='.', color='orange', capsize=s)
-    # ax1.errorbar(ell_arr * 1.045, ps_mask_30_mean[:lmax_ell_arr], yerr=ps_mask_30_std[:lmax_ell_arr], label='M-QU 30GHz mask', fmt='.', color='yellow', capsize=s)
+    # ax1.errorbar(ell_arr * 1.060, ps_mask_30_mean[:lmax_ell_arr], yerr=ps_mask_30_std[:lmax_ell_arr], label='M-QU 30GHz mask', fmt='.', color='yellow', capsize=s)
     
     # Labels and layout
     ax1.set_xlabel('$\\ell$', fontsize=14)
@@ -390,14 +390,14 @@ def plot_nilc():
     ax1.tick_params(axis='both', labelsize=12, direction="in")
     ax1.tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
     ax1.tick_params(bottom=True, top=True, left=True, right=True, which = "minor", direction="in", length=5, width=1.5);
-    ax1.grid(which='major', linestyle='-', linewidth=2)
-    ax1.grid(which='minor', linestyle='dashed', linewidth=0.9)
+    ax1.grid(which='major', linestyle='-', linewidth=1, alpha=0.3)
+    ax1.grid(which='minor', linestyle='dashed', linewidth=0.5, alpha=0.3)
     for axis in ['top', 'bottom', 'left', 'right']:
         ax1.spines[axis].set_linewidth(2)
     
     plt.tight_layout()
     plt.subplots_adjust(hspace=0)
-    path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609')
+    path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250726')
     path_fig.mkdir(exist_ok=True, parents=True)
     plt.savefig(path_fig / Path(f'power_nilc.png'), dpi=300)
     plt.show()
@@ -413,7 +413,7 @@ def plot_nilc():
         'Fiducial CMB': res_th,
         'Recycling + Inpaint on B': res_inp,
         'Mask on B': res_ps_mask,
-        # 'Mask on QU 30GHz': res_ps_mask_30,
+        # 'Mask on B union': res_ps_mask_30,
     }
     
     stds = {
@@ -423,7 +423,7 @@ def plot_nilc():
         'Fiducial CMB': dl_in_std,
         'Recycling + Inpaint on B': inp_std,
         'Mask on B': ps_mask_std,
-        # 'Mask on QU 30GHz': ps_mask_30_std,
+        # 'Mask on B union': ps_mask_30_std,
     }
     
     colors = {
@@ -433,13 +433,15 @@ def plot_nilc():
         'Fiducial CMB': 'black',
         'Recycling + Inpaint on B': 'red',
         'Mask on B': 'orange',
-        # 'Mask on QU 30GHz': 'yellow',
+        # 'Mask on B union': 'yellow',
     }
     
     # Top: Residuals
     for label, data in residuals.items():
-        if label == 'Mask on QU':
+        if label == 'Mask on B':
             axs[0].plot(ell_arr, data[:lmax_ell_arr] / dl_in_ps[:lmax_ell_arr], label=label, marker='.', color=colors[label])
+        elif label == 'Mask on B union':
+            axs[0].plot(ell_arr, data[:lmax_ell_arr] / dl_in_ps_30GHz[:lmax_ell_arr], label=label, marker='.', color=colors[label])
         else:
             axs[0].plot(ell_arr, data[:lmax_ell_arr] / dl_in[:lmax_ell_arr], label=label, marker='.', color=colors[label])
     
@@ -448,7 +450,7 @@ def plot_nilc():
     axs[0].tick_params(axis='both', labelsize=12, direction="in", width=2, length=4)
     axs[0].tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
     axs[0].tick_params(bottom=True, top=True, left=True, right=True, which = "minor", direction="in", length=5, width=1.5);
-    axs[0].grid(which='major', linestyle='-', linewidth=2)
+    axs[0].grid(which='major', linestyle='-', linewidth=0.5, alpha=0.3)
     axs[0].set_ylim(-0.05,0.20)
     axs[0].set_xscale('log')
     for axis in ['top', 'bottom', 'left', 'right']:
@@ -466,7 +468,7 @@ def plot_nilc():
     axs[1].tick_params(axis='both', labelsize=12, direction="in", width=2, length=4)
     axs[1].tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
     axs[1].tick_params(bottom=True, top=True, left=True, right=True, which = "minor", direction="in", length=5, width=1.5);
-    axs[1].grid(which='major', linestyle='-', linewidth=2)
+    axs[1].grid(which='major', linestyle='-', linewidth=0.5, alpha=0.3)
     for axis in ['top', 'bottom', 'left', 'right']:
         axs[1].spines[axis].set_linewidth(2)
     
@@ -479,7 +481,7 @@ def plot_nilc():
     # Final layout
     plt.tight_layout()
     
-    path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609')
+    path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250726')
     path_fig.mkdir(exist_ok=True, parents=True)
     plt.savefig(path_fig / Path(f'res_std_nilc.png'), dpi=300)
     

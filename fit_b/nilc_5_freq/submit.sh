@@ -25,7 +25,7 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=32
+#SBATCH --cpus-per-task=64
 #SBATCH --mem=100GB
 # SBATCH --exclude=aliws[021-048]
 # SBATCH --mem-per-cpu=2000
@@ -40,7 +40,7 @@
 # python as.py
 
 date +%m-%d_%H-%M
-python -u ./calc_bias.py
+python -u ./do_masking.py
 
 date +%m-%d_%H-%M
 DATE=$(date +%m%d%H%M)

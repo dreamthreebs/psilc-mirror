@@ -41,7 +41,7 @@ def plot_map():
     hp.gnomview(m_pcfn, rot=[lon, lat, 0], sub=(153), notext=True, cbar=False, title='Simulation with PS', xsize=120, min=vmin, max=vmax)
 
     m_rmv = np.load(f'./data2/std/rmv/{rlz_idx}.npy')
-    hp.gnomview(m_rmv, rot=[lon, lat, 0], sub=(154), notext=True, cbar=False, title='GLSPF', xsize=120, min=vmin, max=vmax)
+    hp.gnomview(m_rmv, rot=[lon, lat, 0], sub=(154), notext=True, cbar=False, title='GPSF', xsize=120, min=vmin, max=vmax)
 
     m_inp = np.load(f'./data2/std/inp/{rlz_idx}.npy')
     hp.gnomview(m_inp, rot=[lon, lat, 0], sub=(155), notext=True, cbar=False, title='Inpainting', xsize=120, min=vmin, max=vmax)
@@ -75,7 +75,7 @@ def plot_map():
 
     # plt.tight_layout()
     plt.subplots_adjust()
-    plt.savefig('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609/nilc_res_map.pdf', bbox_inches='tight')
+    plt.savefig('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250726/nilc_res_map.pdf', bbox_inches='tight')
     plt.show()
 
 # gen_cmb_b()

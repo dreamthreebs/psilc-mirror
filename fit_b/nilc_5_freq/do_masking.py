@@ -145,7 +145,7 @@ def calc_cl_with_mask():
 
     freq = 30
     # mask_b = np.load(f"./ps_mask/{freq}GHz.npy")
-    mask_b = np.load(f"./ps_mask/union_40.npy")
+    mask_b = np.load(f"./ps_mask/new_union_apo.npy")
     # mask_b = np.load(f"./ps_mask/new_{freq}GHz_3deg.npy")
 
     m_std = np.load(f'./data2/std/pcfn/{rlz_idx}.npy')
@@ -159,8 +159,8 @@ def calc_cl_with_mask():
     # np.save(path_dl_std / Path(f'pcfn_{freq}_67_{rlz_idx}.npy'), dl_std)
     # np.save(path_dl_std / Path(f'n_{freq}_67_{rlz_idx}.npy'), dl_n)
 
-    np.save(path_dl_std / Path(f'pcfn_union_40_{rlz_idx}.npy'), dl_std)
-    np.save(path_dl_std / Path(f'n_union_40_{rlz_idx}.npy'), dl_n)
+    np.save(path_dl_std / Path(f'pcfn_union_new_apo_{rlz_idx}.npy'), dl_std)
+    np.save(path_dl_std / Path(f'n_union_new_apo_{rlz_idx}.npy'), dl_n)
 
 
 
@@ -177,7 +177,7 @@ def calc_th_bpw():
     ell_arr = bin_dl.get_effective_ells()
 
     # apo_mask  = np.load(f"../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy")
-    apo_mask  = np.load(f"./ps_mask/30GHz_67.npy")
+    apo_mask  = np.load(f"./ps_mask/new_union_apo.npy")
     # apo_mask  = np.load(f"./ps_mask/union.npy")
     hp.orthview(apo_mask, rot=[100,50, 0], title='mask', xsize=2000)
     plt.show()
@@ -186,8 +186,8 @@ def calc_th_bpw():
     f = nmt.NmtField(apo_mask, [np.ones_like(apo_mask)], masked_on_input=False, lmax=lmax, lmax_mask=lmax)
     w = nmt.NmtWorkspace.from_fields(f, f, bins=bin_dl)
 
-    # cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_8k.npy').T
-    cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_r_1.npy').T
+    cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_8k.npy').T
+    # cl_cmb = np.load('/afs/ihep.ac.cn/users/w/wangyiming25/work/dc2/psilc/src/cmbsim/cmbdata/cmbcl_r_1.npy').T
     print(f'{cl_cmb.shape=}')
     cl_true = cl_cmb[2,:lmax+1]
     ells = np.arange(len(cl_true))
@@ -256,7 +256,7 @@ def calc_th_bpw():
     path_dl_qu_mask.mkdir(parents=True, exist_ok=True)
     # np.save(path_dl_qu_mask/ Path(f'th_r_95_2deg_{rlz_idx}.npy'), dl_th)
     # np.save(path_dl_qu_mask/ Path(f'th_30_67_{rlz_idx}.npy'), dl_th)
-    np.save(path_dl_qu_mask/ Path(f'th_r_30_67_{rlz_idx}.npy'), dl_th)
+    np.save(path_dl_qu_mask/ Path(f'th_union_new_apo_{rlz_idx}.npy'), dl_th)
     # np.save(path_dl_qu_mask/ Path(f'th_std_apo_new_{rlz_idx}.npy'), dl_th_std)
 
 
@@ -313,6 +313,31 @@ def concat_df():
 
     df_union.to_csv("./concat_ps.csv", index=False)
 
+def gen_union_mask():
+
+    # mask = np.ones(hp.nside2npix(nside=nside))
+    # for freq in freq_list:
+    #     mask_freq = hp.read_map(f'../{freq}GHz/inpainting/new_mask/for_union.fits')
+    #     hp.orthview(mask_freq, rot=[100,50,0], half_sky=True)
+    #     plt.show()
+    #     mask = mask * mask_freq
+
+    # hp.orthview(mask, rot=[100,50,0], half_sky=True)
+    # plt.show()
+
+    # np.save('./ps_mask/new_union.npy', mask)
+
+    mask = np.load('./ps_mask/new_union.npy')
+    ori_mask = np.load(f"../../psfit/fitv4/fit_res/2048/ps_mask/new_mask/apo_C1_3_apo_3_apo_3.npy")
+
+    hp.orthview(mask * ori_mask, rot=[100,50,0], half_sky=True)
+    plt.show()
+
+
+    np.save('./ps_mask/new_union_apo.npy', mask * ori_mask)
+
+
+
 if __name__ == "__main__":
     # gen_apodized_ps_mask()
     # calc_cl_with_mask()
@@ -323,5 +348,6 @@ if __name__ == "__main__":
     # test_mask()
 
     # concat_df()
+    # gen_union_mask()
 
 
