@@ -9,13 +9,16 @@ from fit_qu_no_const import FitPolPS
 from config import freq, nside
 
 factor = hp.nside2pixarea(nside=nside)
+# factor = 1
 df = pd.read_csv(f'./mask/{freq}.csv')
+
+factor_convert = FitPolPS.mJy_to_uKCMB(1/factor, freq) # 1mJy = how many uK(arbitrary)
 
 for flux_idx in range(0,10):
     print(f'{flux_idx=}')
-    flux_p = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'pflux']/factor, freq)
-    flux_q = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'qflux']/factor, freq)
-    flux_u = FitPolPS.mJy_to_uKCMB(df.at[flux_idx, 'uflux']/factor, freq)
+    flux_p = df.at[flux_idx, 'pflux']
+    flux_q = df.at[flux_idx, 'qflux']
+    flux_u = df.at[flux_idx, 'uflux']
 
     # Assuming data is loaded or generated here
     # data = np.random.normal(loc=0, scale=1, size=10000)  # Example data
@@ -36,12 +39,12 @@ for flux_idx in range(0,10):
     # print(f'{P_list=}')
     
     for rlz_idx in range(0,200):
-        P = np.load(f'./parameter/th_have_all/fit_P_{rlz_idx}.npy')
-        phi = np.load(f'./parameter/th_have_all/fit_phi_{rlz_idx}.npy')
+        P = np.load(f'./parameter/estimate_pcfn/fit_P_{rlz_idx}.npy')
+        phi = np.load(f'./parameter/estimate_pcfn/fit_phi_{rlz_idx}.npy')
         # print(f"{P=}")
         # phi = np.load(f'./params/0/fit_2/phi_{rlz_idx}.npy')
-        Q = P * np.cos(phi)
-        U = P * np.sin(phi)
+        Q = P * np.cos(phi) / factor_convert
+        U = P * np.sin(phi) / factor_convert
         P_list.append(P)
         Q_list.append(Q)
         U_list.append(U)
@@ -90,12 +93,13 @@ for flux_idx in range(0,10):
     
     scaled_ref_pdf = norm.pdf(x, mu_ref, std_ref) * len(data) * np.diff(bin_edges)[0]
     # plt.plot(x, scaled_ref_pdf, 'k', linewidth=2, label=f'Ref (mu={mu_ref:.2f}, std={std_ref:.2f})')
-    plt.axvline(x=mu_ref, color='purple', linewidth=2, label=f'Input value: {mu_ref}')
+    plt.axvline(x=mu_ref, color='purple', linewidth=2, label=f'Input value: {mu_ref:.2f}')
     
-    plt.title(f"Fit results: mu = {mu:.2f}, std = {std:.2f}\nChi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}")
-    plt.xlabel('Point source amplitude')
+    plt.title(f"Fit results: mu = {mu:.2f}mJy, std = {std:.2f}mJy\nChi-squared test: χ² = {chi_squared_stat:.2f}, p-value = {p_value:.3f}")
+    plt.xlabel('Point source amplitude [mJy]')
     plt.ylabel("Counts")
-    plt.legend()
+    # plt.legend()
+    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20251028/est_{freq}.png', dpi=300)
     plt.show()
     
     # Print the chi-squared test result
