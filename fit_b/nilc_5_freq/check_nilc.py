@@ -896,6 +896,7 @@ def plot_bias():
     # ps_ps_mask_rmv = np.mean([np.load(f'./dl_res5/ps_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     fg_apo_rmv = np.mean([np.load(f'./dl_res5/fg_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     fg_apo_ps = np.mean([np.load(f'./dl_res5/fg/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
+    ilc_apo_rmv = np.mean([np.load(f'./dl_res5/ilc/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
     # fg_ps_mask_rmv = np.mean([np.load(f'./dl_res5/fg_rmv/union_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
 
     noise_apo_rmv = np.mean([np.load(f'./dl_res5/noise_rmv/apo_{rlz_idx}.npy') for rlz_idx in np.arange(1,200)], axis=0)
@@ -977,6 +978,8 @@ def plot_bias():
     ax_main.plot(ell_arr, unres_rmv_apo[:lmax_ell_arr], label='Unresolved PS', linewidth=2.5)
     # ax_main.plot(ell_arr, unres_rmv_ps_mask[:lmax_ell_arr], label='unresolved ps bias union rmv', linewidth=2.5)
     ax_main.plot(ell_arr, rmv_rmv_apo[:lmax_ell_arr], label='GPSF', linewidth=2.5)
+    ax_main.plot(ell_arr, np.abs(ilc_apo_rmv[:lmax_ell_arr]), label='ILC', linewidth=2.5)
+    # ax_main.plot(ell_arr, np.abs(ilc_apo_rmv[:lmax_ell_arr]) / dl_in[:lmax_ell_arr], label='fractional NILC', linewidth=2.5)
     # ax_main.plot(ell_arr, rmv_rmv_ps_mask[:lmax_ell_arr], label='rmv bias union rmv', linewidth=2.5)
     # ax_main.plot(ell_arr, ps_apo_ps[:lmax_ell_arr], label='PS (SIM with PS)', linewidth=2.5)
     # ax_main.plot(ell_arr, ps_ps_mask_rmv[:lmax_ell_arr], label='ps bias union rmv', linewidth=2.5)
@@ -1027,7 +1030,7 @@ def plot_bias():
     # Adjust layout for better spacing
     plt.tight_layout()
 
-    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250726/component_bias.png', dpi=300)
+    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20251028/component_bias.png', dpi=300)
 
     # Show plot
     plt.show()
@@ -1157,13 +1160,13 @@ def cpr_bias():
     # ax_main.plot(ell_arr, rmv_bias_ps_mask[:lmax_ell_arr], label='rmv bias union', linewidth=2.5)
 
     # ax_main.plot(ell_arr, ps_apo_rmv[:lmax_ell_arr], label='PS before GPSF', linewidth=2.5)
-    ax_main.plot(ell_arr, ps_apo_ps[:lmax_ell_arr], label='PS (Simulation with PS)', linewidth=2.5)
+    ax_main.plot(ell_arr, ps_apo_ps[:lmax_ell_arr], label='PS (PS unmitigated)', linewidth=2.5)
     # ax_main.plot(ell_arr, unres_rmv_ps_mask[:lmax_ell_arr], label='unresolved ps bias union rmv', linewidth=2.5)
     ax_main.plot(ell_arr, rmv_rmv_apo[:lmax_ell_arr] + unres_rmv_apo[:lmax_ell_arr], label='PS (GPSF)', linewidth=2.5)
     # ax_main.plot(ell_arr, rmv_rmv_ps_mask[:lmax_ell_arr], label='rmv bias union rmv', linewidth=2.5)
     # ax_main.plot(ell_arr, ps_apo_ps[:lmax_ell_arr], label='PS (SIM with PS)', linewidth=2.5)
     # ax_main.plot(ell_arr, ps_ps_mask_rmv[:lmax_ell_arr], label='ps bias union rmv', linewidth=2.5)
-    ax_main.plot(ell_arr, fg_apo_ps[:lmax_ell_arr], label='Foreground (Simulation with PS) ', linewidth=2.5)
+    ax_main.plot(ell_arr, fg_apo_ps[:lmax_ell_arr], label='Foreground (PS unmitigated) ', linewidth=2.5)
     ax_main.plot(ell_arr, fg_apo_rmv[:lmax_ell_arr], label='Foreground (GPSF)', linewidth=2.5)
     # ax_main.plot(ell_arr, noise_apo_rmv[:lmax_ell_arr], label='Noise', linewidth=2.5)
 
@@ -1210,7 +1213,7 @@ def cpr_bias():
     # Adjust layout for better spacing
     plt.tight_layout()
 
-    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250726/cpr_bias.png', dpi=300)
+    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20251028/cpr_bias.png', dpi=300)
 
     # Show plot
     plt.show()
@@ -1237,5 +1240,5 @@ def from_cl_to_bandpower():
 # plot_ms4()
 # plot_ms5()
 plot_bias()
-cpr_bias()
+# cpr_bias()
 

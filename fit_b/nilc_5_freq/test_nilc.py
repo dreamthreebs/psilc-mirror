@@ -40,3 +40,12 @@ def smooth_to_B():
 def do_nilc():
     pass
 
+
+def see_ilc_bias():
+    for rlz_idx in range(100):
+        res = np.load(f"./dl_res5/ilc/apo_{rlz_idx}.npy")
+        print(f"{res=}")
+
+
+see_ilc_bias()
+

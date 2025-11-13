@@ -371,8 +371,8 @@ def plot_nilc():
     ax1.set_yscale('log')
     
     # Plot mean ± std
-    ax1.errorbar(ell_arr * 0.970, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='Simulation with PS', fmt='.', color='blue', capsize=s)
-    ax1.errorbar(ell_arr * 0.985, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='Simulation without PS', fmt='.', color='purple', capsize=s)
+    ax1.errorbar(ell_arr * 0.970, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='PS unmitigated', fmt='.', color='blue', capsize=s)
+    ax1.errorbar(ell_arr * 0.985, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='No PS', fmt='.', color='purple', capsize=s)
     ax1.errorbar(ell_arr * 1.00, dl_in[:lmax_ell_arr], yerr=dl_in_std[:lmax_ell_arr], label='Fiducial CMB', fmt='o', color='black', capsize=s, linestyle='-', markersize=3)
     ax1.errorbar(ell_arr * 1.015, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='GPSF', fmt='.', color='green', capsize=s)
     # ax1.errorbar(ell_arr * 1.00, dl_in_ps_30GHz[:lmax_ell_arr], yerr=dl_in_std[:lmax_ell_arr], label='Fiducial CMB union', fmt='o', color='grey', capsize=s, linestyle='-', markersize=3)
@@ -397,7 +397,7 @@ def plot_nilc():
     
     plt.tight_layout()
     plt.subplots_adjust(hspace=0)
-    path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250726')
+    path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250814')
     path_fig.mkdir(exist_ok=True, parents=True)
     plt.savefig(path_fig / Path(f'power_nilc.png'), dpi=300)
     plt.show()
@@ -481,7 +481,7 @@ def plot_nilc():
     # Final layout
     plt.tight_layout()
     
-    path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250726')
+    path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250814')
     path_fig.mkdir(exist_ok=True, parents=True)
     plt.savefig(path_fig / Path(f'res_std_nilc.png'), dpi=300)
     

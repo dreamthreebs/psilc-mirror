@@ -35,6 +35,13 @@ def calc_dl_from_scalar_map_bl(scalar_map, apo_mask, bl, bin_dl, masked_on_input
     dl = nmt.compute_full_master(scalar_field, scalar_field, bin_dl)
     return dl[0]
 
+def calc_dl_cross_bl(map_1, map_2, apo_mask, bl, bin_dl, masked_on_input):
+    f1 = nmt.NmtField(apo_mask, [map_1], beam=bl, masked_on_input=masked_on_input, lmax=lmax, lmax_mask=lmax)
+    f2 = nmt.NmtField(apo_mask, [map_2], beam=bl, masked_on_input=masked_on_input, lmax=lmax, lmax_mask=lmax)
+    dl = nmt.compute_full_master(f1, f2, bin_dl)
+    return dl[0]
+
+
 def generate_bins(l_min_start=30, delta_l_min=30, l_max=1500, fold=0.3, l_threshold=None):
     bins_edges = []
     l_min = l_min_start  # starting l_min
@@ -144,6 +151,26 @@ def gen_cfn(freq, beam, rlz_idx=0, mode='mean', return_noise=False):
 
     cfn = noise + cmb_iqu + fg
     return cfn
+
+def gen_fn(freq, beam, rlz_idx=0, mode='mean', return_noise=False):
+    # mode can be mean or std
+    nside = 2048
+
+    nstd = np.load(f'../../FGSim/NSTDNORTH/2048/{freq}.npy')
+    npix = hp.nside2npix(nside=2048)
+    np.random.seed(seed=noise_seed[rlz_idx])
+    # noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    noise = nstd * np.random.normal(loc=0, scale=1, size=(3, npix))
+    print(f"{np.std(noise[1])=}")
+
+    if return_noise:
+        return noise
+
+    fg = np.load(f'../../fitdata/2048/FG/{freq}/fg.npy')
+
+    fn = noise + fg
+    return fn
+
 
 
 def gen_cmb(beam, rlz_idx=0):
@@ -273,7 +300,7 @@ def pp_bias(maps_in, lmax_base, beam_base, rlz_idx):
     m_freq_list = []
     for m, freq, beam, lmax in zip(maps_in, freq_list, beam_list, lmax_list):
         print(f"process on {freq=} map:{beam=} {lmax=}")
-        # 1. smooth
+        # 1. smooth (remember multiply m_smooth)
         smooth_m = smooth_tqu(map_in=m, lmax=lmax, beam_in=beam, beam_out=beam_base)
         print(f"smooth done!")
         # 2. EB Leakage correction
@@ -355,6 +382,26 @@ def save_bias_rmv_model():
 
     np.save(path_bias / Path(f'{rlz_idx}.npy'), m_rmv_bias)
 
+def save_bias_d():
+    def get_m_d(freq, beam):
+        pcfn = gen_pcfn(freq=freq, beam=beam, mode='std', rlz_idx=rlz_idx)
+        fn = gen_fn(freq=freq, beam=beam, mode='std', rlz_idx=rlz_idx)
+        rmv_q = np.load(f'../{freq}GHz/fit_res/std/3sigma/map_q_{rlz_idx}.npy').copy()
+        rmv_u = np.load(f'../{freq}GHz/fit_res/std/3sigma/map_u_{rlz_idx}.npy').copy()
+        resolved_ps = np.load(f'../{freq}GHz/data/ps/resolved_ps.npy')
+        print(f"loaded {freq} rmv bias")
+        return np.asarray([np.zeros_like(rmv_q), pcfn[1].copy() - rmv_q - resolved_ps[1].copy() + fn[1].copy(), pcfn[2].copy() - rmv_u - resolved_ps[2].copy() + fn[2].copy()])
+
+    rmv_bias = np.asarray([get_m_d(freq, beam) for freq, beam in zip(freq_list, beam_list)])
+    print(f"{rmv_bias.shape=}")
+
+    m_rmv_bias = pp_bias(rmv_bias, lmax_base=lmax, beam_base=beam_base, rlz_idx=rlz_idx)
+    path_bias = Path(f'./data_bias/d')
+    path_bias.mkdir(parents=True, exist_ok=True)
+
+    np.save(path_bias / Path(f'{rlz_idx}.npy'), m_rmv_bias)
+
+
 def save_bias_cfn():
     cfn = np.asarray([gen_cfn(freq=freq, beam=beam, mode='std', rlz_idx=rlz_idx) for freq, beam in zip(freq_list, beam_list)])
 
@@ -362,7 +409,25 @@ def save_bias_cfn():
     path_bias = Path(f'./data_bias/cfn')
     path_bias.mkdir(parents=True, exist_ok=True)
 
-    np.save(path_bias / Path(f'{rlz_idx}.npy'), cfn)
+    np.save(path_bias / Path(f'{rlz_idx}.npy'), m_cfn)
+
+def save_bias_pcfn():
+    pcfn = np.asarray([gen_pcfn(freq=freq, beam=beam, mode='std', rlz_idx=rlz_idx) for freq, beam in zip(freq_list, beam_list)])
+
+    m_pcfn = pp_bias(pcfn, lmax_base=lmax, beam_base=beam_base, rlz_idx=rlz_idx)
+    path_bias = Path(f'./data_bias/pcfn')
+    path_bias.mkdir(parents=True, exist_ok=True)
+
+    np.save(path_bias / Path(f'{rlz_idx}.npy'), m_pcfn)
+
+def save_bias_c():
+    c = np.asarray([gen_cmb(beam=beam, rlz_idx=rlz_idx) for beam in beam_list])
+
+    m_c = pp_bias(c, lmax_base=lmax, beam_base=beam_base, rlz_idx=rlz_idx)
+    path_bias = Path(f'./data_bias/c')
+    path_bias.mkdir(parents=True, exist_ok=True)
+
+    np.save(path_bias / Path(f'{rlz_idx}.npy'), m_c)
 
 
 def check_fg_bias():
@@ -522,6 +587,27 @@ def calc_rmv_bias_cl():
     np.save(path_dl_diff / Path(f'union_{rlz_idx}.npy'), dl_diff_ps_mask)
     np.save(path_dl_diff / Path(f'apo_{rlz_idx}.npy'), dl_diff_apo)
 
+def calc_ilc_bias_cl():
+    # get the foreground bias upon different masks
+    # that might be wrong because cmb might be a little different from ilc befored maps !!!
+    bl = hp.gauss_beam(fwhm=np.deg2rad(beam_base)/60, lmax=lmax, pol=True)[:,2]
+    l_min_edges, l_max_edges = generate_bins(l_min_start=42, delta_l_min=40, l_max=lmax+1, fold=0.1, l_threshold=400)
+    # delta_ell = 30
+    # bin_dl = nmt.NmtBin.from_nside_linear(nside, nlb=delta_ell, is_Dell=True)
+    # bin_dl = nmt.NmtBin.from_lmax_linear(lmax=lmax, nlb=40, is_Dell=True)
+    bin_dl = nmt.NmtBin.from_edges(l_min_edges, l_max_edges, is_Dell=True)
+    ell_arr = bin_dl.get_effective_ells()
+
+    s = np.load(f'./data_bias/c/{rlz_idx}.npy')
+    d = np.load(f'./data_bias/d/{rlz_idx}.npy')
+
+    dl_sd = 2 * calc_dl_cross_bl(map_1=s, map_2=d, apo_mask=apo_mask, bl=bl, bin_dl=bin_dl, masked_on_input=False)
+    path_dl_diff = Path(f'./dl_res5/ilc')
+    path_dl_diff.mkdir(parents=True, exist_ok=True)
+
+    np.save(path_dl_diff / Path(f'apo_{rlz_idx}.npy'), dl_sd)
+
+
 
 ## tests
 def test_each_freq():
@@ -545,7 +631,7 @@ def test_nilc_res():
     # rmv_bias = np.load(f'./data_bias/rmv_bias_rmv/{rlz_idx}.npy')
 
     # m = np.load(f'./data2/std/pcfn/0.npy')
-    m = np.load(f'./data_bias/ps/0.npy')
+    m = np.load(f'./data_bias/d/0.npy')
     mask = np.load(f"./ps_mask/union.npy")
 
     # hp.orthview(unresolved_ps, rot=[100,50,0], title='unresolved ps')
@@ -598,10 +684,11 @@ def gen_apodized_ps_mask():
     np.save(f'./ps_mask/30GHz_67.npy', mask * ori_mask)
 
 def test_check_map():
-    m1 = np.load('./ps_mask/30GHz.npy')
-    m2 = np.load('./ps_mask/30GHz_67.npy')
+    m1 = np.load('./data_bias/c/0.npy')
+    m2 = np.load('./data_bias/c/1.npy')
     hp.orthview(m1, rot=[100,50,0], half_sky=True)
     hp.orthview(m2, rot=[100,50,0], half_sky=True)
+    hp.orthview(m1 - m2, rot=[100,50,0], half_sky=True)
     plt.show()
 
 def test_deconvolve():
@@ -634,8 +721,11 @@ if __name__ == "__main__":
     # save_bias_ps()
     # save_bias_unresolved_ps()
     # save_bias_rmv_model()
+    # save_bias_d()
+    # save_bias_c()
     # save_bias_cfn()
     # save_bias_noise()
+    # save_bias_pcfn()
 
     # check_fg_bias()
 
@@ -643,7 +733,8 @@ if __name__ == "__main__":
     # calc_ps_bias_cl()
     # calc_unresolved_ps_bias_cl()
     # calc_rmv_bias_cl()
-    calc_noise_bias_cl()
+    # calc_noise_bias_cl()
+    calc_ilc_bias_cl()
 
     # test_each_freq()
     # test_nilc_res()
