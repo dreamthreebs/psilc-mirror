@@ -17,7 +17,6 @@ l = np.arange(lmax+1)
 
 df = pd.read_csv('../../../FGSim/FreqBand')
 print(f'{freq=}, {beam=}')
-
 cf_list = []
 cfn_list = []
 pcfn_list = []
@@ -209,9 +208,9 @@ ax1.set_xscale('log')
 ax1.set_yscale('log')
 
 # Plot mean ± std
-ax1.errorbar(ell_arr * 0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='Simulation with PS', fmt='.', color='blue', capsize=s)
-ax1.errorbar(ell_arr * 1.00, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='Simulation without PS', fmt='o', color='black', capsize=s, linestyle='-', markersize=3)
-ax1.errorbar(ell_arr * 1.015, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='GLSPF', fmt='.', color='green', capsize=s)
+ax1.errorbar(ell_arr * 0.985, pcfn_mean[:lmax_ell_arr], yerr=pcfn_std[:lmax_ell_arr], label='PS unmitigated', fmt='.', color='blue', capsize=s)
+ax1.errorbar(ell_arr * 1.00, cfn_mean[:lmax_ell_arr], yerr=cfn_std[:lmax_ell_arr], label='No PS', fmt='o', color='black', capsize=s, linestyle='-', markersize=3)
+ax1.errorbar(ell_arr * 1.015, rmv_mean[:lmax_ell_arr], yerr=rmv_std[:lmax_ell_arr], label='GPSF', fmt='.', color='green', capsize=s)
 # ax1.errorbar(ell_arr * 1.03, ps_mask_mean[:lmax_ell_arr], yerr=ps_mask_std[:lmax_ell_arr], label='Masking', fmt='.', color='orange', capsize=s)
 ax1.errorbar(ell_arr * 1.03, inp_mean[:lmax_ell_arr], yerr=inp_std[:lmax_ell_arr], label='Inpainting', fmt='.', color='red', capsize=s)
 
@@ -225,14 +224,14 @@ ax1.legend(loc='lower left', fontsize=11)
 ax1.tick_params(axis='both', labelsize=12, direction="in")
 ax1.tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
 ax1.tick_params(bottom=True, top=True, left=True, right=True, which = "minor", direction="in", length=5, width=1.5);
-ax1.grid(which='major', linestyle='-', linewidth=2)
-ax1.grid(which='minor', linestyle='dashed', linewidth=0.9)
+ax1.grid(which='major', linestyle='-', linewidth=1, alpha=0.3)
+ax1.grid(which='minor', linestyle='dashed', linewidth=0.5, alpha=0.3)
 for axis in ['top', 'bottom', 'left', 'right']:
     ax1.spines[axis].set_linewidth(2)
 
 plt.tight_layout()
 plt.subplots_adjust(hspace=0)
-path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609')
+path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250814')
 path_fig.mkdir(exist_ok=True, parents=True)
 plt.savefig(path_fig / Path(f'power_{freq}GHz.png'), dpi=300)
 plt.show()
@@ -274,7 +273,7 @@ axs[0].set_ylabel('Residual $D_\\ell^{BB} / D_\\ell^{BB}$', fontsize=14)
 axs[0].tick_params(axis='both', labelsize=12, direction="in", width=2, length=4)
 axs[0].tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
 axs[0].tick_params(bottom=True, top=True, left=True, right=True, which = "minor", direction="in", length=5, width=1.5);
-axs[0].grid(which='major', linestyle='-', linewidth=2)
+axs[0].grid(which='major', linestyle='-', linewidth=0.5, alpha=0.3)
 # axs[0].set_ylim(-0.05,0.7)
 axs[0].set_xscale('log')
 for axis in ['top', 'bottom', 'left', 'right']:
@@ -289,7 +288,7 @@ axs[1].set_ylabel(r'$\sigma(D_\ell^{BB}) / D_\ell^{BB}$', fontsize=14)
 axs[1].tick_params(axis='both', labelsize=12, direction="in", width=2, length=4)
 axs[1].tick_params(bottom=True, top=True, left=True, right=True, which = "major", direction="in", length=10, width=2);
 axs[1].tick_params(bottom=True, top=True, left=True, right=True, which = "minor", direction="in", length=5, width=1.5);
-axs[1].grid(which='major', linestyle='-', linewidth=2)
+axs[1].grid(which='major', linestyle='-', linewidth=0.5, alpha=0.3)
 for axis in ['top', 'bottom', 'left', 'right']:
     axs[1].spines[axis].set_linewidth(2)
 
@@ -302,7 +301,7 @@ fig2.align_ylabels(axs)
 # Final layout
 plt.tight_layout()
 
-path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609')
+path_fig = Path('/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250814')
 path_fig.mkdir(exist_ok=True, parents=True)
 plt.savefig(path_fig / Path(f'res_std_{freq}GHz.png'), dpi=300)
 

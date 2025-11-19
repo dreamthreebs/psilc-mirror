@@ -2,6 +2,7 @@ import numpy as np
 import healpy as hp
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
 from pathlib import Path
 from config import freq, lmax, nside, beam
@@ -105,7 +106,7 @@ def plot_each_freq_map():
     vmin = -4
     vmax = 4
 
-    hp.gnomview(m_cfn, rot=[lon, lat, 0], sub=(141), notext=True, cbar=False, title='Simulation without PS', xsize=250, min=vmin, max=vmax)
+    hp.gnomview(m_cfn, rot=[lon, lat, 0], sub=(141), notext=True, cbar=False, title='No PS', xsize=250, min=vmin, max=vmax)
 
     # ax = plt.gca()
     # ax.plot([1.02, 1.02], [0, 1],
@@ -115,8 +116,8 @@ def plot_each_freq_map():
     #         transform=ax.transAxes,
     #         clip_on=False)  # clip_on=False lets it draw right at the edge
 
-    hp.gnomview(m_pcfn, rot=[lon, lat, 0], sub=(142), notext=True, cbar=False, title='Simulation with PS', xsize=250, min=vmin, max=vmax)
-    hp.gnomview(m_rmv, rot=[lon, lat, 0], sub=(143), notext=True, cbar=False, title='GLSPF', xsize=250, min=vmin, max=vmax)
+    hp.gnomview(m_pcfn, rot=[lon, lat, 0], sub=(142), notext=True, cbar=False, title='PS unmitigated', xsize=250, min=vmin, max=vmax)
+    hp.gnomview(m_rmv, rot=[lon, lat, 0], sub=(143), notext=True, cbar=False, title='GPSF', xsize=250, min=vmin, max=vmax)
     hp.gnomview(m_inp, rot=[lon, lat, 0], sub=(144), notext=True, cbar=False, title='Inpainting', xsize=250, min=vmin, max=vmax)
 
     # 2) now grab the first axes (it's the first one created)
@@ -144,7 +145,7 @@ def plot_each_freq_map():
 
     # plt.tight_layout()
     plt.subplots_adjust()
-    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609/{freq}.pdf', bbox_inches='tight')
+    plt.savefig(f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250814/{freq}.pdf', bbox_inches='tight')
     # plt.show()
     plt.show()
 
@@ -162,6 +163,85 @@ def plot_QU():
     # plt.show()
 
     hp.gnomview(m_p[1], rot=[lon, lat, 0])
+    plt.show()
+
+def plot_each_freq_map():
+
+    # ======== Load maps ========
+    m_pcfn = np.load(f'./paper/B_map/pcfn_{rlz_idx}.npy')
+    m_cfn  = np.load(f'./paper/B_map/cfn_{rlz_idx}.npy')
+    m_rmv  = np.load(f'./paper/B_map/rmv_{rlz_idx}.npy')
+    m_inp  = hp.read_map(f'./inpainting/output_m3_std_new/{rlz_idx}.fits')
+
+    # ======== Difference maps ========
+    diff_pcfn = m_pcfn - m_cfn
+    diff_rmv  = m_rmv  - m_cfn
+    diff_inp  = m_inp  - m_cfn
+
+    # ======== Center coordinates ========
+    df = pd.read_csv(f'./mask/{freq}_after_filter.csv')
+    lon = np.rad2deg(df.at[flux_idx, 'lon'])
+    lat = np.rad2deg(df.at[flux_idx, 'lat'])
+
+    # ======== Color ranges ========
+    vmin, vmax = -4, 4
+    dvmin, dvmax = -2, 2
+
+    # ======== Prepare figure ========
+    fig = plt.figure(figsize=(14, 8))
+
+    # ========== Row 1 ==========
+    hp.gnomview(m_cfn,  rot=[lon, lat, 0], sub=(241),
+                title='CFN', notext=True, cbar=False,
+                xsize=300, min=vmin, max=vmax)
+
+    hp.gnomview(m_pcfn, rot=[lon, lat, 0], sub=(242),
+                title='PCFN', notext=True, cbar=False,
+                xsize=300, min=vmin, max=vmax)
+
+    hp.gnomview(m_rmv,  rot=[lon, lat, 0], sub=(243),
+                title='GLSPF', notext=True, cbar=False,
+                xsize=300, min=vmin, max=vmax)
+
+    hp.gnomview(m_inp,  rot=[lon, lat, 0], sub=(244),
+                title='Inpainting', notext=True, cbar=False,
+                xsize=300, min=vmin, max=vmax)
+
+    # ========== Row 2 ==========
+    # --- sub=(245) intentionally left blank (no plot) ---
+    ax_blank = fig.add_subplot(245)
+    ax_blank.axis('off')
+
+    hp.gnomview(diff_pcfn, rot=[lon, lat, 0], sub=(246),
+                title='PCFN − CFN', notext=True, cbar=False,
+                xsize=300, min=dvmin, max=dvmax)
+
+    hp.gnomview(diff_rmv,  rot=[lon, lat, 0], sub=(247),
+                title='GLSPF − CFN', notext=True, cbar=False,
+                xsize=300, min=dvmin, max=dvmax)
+
+    hp.gnomview(diff_inp,  rot=[lon, lat, 0], sub=(248),
+                title='Inpainting − CFN', notext=True, cbar=False,
+                xsize=300, min=dvmin, max=dvmax)
+
+    # ========== Colorbars ==========
+    # Top row colorbar
+    cax1 = fig.add_axes([0.33, 0.07, 0.34, 0.03])
+    sm1 = plt.cm.ScalarMappable(norm=plt.Normalize(vmin, vmax), cmap='viridis')
+    sm1.set_array([])
+    cbar1 = fig.colorbar(sm1, cax=cax1, orientation='horizontal')
+    cbar1.set_label('$\\mu K_{\\rm CMB}$')
+
+    # Bottom row residual colorbar
+    cax2 = fig.add_axes([0.33, 0.01, 0.34, 0.03])
+    sm2 = plt.cm.ScalarMappable(norm=plt.Normalize(dvmin, dvmax), cmap='coolwarm')
+    sm2.set_array([])
+    cbar2 = fig.colorbar(sm2, cax=cax2, orientation='horizontal')
+    cbar2.set_label('Residual ($\\mu K_{\\rm CMB}$)')
+
+    # # Save
+    # outpath = f'/afs/ihep.ac.cn/users/w/wangyiming25/tmp/20250609/{freq}_maps_with_diff.pdf'
+    # plt.savefig(outpath, bbox_inches='tight')
     plt.show()
 
 
